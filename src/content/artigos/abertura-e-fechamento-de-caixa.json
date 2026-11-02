@@ -1,0 +1,337 @@
+{
+  "slug": "abertura-e-fechamento-de-caixa",
+  "title": "Abertura e fechamento de caixa: passo a passo simples",
+  "h1": "Abertura e fechamento de caixa: como fazer todo dia sem erro (passo a passo)",
+  "description": "Abertura e fechamento de caixa passo a passo: quanto deixar de troco, como conferir dinheiro, Pix e cartão e o que fazer quando o caixa não bate.",
+  "excerpt": "Abrir o caixa com o troco contado e fechar conferindo o que entrou é o que separa o comércio que sabe quanto vendeu do que vive no palpite. Veja o passo a passo, a conta e os erros mais comuns.",
+  "date": "2026-11-02",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "abertura e fechamento de caixa",
+    "fechamento de caixa",
+    "como fazer fechamento de caixa",
+    "abertura de caixa",
+    "caixa não bateu",
+    "quebra de caixa",
+    "fundo de troco"
+  ],
+  "image": "/images/guias/abertura-e-fechamento-de-caixa.jpg",
+  "imageAlt": "Dona de lanchonete conferindo o dinheiro da gaveta no balcão durante o fechamento de caixa",
+  "audio": {
+    "src": "/audio/guias/abertura-e-fechamento-de-caixa.mp3",
+    "duration": 595.4,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0,
+        "target": "intro"
+      },
+      {
+        "t": 46.51,
+        "target": "s1"
+      },
+      {
+        "t": 111.18,
+        "target": "s2"
+      },
+      {
+        "t": 191.65,
+        "target": "s3"
+      },
+      {
+        "t": 256.04,
+        "target": "s4"
+      },
+      {
+        "t": 363.19,
+        "target": "s5"
+      },
+      {
+        "t": 452.34,
+        "target": "s6"
+      },
+      {
+        "t": 497.69,
+        "target": "s7"
+      },
+      {
+        "t": 537.64,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Abertura e fechamento de caixa é a rotina de contar o dinheiro da gaveta no começo do dia (o troco), anotar tudo o que entra e sai durante o expediente e, no fim, comparar o que deveria ter na gaveta com o que realmente tem. Quando os dois números batem, você sabe que vendeu o que acha que vendeu.",
+    "Neste guia você vai ver como abrir o caixa, quanto deixar de troco, o que anotar durante o dia, como fazer o fechamento de caixa passo a passo com a conta pronta, o que fazer quando sobra ou falta dinheiro e quais erros mais fazem o caixa não bater."
+  ],
+  "sections": [
+    {
+      "h2": "Por que abrir e fechar o caixa todo dia?",
+      "blocks": [
+        {
+          "p": "Sem abertura e fechamento, a gaveta vira uma caixa preta: entra dinheiro de venda, sai dinheiro para pagar o gás, alguém troca uma nota, e no fim do mês ninguém sabe dizer se o negócio deu lucro ou se o dinheiro sumiu no caminho."
+        },
+        {
+          "ul": [
+            "**Você descobre o erro no mesmo dia**, quando ainda dá para lembrar da venda, do troco errado ou da retirada sem anotação.",
+            "**Cada turno tem um responsável.** Quem abriu e quem fechou fica registrado, e a conversa sobre diferença deixa de ser acusação.",
+            "**Dinheiro, Pix e cartão aparecem separados**, o que facilita conferir com o extrato do banco e da maquininha.",
+            "**O relatório do dia vira histórico.** Dá para ver os dias que mais vendem e os dias em que o caixa costuma não bater."
+          ]
+        },
+        {
+          "p": "Um caixa organizado também é a base do resto da gestão: [relatório de vendas](/guia/relatorio-de-vendas-pequeno-negocio), [controle de estoque](/guia/controle-de-estoque-para-delivery) e preço certo dependem de saber o que foi vendido de verdade."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer a abertura de caixa",
+      "blocks": [
+        {
+          "ol": [
+            "**Conte o troco inicial** nota por nota e moeda por moeda, antes da primeira venda.",
+            "**Anote o valor e quem abriu.** No caderno, na planilha ou no sistema, com data e hora.",
+            "**Confira a maquininha e o Pix:** maquininha ligada, com bateria e papel; chave Pix certa no QR Code do balcão.",
+            "**Separe o lugar da sangria:** envelope, cofre ou bolsa onde vai o dinheiro que sai da gaveta durante o dia."
+          ]
+        },
+        {
+          "p": "**Quanto deixar de troco?** Não existe valor certo para todos. A regra prática é olhar quanto entra em dinheiro num dia normal e quais notas os clientes mais usam. Exemplo: uma lanchonete em que a maioria paga com nota de 50 para contas de 20 a 35 reais precisa de bastante nota de 10 e de 5, mais moedas. Um fundo de troco de R$ 150 a R$ 200 bem dividido costuma resolver melhor do que R$ 500 só em notas grandes."
+        },
+        {
+          "tip": "Use sempre o mesmo valor de troco inicial. Assim, no fechamento, você já sabe quanto precisa separar para o dia seguinte e o resto é venda."
+        }
+      ]
+    },
+    {
+      "h2": "O que anotar durante o dia: sangria e suprimento",
+      "blocks": [
+        {
+          "p": "Entre a abertura e o fechamento, o dinheiro da gaveta muda por três motivos: vendas em dinheiro, retiradas e reforços de troco. As vendas o sistema ou o caderno já registram. As outras duas movimentações precisam de anotação na hora."
+        },
+        {
+          "table": {
+            "head": [
+              "Movimento",
+              "O que é",
+              "Exemplo"
+            ],
+            "rows": [
+              [
+                "Sangria",
+                "Dinheiro que sai da gaveta sem ser troco de venda",
+                "Retirar R$ 500 para guardar no cofre ou pagar o fornecedor do gás"
+              ],
+              [
+                "Suprimento",
+                "Dinheiro que entra na gaveta sem ser venda",
+                "Colocar R$ 50 em moedas porque o troco acabou"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Toda sangria e todo suprimento precisam de valor, motivo e responsável. Se alguém pega dinheiro da gaveta para comprar pão e não anota, no fim do dia vai parecer que faltou dinheiro. Explicamos com mais detalhes no guia de [sangria de caixa](/guia/sangria-de-caixa)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer o fechamento de caixa passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "**Pare as vendas no caixa** (ou feche o turno) para a contagem não mudar no meio.",
+            "**Some as vendas por forma de pagamento:** dinheiro, Pix, crédito e débito separados.",
+            "**Some as sangrias e os suprimentos** do dia.",
+            "**Calcule o dinheiro esperado na gaveta:** troco inicial + vendas em dinheiro + suprimentos − sangrias.",
+            "**Conte o dinheiro da gaveta** com calma, separando por nota.",
+            "**Compare esperado e contado.** Anote a diferença, mesmo que seja de centavos.",
+            "**Confira Pix e cartão** com o extrato do banco e o relatório da maquininha.",
+            "**Guarde o relatório** e separe o troco do dia seguinte."
+          ]
+        },
+        {
+          "p": "Exemplo: uma lanchonete abriu com R$ 150 de troco. Vendeu R$ 820 em dinheiro, R$ 1.240 em Pix, R$ 980 no crédito e R$ 610 no débito, total de R$ 3.650. Durante o dia colocou R$ 50 em moedas (suprimento) e tirou R$ 600 para o cofre (sangria)."
+        },
+        {
+          "table": {
+            "head": [
+              "Conta do dinheiro na gaveta",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Troco inicial",
+                "R$ 150,00"
+              ],
+              [
+                "+ Vendas em dinheiro",
+                "R$ 820,00"
+              ],
+              [
+                "+ Suprimento",
+                "R$ 50,00"
+              ],
+              [
+                "− Sangria",
+                "R$ 600,00"
+              ],
+              [
+                "= Dinheiro esperado na gaveta",
+                "R$ 420,00"
+              ],
+              [
+                "Dinheiro contado",
+                "R$ 410,00"
+              ],
+              [
+                "Diferença",
+                "faltaram R$ 10,00"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/abertura-e-fechamento-de-caixa-2.jpg",
+          "alt": "Diagrama do fechamento de caixa: troco inicial mais vendas em dinheiro e suprimentos, menos sangrias, igual ao dinheiro esperado na gaveta",
+          "caption": "A conta do fechamento de caixa: Pix e cartão entram no total vendido, mas não na gaveta."
+        },
+        {
+          "p": "Repare que Pix e cartão entram no total vendido, mas não na conta da gaveta, porque esse dinheiro cai no banco. É por isso que o fechamento separa as formas de pagamento."
+        }
+      ]
+    },
+    {
+      "h2": "O caixa não bateu: o que fazer quando sobra ou falta dinheiro",
+      "blocks": [
+        {
+          "p": "Diferença pequena acontece, principalmente em troco com moedas. O que não pode é a diferença ficar sem explicação ou virar rotina. Antes de qualquer conclusão, refaça a conferência:"
+        },
+        {
+          "ul": [
+            "**Conte a gaveta de novo**, de preferência outra pessoa.",
+            "**Procure venda lançada na forma errada:** cliente pagou no Pix e a venda foi marcada como dinheiro, ou o contrário.",
+            "**Procure sangria ou suprimento sem anotação**, como dinheiro tirado para uma compra rápida.",
+            "**Confira vendas canceladas ou duplicadas** no sistema ou na maquininha.",
+            "**Anote a diferença e a causa** no relatório do dia, mesmo quando não descobrir o motivo."
+          ]
+        },
+        {
+          "p": "Se a diferença se repete sempre no mesmo turno, o problema é de processo: falta de troco, operador sem treino ou retiradas sem registro. Ajuste a rotina antes de cobrar alguém."
+        },
+        {
+          "tip": "Sobre descontar a diferença do salário: a CLT (art. 462, parágrafo 1º) só permite desconto por dano causado pelo empregado quando isso foi combinado no contrato ou quando há dolo, e a Justiça do Trabalho costuma exigir que a empresa prove a culpa. Este guia é informativo e não substitui a orientação de um contador ou advogado trabalhista."
+        }
+      ]
+    },
+    {
+      "h2": "Erros que fazem o caixa não bater",
+      "blocks": [
+        {
+          "ul": [
+            "**Abrir sem contar o troco:** se você não sabe com quanto começou, nunca vai saber quanto deveria ter.",
+            "**Misturar o dinheiro do caixa com o do bolso** para pagar uma conta pessoal ou do negócio.",
+            "**Duas pessoas na mesma gaveta** sem fechamento na troca de turno.",
+            "**Venda anotada depois:** a venda vai para o caderno no fim do dia, de memória.",
+            "**Não separar as formas de pagamento:** vira um total só e não dá para conferir com o banco.",
+            "**Deixar dinheiro demais na gaveta:** aumenta o risco de assalto e de erro de troco. Faça sangria."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Caderno, planilha ou sistema: qual usar?",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Forma",
+              "Bom para",
+              "Ponto fraco"
+            ],
+            "rows": [
+              [
+                "Caderno",
+                "Começar hoje, sem custo",
+                "Conta feita à mão, fácil de errar e de perder"
+              ],
+              [
+                "Planilha",
+                "Quem já tem o hábito de lançar tudo",
+                "Depende de alguém digitar cada venda"
+              ],
+              [
+                "Sistema com PDV",
+                "Quem quer o fechamento pronto",
+                "Precisa cadastrar os produtos uma vez"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Com um sistema de [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio), a venda já entra com a forma de pagamento, a sangria fica registrada com o motivo e o fechamento mostra a conta pronta. Você só conta o dinheiro e confere a diferença."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Abertura e fechamento de caixa prontos no PDV do Mostralo",
+    "p": [
+      "No Mostralo, o operador abre o caixa informando o troco, registra sangrias e suprimentos com o motivo e, no fim do turno, vê as vendas separadas por forma de pagamento e o dinheiro esperado na gaveta. Ele informa quanto contou e o sistema mostra se sobrou ou faltou, com relatório para imprimir na térmica e o histórico de todos os caixas. A gente deixa tudo pronto para você."
+    ],
+    "bullets": [
+      "Abertura com troco inicial e registro de quem abriu e quem fechou",
+      "Sangria e suprimento com motivo, direto do PDV",
+      "Fechamento com vendas por forma de pagamento, esperado, contado e diferença",
+      "Opção de só permitir vendas com o caixa aberto e relatório impresso de cada fechamento"
+    ]
+  },
+  "faq": [
+    [
+      "O que é abertura e fechamento de caixa?",
+      "É a rotina de contar o troco no começo do dia, registrar o que entra e sai e, no fim, comparar o dinheiro esperado na gaveta com o dinheiro contado."
+    ],
+    [
+      "Como calcular o dinheiro esperado no fechamento de caixa?",
+      "Troco inicial mais vendas em dinheiro mais suprimentos, menos sangrias. Pix e cartão entram no total vendido, mas não na gaveta."
+    ],
+    [
+      "Quanto deixar de troco na abertura do caixa?",
+      "Depende de quanto entra em dinheiro e das notas que os clientes usam. Um valor fixo, com bastante nota pequena e moeda, facilita a conferência."
+    ],
+    [
+      "O que fazer quando o caixa não bate?",
+      "Conte de novo, procure venda lançada na forma de pagamento errada, sangria sem anotação e venda duplicada. Registre a diferença e a causa no relatório do dia."
+    ],
+    [
+      "A empresa pode descontar a falta de caixa do salário?",
+      "Pela CLT, só quando foi combinado no contrato ou quando há dolo, e a Justiça costuma exigir prova. Consulte um contador ou advogado trabalhista."
+    ],
+    [
+      "Precisa fechar o caixa todo dia?",
+      "Sim, ou a cada troca de turno. Quanto mais tempo entre os fechamentos, mais difícil descobrir de onde veio a diferença."
+    ]
+  ],
+  "sources": [
+    [
+      "Stone: como fazer fechamento de caixa",
+      "https://conteudo.stone.com.br/como-fazer-fechamento-de-caixa/"
+    ],
+    [
+      "Bling: sangria de caixa",
+      "https://blog.bling.com.br/sangria-de-caixa/"
+    ],
+    [
+      "Conjur: é ilegal descontar quebra de caixa do salário sem provar culpa (TRT-18, processo 0012221-82.2016.5.18.0016)",
+      "https://www.conjur.com.br/2018-abr-23/ilegal-descontar-salario-quebra-caixa-provar-culpa/"
+    ]
+  ],
+  "related": [
+    "sangria-de-caixa",
+    "pdv-para-pequeno-negocio",
+    "relatorio-de-vendas-pequeno-negocio",
+    "controle-de-estoque-para-delivery",
+    "pdv-integrado-ao-delivery"
+  ]
+}

@@ -1,0 +1,285 @@
+{
+  "slug": "sangria-de-caixa",
+  "title": "Sangria de caixa: o que é, quando fazer e como registrar",
+  "h1": "Sangria de caixa: o que é, quando fazer e como registrar (e o suprimento)",
+  "description": "Sangria de caixa é a retirada de dinheiro da gaveta para um lugar seguro. Veja quando fazer, como registrar, o suprimento e como entra no fechamento.",
+  "excerpt": "Sangria é tirar o excesso de dinheiro da gaveta e guardar em lugar seguro, com valor, motivo e responsável anotados. Veja quando fazer, o passo a passo e como ela entra no fechamento de caixa.",
+  "date": "2026-11-02",
+  "readMinutes": 6,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "sangria de caixa",
+    "o que é sangria de caixa",
+    "suprimento de caixa",
+    "como fazer sangria de caixa",
+    "sangria e suprimento",
+    "limite de dinheiro no caixa"
+  ],
+  "image": "/images/guias/sangria-de-caixa.jpg",
+  "imageAlt": "Atendente de padaria separando notas da gaveta do caixa em um envelope para fazer a sangria de caixa",
+  "audio": {
+    "src": "/audio/guias/sangria-de-caixa.mp3",
+    "duration": 401.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0,
+        "target": "intro"
+      },
+      {
+        "t": 46.99,
+        "target": "s1"
+      },
+      {
+        "t": 93.34,
+        "target": "s2"
+      },
+      {
+        "t": 131.65,
+        "target": "s3"
+      },
+      {
+        "t": 179.56,
+        "target": "s4"
+      },
+      {
+        "t": 228.15,
+        "target": "s5"
+      },
+      {
+        "t": 265.46,
+        "target": "s6"
+      },
+      {
+        "t": 319.33,
+        "target": "s7"
+      },
+      {
+        "t": 352.24,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Sangria de caixa é a retirada de parte do dinheiro da gaveta durante o expediente para guardar em um lugar mais seguro, como o cofre, ou para pagar uma despesa, sempre anotando o valor, o motivo e quem retirou. O movimento contrário, colocar dinheiro na gaveta para reforçar o troco, se chama suprimento.",
+    "Neste guia você vai entender a diferença entre sangria e suprimento, quando fazer cada um, como definir um limite de dinheiro na gaveta, o passo a passo da sangria e como esses lançamentos entram na conta do fechamento de caixa."
+  ],
+  "sections": [
+    {
+      "h2": "O que é sangria de caixa e o que é suprimento",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "",
+              "Sangria",
+              "Suprimento"
+            ],
+            "rows": [
+              [
+                "Direção",
+                "Dinheiro sai da gaveta",
+                "Dinheiro entra na gaveta"
+              ],
+              [
+                "Quando",
+                "Gaveta com dinheiro demais ou despesa a pagar",
+                "Troco acabando ou abertura com troco extra"
+              ],
+              [
+                "É venda?",
+                "não",
+                "não"
+              ],
+              [
+                "No fechamento",
+                "Diminui o dinheiro esperado",
+                "Aumenta o dinheiro esperado"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Nenhum dos dois é venda nem despesa por si só. São movimentos internos do dinheiro do negócio. Por isso precisam de anotação: sem ela, uma sangria parece falta de dinheiro e um suprimento parece sobra."
+        }
+      ]
+    },
+    {
+      "h2": "Por que fazer sangria de caixa",
+      "blocks": [
+        {
+          "ul": [
+            "**Segurança:** menos dinheiro na gaveta é menos prejuízo em caso de assalto ou furto.",
+            "**Menos erro de troco:** gaveta cheia demais atrapalha a contagem e a separação das notas.",
+            "**Conferência no meio do dia:** contar o dinheiro na hora da sangria ajuda a pegar um erro antes do fechamento.",
+            "**Dinheiro no lugar certo:** o valor retirado pode ir para o cofre, para o depósito no banco ou para pagar um fornecedor, sempre registrado."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Quando fazer: defina um limite de dinheiro na gaveta",
+      "blocks": [
+        {
+          "p": "A forma mais simples de saber a hora da sangria é ter um teto. Quando o dinheiro da gaveta passa desse valor, o operador retira o excesso e deixa só o necessário para o troco."
+        },
+        {
+          "p": "Exemplo: uma padaria trabalha com R$ 100 de troco e definiu um teto de R$ 500 na gaveta. Quando o dinheiro chega a R$ 520, o operador faz uma sangria de R$ 400 e a gaveta volta para R$ 120, com troco suficiente para continuar."
+        },
+        {
+          "tip": "Combine também sangrias em horários fixos, como depois do pico do almoço e antes de escurecer. Horário fixo vira hábito e não depende de alguém lembrar de olhar a gaveta."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer a sangria de caixa passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "**Espere um momento sem cliente no balcão** e não conte dinheiro à vista de quem está na fila.",
+            "**Conte o valor que vai sair**, deixando o troco necessário na gaveta.",
+            "**Registre na hora:** valor, motivo (cofre, depósito, pagamento de fornecedor) e responsável.",
+            "**Coloque o dinheiro em envelope** com o valor, a data e a assinatura de quem retirou.",
+            "**Leve direto ao destino:** cofre, banco ou pagamento. Se for pagamento, guarde o recibo junto."
+          ]
+        },
+        {
+          "p": "Num sistema de [PDV](/guia/pdv-para-pequeno-negocio), a sangria fica registrada no próprio caixa aberto, com o motivo e o usuário, e entra sozinha na conta do fechamento."
+        }
+      ]
+    },
+    {
+      "h2": "Suprimento de caixa: quando colocar dinheiro na gaveta",
+      "blocks": [
+        {
+          "p": "O suprimento é o reforço de troco. Acontece quando as notas pequenas ou as moedas acabam no meio do dia, ou quando o negócio espera um movimento maior e começa com mais troco do que o normal."
+        },
+        {
+          "ul": [
+            "Registre o valor e de onde veio o dinheiro (cofre, banco, troco trazido pelo dono).",
+            "Não lance o suprimento como venda: ele não é receita, é só dinheiro do próprio negócio mudando de lugar.",
+            "Se o suprimento é frequente, aumente o troco inicial da abertura."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como a sangria entra no fechamento de caixa",
+      "blocks": [
+        {
+          "p": "No fechamento, o dinheiro esperado na gaveta é: troco inicial + vendas em dinheiro + suprimentos − sangrias. Se uma sangria não foi anotada, o fechamento vai mostrar falta exatamente desse valor."
+        },
+        {
+          "table": {
+            "head": [
+              "Exemplo da padaria",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Troco inicial",
+                "R$ 100,00"
+              ],
+              [
+                "+ Vendas em dinheiro no dia",
+                "R$ 1.130,00"
+              ],
+              [
+                "+ Suprimento (moedas)",
+                "R$ 30,00"
+              ],
+              [
+                "− Sangria das 12h",
+                "R$ 400,00"
+              ],
+              [
+                "− Sangria das 17h",
+                "R$ 500,00"
+              ],
+              [
+                "= Dinheiro esperado na gaveta",
+                "R$ 360,00"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/sangria-de-caixa-2.jpg",
+          "alt": "Diagrama da sangria de caixa e do suprimento: dinheiro saindo da gaveta para o cofre e reforço de troco entrando",
+          "caption": "Sangria tira o excesso da gaveta, suprimento reforça o troco. Os dois entram na conta do fechamento."
+        },
+        {
+          "p": "O passo a passo completo do fechamento, com Pix e cartão, está no guia de [abertura e fechamento de caixa](/guia/abertura-e-fechamento-de-caixa)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns na sangria de caixa",
+      "blocks": [
+        {
+          "ul": [
+            "**Tirar dinheiro sem anotar** para uma compra rápida e lembrar só no fechamento.",
+            "**Fazer a sangria na frente do cliente**, mostrando quanto dinheiro tem na gaveta.",
+            "**Retirar tudo e ficar sem troco**, o que força um suprimento logo depois.",
+            "**Envelope sem valor e sem assinatura:** ninguém consegue conferir depois.",
+            "**Usar a sangria para pagar conta pessoal:** mistura o dinheiro do negócio com o seu e bagunça o resultado do mês."
+          ]
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Sangria, suprimento e fechamento no mesmo PDV do Mostralo",
+    "p": [
+      "No PDV do Mostralo, a sangria e o suprimento ficam a um toque na barra do caixa aberto, com valor e motivo. No fechamento, o sistema soma tudo, mostra o dinheiro esperado na gaveta e compara com o que o operador contou, com relatório para imprimir e histórico de cada caixa. A gente deixa tudo pronto para você."
+    ],
+    "bullets": [
+      "Botões de sangria e suprimento no caixa aberto, com motivo",
+      "Dinheiro esperado calculado na hora do fechamento",
+      "Vendas separadas em dinheiro, Pix, crédito e débito",
+      "Relatório impresso na térmica e histórico de todos os caixas"
+    ]
+  },
+  "faq": [
+    [
+      "O que é sangria de caixa?",
+      "É a retirada de parte do dinheiro da gaveta durante o dia para guardar em lugar seguro ou pagar uma despesa, com valor, motivo e responsável anotados."
+    ],
+    [
+      "Qual a diferença entre sangria e suprimento?",
+      "Na sangria o dinheiro sai da gaveta. No suprimento o dinheiro entra na gaveta para reforçar o troco. Nenhum dos dois é venda."
+    ],
+    [
+      "Quando fazer a sangria de caixa?",
+      "Quando o dinheiro da gaveta passar de um limite combinado ou em horários fixos, como depois do pico de movimento."
+    ],
+    [
+      "A sangria entra no fechamento de caixa?",
+      "Sim. O dinheiro esperado é troco inicial mais vendas em dinheiro mais suprimentos, menos sangrias."
+    ],
+    [
+      "Sangria precisa de comprovante?",
+      "É o recomendado: anote no sistema ou no caderno e guarde o envelope ou o recibo com valor, data e assinatura."
+    ]
+  ],
+  "sources": [
+    [
+      "Bling: sangria de caixa",
+      "https://blog.bling.com.br/sangria-de-caixa/"
+    ],
+    [
+      "Planilha de Fluxo: suprimento de caixa",
+      "https://www.planilhadefluxo.com.br/glossario/suprimento-de-caixa"
+    ],
+    [
+      "Stone: como fazer fechamento de caixa",
+      "https://conteudo.stone.com.br/como-fazer-fechamento-de-caixa/"
+    ]
+  ],
+  "related": [
+    "abertura-e-fechamento-de-caixa",
+    "pdv-para-pequeno-negocio",
+    "relatorio-de-vendas-pequeno-negocio",
+    "como-reduzir-fila-na-lanchonete"
+  ]
+}

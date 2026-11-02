@@ -1,0 +1,332 @@
+{
+  "slug": "mensalista-de-quadra-society",
+  "title": "Mensalista de quadra society: como cobrar e organizar",
+  "h1": "Mensalista de quadra society: pacote mensal, cobrança adiantada e regra de falta sem briga",
+  "description": "Mensalista de quadra society: como montar o pacote mensal, cobrar adiantado, segurar o horário fixo e combinar por escrito falta, chuva e reposição.",
+  "excerpt": "Mensalista bom paga antes, joga sempre no mesmo horário e sabe o que acontece quando falta. Veja como montar o pacote, fazer a conta do preço, cobrar adiantado e combinar a reposição.",
+  "date": "2026-11-02",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "mensalista de quadra society",
+    "horário fixo quadra society",
+    "pacote mensal quadra society",
+    "como cobrar mensalista",
+    "falta do mensalista reposição",
+    "contrato mensalista quadra"
+  ],
+  "image": "/images/guias/mensalista-de-quadra-society.jpg",
+  "imageAlt": "Organizador da turma de futebol society confere no celular o horário fixo do mensalista, com a quadra de grama sintética iluminada ao fundo",
+  "audio": {
+    "src": "/audio/guias/mensalista-de-quadra-society.mp3",
+    "duration": 571.3,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0,
+        "target": "intro"
+      },
+      {
+        "t": 39.23,
+        "target": "s1"
+      },
+      {
+        "t": 100.22,
+        "target": "s2"
+      },
+      {
+        "t": 193.93,
+        "target": "s3"
+      },
+      {
+        "t": 254.36,
+        "target": "s4"
+      },
+      {
+        "t": 315.19,
+        "target": "s5"
+      },
+      {
+        "t": 355.22,
+        "target": "s6"
+      },
+      {
+        "t": 426.53,
+        "target": "s7"
+      },
+      {
+        "t": 519.48,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Mensalista de quadra society é a turma que fica com o mesmo dia e horário toda semana e paga o mês adiantado, com um valor por jogo menor que o do avulso. Dá certo quando o pacote diz exatamente o que está incluído, o pagamento vence antes do mês começar e a regra de falta, chuva e reposição está escrita antes do primeiro jogo.",
+    "Neste guia você vai ver o que colocar no pacote mensal, como fazer a conta do preço, como cobrar adiantado sem correr atrás de ninguém, o que fazer quando a turma falta e um modelo de combinado por escrito para mandar no WhatsApp."
+  ],
+  "sections": [
+    {
+      "h2": "O que entra no pacote do mensalista de quadra society",
+      "blocks": [
+        {
+          "p": "A maior parte das brigas com mensalista nasce de uma coisa que não foi dita no começo. Antes de fechar a primeira turma, escreva o que o pacote inclui:"
+        },
+        {
+          "ul": [
+            "**Dia, horário e quadra.** Exemplo: toda terça, das 20h às 21h, na Quadra 2.",
+            "**Duração do jogo.** 1h, 1h30 ou 2h, sempre a mesma.",
+            "**Quantos jogos o mês tem.** Todos os dias daquela semana no mês ou um número fixo de jogos.",
+            "**Valor e vencimento.** Quanto custa e até que dia precisa estar pago.",
+            "**Responsável pela turma.** Um nome e um telefone para cobrança e avisos. A arena não cobra 14 pessoas.",
+            "**Regras de falta, chuva, feriado e pausa.** O que acontece em cada caso."
+          ]
+        },
+        {
+          "p": "Para organizar a grade entre fixo e avulso, veja o guia de [agendamento de quadra online](/guia/aluguel-de-quadra-online)."
+        }
+      ]
+    },
+    {
+      "h2": "Como calcular o valor do pacote mensal",
+      "blocks": [
+        {
+          "p": "O ponto de partida é o preço da hora avulsa naquele horário. O valor da hora muda muito de uma cidade para outra; o jeito de calcular está no guia [quanto cobrar no aluguel de quadra society](/guia/quanto-cobrar-aluguel-de-quadra-society). Com a hora definida, escolha um de dois modelos."
+        },
+        {
+          "p": "Exemplo: uma arena que cobra R$ 200 pela hora avulsa e dá 10% de desconto para o mensalista."
+        },
+        {
+          "table": {
+            "head": [
+              "Modelo",
+              "Como funciona",
+              "Conta do exemplo",
+              "Valor do mês"
+            ],
+            "rows": [
+              [
+                "Por jogo do mês",
+                "Cobra os jogos que o mês tem, 4 ou 5",
+                "4 x R$ 200 = R$ 800, menos 10%",
+                "R$ 720 (mês com 5 jogos: R$ 900)"
+              ],
+              [
+                "Valor fixo",
+                "Mesmo valor todo mês, pela média do ano",
+                "52 jogos x R$ 200 = R$ 10.400, menos 10% = R$ 9.360, dividido por 12",
+                "R$ 780 todo mês"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O valor fixo é mais simples de dividir e de prever: com 12 jogadores, R$ 780 dá R$ 65 por pessoa. O modelo por jogo exige avisar o valor todo mês."
+        },
+        {
+          "tip": "O desconto do mensalista paga a previsão: você troca um pouco de preço por um horário vendido o mês inteiro. Desconto grande em horário nobre, que você venderia cheio no avulso, quase nunca compensa."
+        }
+      ]
+    },
+    {
+      "h2": "Cobrar adiantado: vencimento, forma de pagamento e atraso",
+      "blocks": [
+        {
+          "p": "Mensalista paga antes de jogar. É isso que segura o horário e reduz falta: quem já pagou aparece."
+        },
+        {
+          "ol": [
+            "**Vencimento antes do mês começar.** Exemplo: até o dia 25 para jogar no mês seguinte.",
+            "**Um pagador por turma.** O responsável junta o dinheiro do grupo e paga a arena de uma vez, de preferência por Pix.",
+            "**Lembrete alguns dias antes do vencimento**, com o valor e a chave Pix.",
+            "**Prazo de tolerância curto.** Exemplo: se não pagou até o dia 1º, o horário volta para a agenda aberta.",
+            "**Recibo ou confirmação do pagamento** com o mês e as datas dos jogos."
+          ]
+        },
+        {
+          "p": "No avulso, a cobrança antecipada é o [sinal na reserva de quadra](/guia/sinal-na-reserva-de-quadra)."
+        }
+      ]
+    },
+    {
+      "h2": "Falta do mensalista: quem paga a semana perdida?",
+      "blocks": [
+        {
+          "p": "A regra mais usada é simples: se o problema é da turma, a semana está perdida; se o problema é da arena, a arena repõe. O horário ficou reservado e você deixou de vender para outra pessoa."
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "De quem é o problema",
+              "Regra sugerida"
+            ],
+            "rows": [
+              [
+                "Turma falta sem avisar",
+                "da turma",
+                "não repõe e não devolve"
+              ],
+              [
+                "Turma avisa com antecedência",
+                "da turma",
+                "pode repor em horário vago, se a arena quiser oferecer"
+              ],
+              [
+                "Chuva, manutenção ou torneio",
+                "da arena",
+                "repõe em outro horário ou desconta no mês seguinte"
+              ],
+              [
+                "Feriado com a arena fechada",
+                "da arena",
+                "desconta no mês seguinte ou não cobra aquele jogo"
+              ],
+              [
+                "Férias ou lesão da turma",
+                "da turma",
+                "pausa combinada com aviso, horário pode ir para outra turma"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Na pausa, diga o aviso mínimo, o tempo máximo e se o horário fica guardado."
+        }
+      ]
+    },
+    {
+      "h2": "Reposição: como remarcar sem bagunçar a agenda",
+      "blocks": [
+        {
+          "p": "Reposição sem regra vira dívida de horário que nunca acaba. Combine assim:"
+        },
+        {
+          "ul": [
+            "Só em horário vago da agenda, nunca tirando um avulso que já reservou.",
+            "Com prazo: dentro do mesmo mês ou até o fim do mês seguinte.",
+            "Com limite: por exemplo, uma reposição por mês.",
+            "A reposição entra na agenda como qualquer reserva, com quadra e hora."
+          ]
+        },
+        {
+          "img": "/images/guias/mensalista-de-quadra-society-2.jpg",
+          "alt": "Diagrama do mensalista de quadra society: paga até o vencimento, horário fixo lançado no mês, lembrete antes de cada jogo, regra de falta e chuva e renovação",
+          "caption": "O mês do mensalista de quadra society: pagou, entra na agenda; faltou, a regra já estava combinada."
+        },
+        {
+          "p": "Horário vago também serve para oferecer a vaga de mensalista a quem joga avulso com frequência."
+        }
+      ]
+    },
+    {
+      "h2": "Combinado por escrito: o que colocar no contrato simples",
+      "blocks": [
+        {
+          "p": "Não precisa de um contrato de dez páginas. Uma mensagem com as regras, enviada ao responsável e respondida com \"de acordo\", já deixa o combinado registrado. Inclua:"
+        },
+        {
+          "ul": [
+            "Nome do responsável, dia, horário, quadra e duração.",
+            "Valor, vencimento e forma de pagamento.",
+            "O que acontece se não pagar no prazo.",
+            "Regra de falta, chuva, feriado, reposição e pausa.",
+            "Como e com quanto tempo de aviso a turma pode sair.",
+            "Responsabilidade por dano na quadra e regras de conduta."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Combinado do horário fixo",
+              "text": "Oi, [nome]. Segue o combinado do horário fixo da sua turma. Dia e hora: [dia da semana], das [hora] às [hora], na [quadra]. Valor: [valor] por mês, pago por Pix até o dia [dia] do mês anterior. Se não estiver pago até o dia [dia], o horário volta para a agenda aberta. Falta da turma não tem reposição nem devolução. Se a arena fechar por chuva, manutenção ou feriado, a gente repõe em horário vago ou desconta no mês seguinte. Para pausar ou sair, avise com [dias] dias. Responda \"de acordo\" para confirmar."
+            },
+            {
+              "title": "Lembrete de vencimento",
+              "text": "Oi, [nome]. A mensalidade do horário fixo de [mês], [dia da semana] às [hora] na [quadra], vence em [data]. Valor: [valor]. Chave Pix: [chave]. Os jogos do mês são nos dias [datas]. Qualquer dúvida, é só chamar."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui um advogado ou contador. Para multa, juros por atraso e regra de cancelamento, converse com um profissional antes de colocar no combinado."
+        }
+      ]
+    },
+    {
+      "h2": "Como organizar os mensalistas no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o mensalista fica no **Clube de Assinaturas** do painel, e o horário fixo fica na agenda da quadra:"
+        },
+        {
+          "ol": [
+            "Em **Planos de Assinatura**, toque em Novo Plano e crie o pacote, como \"Mensalista 1x/semana\", com valor, Ciclo de Cobrança Mensal e o serviço incluso, como \"Society 1 hora\". Use a descrição para resumir as regras.",
+            "Em **Assinantes**, toque em Novo Assinante, escolha o responsável da turma e o plano. A lista mostra período, vencimento e status: ativo, pausado ou cancelado.",
+            "Quando o pagamento chegar, use Ativar (pagamento recebido). Turma de férias vai para Pausar e volta com Reativar.",
+            "Na **Agenda**, lance em Novo Agendamento todas as datas do mês de uma vez, no dia em que a turma paga. A quadra fica ocupada e ninguém reserva aquele horário pela página."
+          ]
+        },
+        {
+          "p": "Com o WhatsApp da arena conectado, o responsável recebe confirmação e lembrete antes de cada jogo. Dia de chuva, lance o bloqueio da quadra e remarque. Para preencher horário vago, mande uma campanha pelo WhatsApp oferecendo a vaga de mensalista para quem joga avulso. Veja tudo na [página para arenas](/nicho-arenas) e em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "tip": "A reserva de cada data entra separada na agenda. Confira em Configurações se a antecedência máxima de agendamento cobre o mês inteiro, para conseguir lançar todas as datas."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: mensalista pago e horário fixo na agenda da quadra",
+    "p": [
+      "No Mostralo, o pacote do mensalista vira um plano de assinatura, a turma aparece na lista de assinantes com vencimento e status, e o horário fixo ocupa a quadra na agenda para ninguém reservar por cima. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Planos de assinatura como \"Mensalista 1x/semana\", com valor e ciclo mensal",
+      "Lista de assinantes com período, vencimento e status ativo, pausado ou cancelado",
+      "Agenda por quadra: o horário fixo do mês ocupa a quadra e não deixa marcar duas vezes",
+      "Confirmação e lembrete no WhatsApp antes de cada jogo e campanhas para vender horário vago"
+    ]
+  },
+  "faq": [
+    [
+      "O que é mensalista de quadra society?",
+      "É a turma que joga sempre no mesmo dia e horário e paga o mês adiantado, normalmente com um valor por jogo menor que o do avulso."
+    ],
+    [
+      "Como calcular o valor do mensalista?",
+      "Multiplique o preço da hora avulsa pelos jogos do mês e aplique o desconto. Para um valor fixo, use 52 jogos no ano, aplique o desconto e divida por 12."
+    ],
+    [
+      "O mensalista que falta tem direito a reposição?",
+      "Depende do combinado. A regra mais comum é: falta da turma não tem reposição; se a arena fecha por chuva, manutenção ou feriado, a arena repõe ou desconta no mês seguinte."
+    ],
+    [
+      "Quando cobrar o mensalista?",
+      "Antes do mês começar, com vencimento fixo e um prazo curto de tolerância. Se não pagar, o horário volta para a agenda aberta."
+    ],
+    [
+      "Precisa de contrato com o mensalista?",
+      "Um combinado por escrito, enviado ao responsável e confirmado por ele, já registra as regras. Para multa e cancelamento, consulte um advogado."
+    ]
+  ],
+  "sources": [
+    [
+      "Visu Network: Como formar times fixos na quadra, do avulso ao horário semanal (12/10/2026)",
+      "https://visu.network/br/artigos/como-formar-times-fixos-na-quadra/"
+    ],
+    [
+      "Sesc RJ: Regras para participar das atividades esportivas (2025)",
+      "https://www.sescrio.org.br/wp-content/uploads/2025/05/regras-para-participar-das-atividades-esportivas.pdf"
+    ],
+    [
+      "TJRR: Termo de compromisso de utilização da quadra poliesportiva (15/09/2025)",
+      "https://tjrr.jus.br/agendamentosqv/arquivos/SEI_2497878_Termo_de_Compromisso_Compromisso_de_Utilizacao_da_Quadra_Poliesportiva.pdf"
+    ]
+  ],
+  "related": [
+    "aluguel-de-quadra-online",
+    "quanto-cobrar-aluguel-de-quadra-society",
+    "sinal-na-reserva-de-quadra",
+    "bar-da-arena-esportiva",
+    "quadra-de-areia-futevolei-beach-tennis"
+  ]
+}

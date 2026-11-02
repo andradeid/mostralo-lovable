@@ -1,0 +1,365 @@
+{
+  "slug": "quadra-de-areia-futevolei-beach-tennis",
+  "title": "Quadra de areia: futevôlei, beach tennis, aulas e eventos",
+  "h1": "Quadra de areia: como alugar para futevôlei e beach tennis, encaixar aulas e eventos e cuidar da areia",
+  "description": "Quadra de areia para futevôlei, beach tennis e vôlei de praia: aluguel por hora, aulas com professor, eventos e cuidados com a areia na mesma agenda.",
+  "excerpt": "Uma quadra de areia vende aluguel por hora, aula com professor e evento. Veja o que muda entre os esportes, como dividir a grade, quanto a arena ganha com turma e o que as regras pedem da areia.",
+  "date": "2026-11-02",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "quadra de areia",
+    "aluguel de quadra de areia",
+    "quadra de beach tennis",
+    "quadra de futevôlei",
+    "aula de beach tennis",
+    "manutenção de quadra de areia",
+    "day use arena"
+  ],
+  "image": "/images/guias/quadra-de-areia-futevolei-beach-tennis.jpg",
+  "imageAlt": "Dono de arena conferindo no celular a agenda da quadra de areia, com jogadores de futevôlei e beach tennis ao fundo",
+  "audio": {
+    "src": "/audio/guias/quadra-de-areia-futevolei-beach-tennis.mp3",
+    "duration": 628.1,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 47.91,
+        "target": "s1"
+      },
+      {
+        "t": 107.22,
+        "target": "s2"
+      },
+      {
+        "t": 177.45,
+        "target": "s3"
+      },
+      {
+        "t": 274.93,
+        "target": "s4"
+      },
+      {
+        "t": 344.16,
+        "target": "s5"
+      },
+      {
+        "t": 436.47,
+        "target": "s6"
+      },
+      {
+        "t": 497.34,
+        "target": "s7"
+      },
+      {
+        "t": 580.94,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Uma quadra de areia bem usada vende três coisas: aluguel por hora para futevôlei, beach tennis e vôlei de praia, aulas com professor e eventos. O segredo é dividir a grade por horário, deixar tempo para trocar a rede e cuidar da areia, sem uma venda atropelar a outra.",
+    "Veja o que muda entre os três esportes, como montar os serviços de aluguel, os modelos de aula, como vender eventos, o que as regras dizem sobre a areia e um exemplo de grade do dia. Para organizar a reserva pelo celular, leia também o guia de [agendamento de quadra online](/guia/aluguel-de-quadra-online)."
+  ],
+  "sections": [
+    {
+      "h2": "Futevôlei, beach tennis e vôlei de praia: o que muda na quadra de areia",
+      "blocks": [
+        {
+          "p": "Os três esportes usam areia e rede, mas não com as mesmas medidas. Ajustar a rede ou as linhas leva alguns minutos, e esse tempo precisa estar previsto entre um jogo e outro."
+        },
+        {
+          "table": {
+            "head": [
+              "Esporte",
+              "Quadra",
+              "Altura da rede"
+            ],
+            "rows": [
+              [
+                "Beach tennis",
+                "16 m x 8 m nas duplas",
+                "1,70 m no mínimo, pela regra da ITF"
+              ],
+              [
+                "Vôlei de praia",
+                "16 m x 8 m",
+                "2,43 m no masculino e 2,24 m no feminino"
+              ],
+              [
+                "Futevôlei",
+                "18 m x 9 m",
+                "2,20 m no masculino e 2,10 m no feminino"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A quadra de futevôlei na medida é maior. Decida quais quadras recebem esse esporte e deixe isso marcado na agenda."
+        }
+      ]
+    },
+    {
+      "h2": "Aluguel de quadra de areia por hora: como montar os serviços",
+      "blocks": [
+        {
+          "p": "Cada esporte e cada duração vira um serviço com preço próprio. O jogador escolhe o que vai jogar e a agenda reserva o tempo certo."
+        },
+        {
+          "ul": [
+            "**Um serviço por esporte e duração**, como \"Beach tennis 1h\", \"Futevôlei 1h\" e \"Vôlei de praia 1h30\".",
+            "**Intervalo entre jogos** para rastelar a areia e ajustar a rede quando muda o esporte.",
+            "**Preço por hora de quadra**, não por pessoa. O grupo divide, e você pode mostrar o valor por pessoa na descrição."
+          ]
+        },
+        {
+          "p": "Exemplo: uma arena que cobra R$ 100 pela hora (valor ilustrativo) mostra que, em dupla, com 4 jogadores, sai R$ 25 por pessoa. No beach tennis de simples, com 2 jogadores, sai R$ 50."
+        },
+        {
+          "p": "O valor da hora muda por cidade e estrutura (cobertura, iluminação, vestiário). Calcule pelo seu custo e pela ocupação, como em [quanto cobrar no aluguel de quadra](/guia/quanto-cobrar-aluguel-de-quadra-society)."
+        }
+      ]
+    },
+    {
+      "h2": "Aulas e turmas com professor: qual modelo usar na arena",
+      "blocks": [
+        {
+          "p": "Aula traz jogador novo e ocupa horário que o aluguel não enche, como manhã cedo e fim de tarde. Antes de abrir turma, defina como professor e arena dividem o dinheiro."
+        },
+        {
+          "table": {
+            "head": [
+              "Modelo",
+              "Quem cobra o aluno",
+              "O que a arena recebe"
+            ],
+            "rows": [
+              [
+                "Professor aluga a quadra",
+                "o professor",
+                "a hora de quadra, como no aluguel"
+              ],
+              [
+                "Professor parceiro",
+                "o professor ou a arena",
+                "uma porcentagem das mensalidades"
+              ],
+              [
+                "Professor da casa",
+                "a arena",
+                "a mensalidade inteira, e paga o professor"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo: uma arena que fica com 30% das mensalidades de uma turma de 6 alunos a R$ 200 recebe R$ 360 por mês, e o professor, R$ 840. Com 2 aulas de 1 hora por semana, são 8 horas no mês: R$ 45 por hora de quadra. Compare com o aluguel."
+        },
+        {
+          "ul": [
+            "Separe as turmas por nível e combine com o professor o máximo de alunos por quadra.",
+            "Lance o horário de cada turma na agenda antes de abrir a semana para o aluguel. Turma que não fechou libera a quadra cedo.",
+            "Aluno mensal funciona como o [mensalista de quadra](/guia/mensalista-de-quadra-society): paga adiantado e tem horário fixo."
+          ]
+        },
+        {
+          "tip": "O acordo com o professor tem efeitos trabalhistas e fiscais. Este guia é informativo e não substitui contador ou advogado; deixe o combinado por escrito."
+        }
+      ]
+    },
+    {
+      "h2": "Day use, torneio e aniversário: como vender eventos na quadra de areia",
+      "blocks": [
+        {
+          "p": "Evento é a venda maior da quadra de areia: um grupo fecha quadras por algumas horas e o bar trabalha junto. Vale para aniversário, confraternização, torneio e day use."
+        },
+        {
+          "ol": [
+            "**Monte pacotes fechados**: duração, número de quadras e o que entra de bar.",
+            "**Calcule pelo que a quadra deixa de vender.** Exemplo: um evento de 4 horas em 2 quadras ocupa 8 horas de quadra. Se a hora rende R$ 100 naquele horário, o pacote começa em R$ 800, antes de bar e equipe.",
+            "**Peça sinal para garantir a data**, com a regra de cancelamento dita antes. Veja o guia de [sinal na reserva de quadra](/guia/sinal-na-reserva-de-quadra).",
+            "**Bloqueie as quadras na agenda** assim que o sinal cair.",
+            "**Prepare o bar** com uma comanda por grupo. Ideias no guia do [bar da arena esportiva](/guia/bar-da-arena-esportiva)."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Convite de torneio",
+              "text": "Oi, [nome]. Vai ter torneio de [esporte] na [arena] no dia [data], das [hora] às [hora]. Inscrição por dupla: [valor], com [o que inclui]. São só [número] vagas. Para garantir a sua, responda até [data]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Cuidados com a areia: o que as regras pedem e como isso entra na agenda",
+      "blocks": [
+        {
+          "p": "Pedra machuca o pé, poeira incomoda e quadra que não drena perde jogo. As regras oficiais e os estudos dão um bom ponto de partida:"
+        },
+        {
+          "ul": [
+            "**Superfície nivelada e uniforme**, sem pedras, conchas ou objetos soltos (regra 2 do beach tennis da ITF).",
+            "**Profundidade:** a ITF recomenda pelo menos 25 cm de areia em competições internacionais de beach tennis. No vôlei de praia, a FIVB pede no mínimo 40 cm, segundo estudo da revista Applied Sciences (2022).",
+            "**Tipo de areia:** sem argila e silte, que levantam poeira, nem conchas ou cascalho. A drenagem certa evita que a areia compacte depois da chuva, diz o mesmo estudo.",
+            "**Manutenção contínua:** rastelar com frequência, controlar a sujeira e completar ou trocar a areia de tempos em tempos, como recomenda o escritório Hames Sharley."
+          ]
+        },
+        {
+          "p": "Na agenda, isso vira o intervalo entre jogos, para rastelar, e bloqueios para limpeza pesada ou reposição de areia em horário de pouca procura."
+        },
+        {
+          "tip": "Profundidade, tipo de areia e drenagem dependem do projeto. Peça orientação a quem instala quadras de areia antes de comprar ou repor material."
+        }
+      ]
+    },
+    {
+      "h2": "Exemplo de grade do dia para uma quadra de areia",
+      "blocks": [
+        {
+          "p": "Exemplo: uma arena com uma quadra de areia aberta das 7h às 23h tem 16 horas por dia. Uma divisão possível nos dias de semana:"
+        },
+        {
+          "table": {
+            "head": [
+              "Horário",
+              "Uso",
+              "Horas"
+            ],
+            "rows": [
+              [
+                "7h às 9h",
+                "Aulas, turmas da manhã",
+                "2"
+              ],
+              [
+                "9h às 12h",
+                "Aluguel avulso",
+                "3"
+              ],
+              [
+                "12h às 13h",
+                "Manutenção da areia",
+                "1"
+              ],
+              [
+                "13h às 17h",
+                "Aluguel avulso e day use",
+                "4"
+              ],
+              [
+                "17h às 19h",
+                "Aulas, turmas da tarde",
+                "2"
+              ],
+              [
+                "19h às 23h",
+                "Mensalistas e aluguel no horário nobre",
+                "4"
+              ],
+              [
+                "Total do dia",
+                "aulas, aluguel e manutenção",
+                "16"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/quadra-de-areia-futevolei-beach-tennis-2.jpg",
+          "alt": "Grade de um dia da quadra de areia: aulas de manhã e no fim da tarde, aluguel avulso, day use, manutenção da areia ao meio-dia e mensalistas à noite",
+          "caption": "Quadra de areia: aula, aluguel, manutenção e mensalista no mesmo dia, sem uma venda atropelar a outra."
+        },
+        {
+          "p": "No fim de semana, reserve blocos maiores para torneios e eventos. Teste por um mês, veja nos relatórios o que encheu e ajuste. Horário que sobrou pode virar promoção pelo WhatsApp."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, cada quadra de areia tem agenda própria, com horários e bloqueios, e o sistema não marca a mesma quadra duas vezes. O jogador reserva pelo link, a qualquer hora, escolhendo quadra e horário livre."
+        },
+        {
+          "ol": [
+            "**Serviços:** um por esporte e duração, como \"Futevôlei 1h\" ou \"Evento 4h\", com preço e intervalo para rastelar a areia.",
+            "**Quadras:** marque quais serviços cada quadra recebe, por exemplo, futevôlei só na quadra com a medida dele.",
+            "**Turmas e mensalistas:** crie planos de assinatura, como \"Mensalista 1x/semana\", e veja na lista de assinantes o vencimento e o status. O horário fixo entra na agenda o mês inteiro de uma vez.",
+            "**Bloqueios:** manutenção da areia, torneio ou chuva, no dia inteiro ou num período.",
+            "**Sinal por Pix:** defina por serviço, em valor ou porcentagem. Se o jogador não paga no prazo, a reserva cai sozinha.",
+            "**WhatsApp:** com o WhatsApp da arena conectado, saem confirmação e lembrete antes do jogo, com link para cancelar ou remarcar no seu prazo, e o pedido de avaliação no Google depois. Convite de torneio e horário vago vão por campanha para os clientes escolhidos."
+          ]
+        },
+        {
+          "p": "No bar, cada grupo tem sua comanda, e o [fechamento do caixa](/guia/abertura-e-fechamento-de-caixa) sai com relatório. Veja a [página para arenas](/nicho-arenas), as [funcionalidades](/funcionalidades) e a [comanda digital para bar](/guia/comanda-digital-para-bar)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: aluguel, aulas e eventos da quadra de areia na mesma agenda",
+    "p": [
+      "No Mostralo, o jogador reserva a quadra de areia pelo link, turmas e mensalistas têm horário fixo e os eventos bloqueiam a quadra com sinal pago. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Uma agenda por quadra, com serviços por esporte, duração e preço",
+      "Planos de assinatura para mensalistas e alunos, com horário fixo na agenda",
+      "Sinal por Pix na reserva, que cai sozinha se o jogador não pagar no prazo",
+      "Confirmação, lembrete e campanhas pelo WhatsApp, mais comandas para o bar"
+    ]
+  },
+  "faq": [
+    [
+      "Dá para usar a mesma quadra de areia para futevôlei, beach tennis e vôlei de praia?",
+      "Dá, mas as medidas e a altura da rede mudam: a quadra de futevôlei na medida tem 18 m x 9 m, e as outras, 16 m x 8 m. Deixe intervalo na agenda para ajustar a rede."
+    ],
+    [
+      "Como cobrar a aula com professor na arena?",
+      "O professor aluga a quadra por hora, divide uma porcentagem das mensalidades com a arena ou é contratado por ela. Compare quanto a arena recebe por hora de quadra em cada modelo."
+    ],
+    [
+      "Qual a profundidade da areia de uma quadra de areia?",
+      "A ITF recomenda pelo menos 25 cm em competições internacionais de beach tennis, e a FIVB pede no mínimo 40 cm no vôlei de praia. Para a sua quadra, consulte quem instala."
+    ],
+    [
+      "Como cobrar um evento ou day use na quadra de areia?",
+      "Multiplique as horas de quadra que o evento ocupa pelo valor da hora naquele horário. Esse é o piso; some bar e equipe e peça sinal."
+    ]
+  ],
+  "sources": [
+    [
+      "ITF / Federação Paulista de Tênis: Regras do Beach Tennis 2023 (regras 1 e 2 e anexo X)",
+      "https://fpt.com.br/Content/arquivos/portal/regulamento/regras-do-beach-tennis-2023.pdf"
+    ],
+    [
+      "Kasprzak e Łopuch: Sand: A Critical Component for Beach Volleyball Courts (Applied Sciences, 2022)",
+      "https://www.mdpi.com/2076-3417/12/14/6985"
+    ],
+    [
+      "Hames Sharley: Where sand meets science (acesso em 02/11/2026)",
+      "https://www.hamessharley.com.au/knowledge/where-sand-meets-science"
+    ],
+    [
+      "Toda Matéria: Futevôlei, regras e como se joga (acesso em 02/11/2026)",
+      "https://www.todamateria.com.br/futevolei/"
+    ],
+    [
+      "Toda Matéria: Vôlei de praia (acesso em 02/11/2026)",
+      "https://www.todamateria.com.br/volei-de-praia/"
+    ]
+  ],
+  "related": [
+    "aluguel-de-quadra-online",
+    "quanto-cobrar-aluguel-de-quadra-society",
+    "mensalista-de-quadra-society",
+    "sinal-na-reserva-de-quadra",
+    "bar-da-arena-esportiva",
+    "abertura-e-fechamento-de-caixa"
+  ]
+}

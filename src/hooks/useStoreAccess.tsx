@@ -18,6 +18,27 @@ interface StoreAccess {
 const ACTIVE_STORE_KEY = 'mostralo_active_store_id';
 
 /**
+ * Cache compartilhado das buscas de loja do usuário: cada componente que usa este hook
+ * (menu, cabeçalho, página...) disparava a mesma consulta. Agora todos esperam a mesma
+ * promessa por até 60 s (erros não ficam no cache).
+ */
+const ROLE_CACHE_MS = 60_000;
+const roleQueryCache = new Map<string, { at: number; promise: Promise<{ data: any; error: any }> }>();
+function sharedQuery(key: string, run: () => PromiseLike<{ data: any; error: any }>): Promise<{ data: any; error: any }> {
+  const hit = roleQueryCache.get(key);
+  if (hit && Date.now() - hit.at < ROLE_CACHE_MS) return hit.promise;
+  const promise = Promise.resolve(run()).then((res) => {
+    if (res?.error) roleQueryCache.delete(key);
+    return res;
+  }, (err) => {
+    roleQueryCache.delete(key);
+    throw err;
+  });
+  roleQueryCache.set(key, { at: Date.now(), promise });
+  return promise;
+}
+
+/**
  * Hook para garantir que lojistas só acessem sua própria loja
  * Impede vazamento de dados entre lojas diferentes
  * Suporta store_admin com múltiplas lojas via seletor
@@ -89,12 +110,12 @@ export function useStoreAccess(): StoreAccess {
 
         if (userRole === 'attendant') {
           // Atendentes: buscar store_id direto da user_roles
-          const { data: roleData, error: roleError } = await (supabase as any)
+          const { data: roleData, error: roleError } = await sharedQuery(`attendant:${user.id}`, () => (supabase as any)
             .from('user_roles')
             .select('store_id, stores(name)')
             .eq('user_id', user.id)
             .eq('role', 'attendant')
-            .single();
+            .single());
 
           if (roleError || !roleData?.store_id) {
             console.error('❌ Erro ao buscar loja do atendente:', roleError);
@@ -113,12 +134,12 @@ export function useStoreAccess(): StoreAccess {
             return;
           }
 
-          const { data: roleStores, error } = await (supabase as any)
+          const { data: roleStores, error } = await sharedQuery(`store_admin:${user.id}`, () => (supabase as any)
             .from('user_roles')
             .select('store_id, stores(id, name)')
             .eq('user_id', user.id)
             .eq('role', 'store_admin')
-            .not('store_id', 'is', null);
+            .not('store_id', 'is', null));
 
           if (error) {
             console.error('❌ Erro ao verificar lojas por role:', error);
@@ -143,10 +164,10 @@ export function useStoreAccess(): StoreAccess {
 
           if (stores.length === 0) {
             // Fallback legado: owner_id (para contas antigas)
-            const { data: ownedStores } = await supabase
+            const { data: ownedStores } = await sharedQuery(`owner:${user.id}`, () => supabase
               .from('stores')
               .select('id, name')
-              .eq('owner_id', user.id);
+              .eq('owner_id', user.id));
 
             const normalizedOwnedStores: { id: string; name: string }[] = (ownedStores ?? [])
               .filter((s): s is { id: string; name: string } => Boolean(s?.id && s?.name));

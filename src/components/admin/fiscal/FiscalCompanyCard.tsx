@@ -25,7 +25,7 @@ export function FiscalCompanyCard({ form, errors, onChange }: FiscalFormProps) {
       </CardHeader>
       <CardContent className="grid grid-cols-1 sm:grid-cols-6 gap-3">
         {input('cnpj', 'CNPJ', 'sm:col-span-3', { inputMode: 'numeric' })}
-        {input('inscricao_estadual', 'Inscrição estadual', 'sm:col-span-3', { placeholder: 'Números ou ISENTO' })}
+        {input('inscricao_estadual', 'Inscrição estadual (no DF: CF/DF)', 'sm:col-span-3', { placeholder: 'Só números' })}
         {input('razao_social', 'Razão social', 'sm:col-span-3')}
         {input('nome_fantasia', 'Nome fantasia', 'sm:col-span-3')}
         <FiscalField id="fs-regime" label="Regime tributário" className="sm:col-span-6" hint="Simples Nacional usa CSOSN; Regime Normal usa CST.">

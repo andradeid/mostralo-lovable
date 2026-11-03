@@ -20,7 +20,7 @@ export function FiscalIntroCard({ items, environment }: { items: ReadinessItem[]
         <div className="space-y-1">
           <p className="font-medium">O que você precisa ter (o contador ajuda):</p>
           <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-            <li><b>CNPJ com inscrição estadual ativa</b> e credenciamento na SEFAZ para emitir NFC-e e/ou NF-e.</li>
+            <li><b>CNPJ com inscrição estadual ativa (no DF, o CF/DF)</b> e credenciamento na SEFAZ para emitir NFC-e e/ou NF-e.</li>
             <li><b>Certificado digital A1</b> (arquivo .pfx da empresa, com a senha). Fica guardado na Focus, não no Mostralo.</li>
             <li><b>CSC da NFC-e</b>: um código que você gera no site da SEFAZ do seu estado (um de teste e um de produção).</li>
             <li><b>Dados fiscais dos produtos</b> (NCM, CFOP e impostos) conferidos pelo contador.</li>

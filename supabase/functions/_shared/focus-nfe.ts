@@ -338,7 +338,7 @@ function emitterErrors(s: FiscalSettings, docType: FiscalDocType): string[] {
   if (docType === "nfe" && !s.nfe_enabled) errors.push("A NF-e não está habilitada nas configurações fiscais da loja.");
   if (!isValidCnpj(s.cnpj)) errors.push("Cadastre um CNPJ válido da loja nas configurações fiscais.");
   if (!onlyDigits(s.inscricao_estadual) && String(s.inscricao_estadual ?? "").trim().toUpperCase() !== "ISENTO") {
-    errors.push("Informe a inscrição estadual da loja nas configurações fiscais.");
+    errors.push("Informe a inscrição estadual da loja (no DF, o CF/DF) nas configurações fiscais.");
   }
   if (!isValidUf(s.uf)) errors.push("Informe o estado (UF) do endereço fiscal da loja.");
   if (![1, 2, 3, 4].includes(Number(s.regime_tributario))) errors.push("Escolha o regime tributário da loja.");

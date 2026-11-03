@@ -229,7 +229,7 @@ export function fiscalReadiness(f: FiscalSettingsForm, secrets: FiscalSecretsSta
   const company = isValidCnpj(f.cnpj) && !!f.inscricao_estadual.trim() && !!f.razao_social.trim() && isValidUf(f.uf)
     && !!f.municipio.trim() && !!f.logradouro.trim() && onlyDigits(f.cep).length === 8;
   const items: ReadinessItem[] = [
-    { key: 'company', label: 'Dados da empresa (CNPJ, inscrição estadual, endereço)', done: company, hint: 'Preencha a seção "Empresa".' },
+    { key: 'company', label: 'Dados da empresa (CNPJ, inscrição estadual ou CF/DF, endereço)', done: company, hint: 'Preencha a seção "Empresa".' },
     {
       key: 'taxes', label: 'Padrões de imposto (CST de PIS e COFINS)',
       done: !!f.default_pis_cst && !!f.default_cofins_cst,

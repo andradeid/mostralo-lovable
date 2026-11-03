@@ -13,7 +13,7 @@ const faqItems = [
   },
   {
     question: 'O sistema funciona para vendas presenciais (balcão e mesas)?',
-    answer: 'Sim! O módulo PDV e Comandas permite controlar mesas, balcão e garçons. Seu garçom usa o próprio celular como terminal de pedidos, com foto dos produtos e confirmação antes de enviar para a cozinha. Funciona offline (PWA) e integra automaticamente com seus relatórios financeiros.'
+    answer: 'Sim! O módulo PDV e Comandas permite controlar mesas, balcão e garçons. Seu garçom usa o próprio celular como terminal de pedidos, com foto dos produtos e confirmação antes de enviar para a cozinha. Funciona no navegador do celular, tablet ou computador, pode ser instalado como app, e integra automaticamente com seus relatórios financeiros.'
   },
   {
     question: 'Preciso ter conhecimento técnico?',

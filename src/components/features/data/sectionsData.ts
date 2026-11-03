@@ -236,7 +236,7 @@ export const whatsappTexts: Record<string, string> = {
 ✅ Celular vira terminal de pedidos
 ✅ Fotos dos produtos para não errar
 ✅ Modal de confirmação antes de enviar
-✅ Funciona offline (PWA)
+✅ Instala como app no celular (PWA)
 ✅ Envia direto para cozinha
 ✅ Sem investir em equipamento caro
 

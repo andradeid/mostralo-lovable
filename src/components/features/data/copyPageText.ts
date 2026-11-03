@@ -195,7 +195,7 @@ Funcionalidades:
 - Celular do garçom vira terminal de pedidos
 - Fotos dos produtos para não errar nunca
 - Modal de confirmação antes de enviar
-- Funciona offline (tecnologia PWA)
+- Instala como app no celular (tecnologia PWA)
 - Pedido vai direto para cozinha
 - Sem investir em equipamento caro
 

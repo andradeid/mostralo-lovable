@@ -478,7 +478,7 @@ const whatsappTexts: Record<string, string> = {
 ✅ Celular vira terminal de pedidos
 ✅ Fotos dos produtos para não errar
 ✅ Modal de confirmação antes de enviar
-✅ Funciona offline (PWA)
+✅ Instala como app no celular (PWA)
 ✅ Envia direto para cozinha
 ✅ Sem investir em equipamento caro
 
@@ -691,7 +691,7 @@ IDEAL PARA: Barbearias, Salões, Clínicas, Academias, Estúdios
 - Celular do garçom vira terminal de pedidos
 - Fotos dos produtos para não errar nunca
 - Modal de confirmação antes de enviar
-- Funciona offline (tecnologia PWA)
+- Instala como app no celular (tecnologia PWA)
 - Pedido vai direto para cozinha
 - Sem investir em equipamento caro
 

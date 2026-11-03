@@ -1,0 +1,278 @@
+{
+  "slug": "pagina-de-agendamento-estetica-automotiva",
+  "title": "Página de agendamento para estética automotiva com preço",
+  "h1": "Página de agendamento para estética automotiva: preço por porte do carro e horário livre, sem pedir orçamento",
+  "description": "Página de agendamento para estética automotiva: mostre o preço por porte, a duração e os horários livres para o cliente marcar sem pedir orçamento.",
+  "excerpt": "Cliente que pede orçamento no WhatsApp espera, compara e às vezes some. Veja o que a página de serviços precisa mostrar, como organizar o preço por porte e como o cliente agenda sozinho.",
+  "date": "2026-11-03",
+  "readMinutes": 6,
+  "category": "Por segmento",
+  "keywords": [
+    "página de agendamento estética automotiva",
+    "agendamento online estética automotiva",
+    "preço por porte do carro",
+    "tabela de preços lava-jato online",
+    "orçamento estética automotiva whatsapp",
+    "link de agendamento lava-jato"
+  ],
+  "image": "/images/guias/pagina-de-agendamento-estetica-automotiva.jpg",
+  "imageAlt": "Dono de uma picape escura escolhe no celular o serviço de estética automotiva com preço por porte e agenda o horário pela página de agendamento, na frente de casa",
+  "audio": {
+    "src": "/audio/guias/pagina-de-agendamento-estetica-automotiva.mp3",
+    "duration": 473.8,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 45.79,
+        "target": "s1"
+      },
+      {
+        "t": 94.26,
+        "target": "s2"
+      },
+      {
+        "t": 138.61,
+        "target": "s3"
+      },
+      {
+        "t": 219.16,
+        "target": "s4"
+      },
+      {
+        "t": 261.27,
+        "target": "s5"
+      },
+      {
+        "t": 370.06,
+        "target": "s6"
+      },
+      {
+        "t": 418.25,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Uma página de agendamento para estética automotiva mostra cada serviço com o preço por porte do carro, a duração e os horários livres, para o cliente escolher e marcar sozinho, sem pedir orçamento no WhatsApp. Você para de responder \"quanto fica?\" o dia todo e o cliente marca na hora em que decidiu, até de madrugada.",
+    "Neste guia você vai ver o que a página precisa mostrar, como organizar os serviços por porte, quando usar preço fechado ou \"a partir de\", o passo a passo para montar a página e onde divulgar o link."
+  ],
+  "sections": [
+    {
+      "h2": "O problema do \"quanto fica?\" no WhatsApp",
+      "blocks": [
+        {
+          "p": "Na maior parte das estéticas, o preço só existe na conversa. O cliente pergunta, espera a resposta, pergunta o porte, espera de novo e, quando chega o valor, já pediu orçamento em outros três lugares. Muitos sites de serviço fazem o mesmo: a página de polimento automotivo da Webmotors, por exemplo, pede para consultar valores de acordo com o tipo e o tamanho do veículo."
+        },
+        {
+          "p": "Um artigo do Sebrae PR sobre agendamento online resume a vantagem do outro jeito: o cliente escolhe o serviço, a data e o profissional, vê os horários livres e agenda a qualquer momento, e a equipe fica livre para atender quem está no balcão."
+        }
+      ]
+    },
+    {
+      "h2": "O que a página de serviços da estética precisa mostrar",
+      "blocks": [
+        {
+          "ul": [
+            "**Nome do serviço com o porte**, como \"Lavagem detalhada (SUV)\".",
+            "**Preço**, fechado ou \"a partir de\".",
+            "**Duração**, para o cliente saber quanto tempo fica sem o carro.",
+            "**O que inclui**, em uma ou duas linhas: lataria, rodas, interior, cera.",
+            "**Foto** do serviço ou de um carro atendido por você.",
+            "**Horários livres de verdade**, já descontado o que está marcado.",
+            "**Regra de sinal e cancelamento**, se você cobra sinal."
+          ]
+        },
+        {
+          "p": "Com isso na tela, a pergunta que sobra para o WhatsApp é a exceção, não a regra."
+        }
+      ]
+    },
+    {
+      "h2": "Preço por porte do carro: como organizar os serviços",
+      "blocks": [
+        {
+          "p": "O jeito mais simples é cadastrar um serviço para cada porte, com o preço e a duração daquele porte. Exemplo com os valores do guia [quanto cobrar por polimento e vitrificação](/guia/quanto-cobrar-polimento-e-vitrificacao):"
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço na página",
+              "Preço",
+              "Duração"
+            ],
+            "rows": [
+              [
+                "Lavagem detalhada (Hatch)",
+                "R$ 140",
+                "2 horas"
+              ],
+              [
+                "Lavagem detalhada (Sedã)",
+                "R$ 175",
+                "2 horas e 30 minutos"
+              ],
+              [
+                "Lavagem detalhada (SUV)",
+                "R$ 210",
+                "3 horas"
+              ],
+              [
+                "Lavagem detalhada (Picape)",
+                "R$ 245",
+                "3 horas e 30 minutos"
+              ],
+              [
+                "Polimento técnico (Hatch)",
+                "a partir de R$ 315",
+                "4 horas"
+              ],
+              [
+                "Polimento técnico (SUV)",
+                "a partir de R$ 475",
+                "6 horas"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Diga o que é cada porte** na descrição: hatch para compactos, sedã para carros com porta-malas saliente, SUV e picape para os maiores.",
+            "**Combine o que acontece se o porte vier errado**, por exemplo: a diferença é cobrada na entrega, com aviso antes de começar.",
+            "**A duração muda com o porte**, e é ela que reserva o box certo na agenda. Veja o guia do [sistema de agendamento para lava-jato](/guia/agendamento-para-lava-jato)."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Preço fechado ou \"a partir de\"?",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Tipo de preço",
+              "Quando usar",
+              "Exemplo"
+            ],
+            "rows": [
+              [
+                "Preço fechado",
+                "o trabalho é quase sempre igual",
+                "lavagem simples, lavagem detalhada"
+              ],
+              [
+                "A partir de",
+                "o estado do carro muda muito o trabalho",
+                "polimento, vitrificação, higienização pesada"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "No \"a partir de\", escreva na descrição o que faz o preço subir, como pintura muito riscada ou interior com mancha. Confira o carro na chegada e combine o valor final antes de começar. Preço que muda sem aviso derruba a confiança e a avaliação no Google."
+        },
+        {
+          "img": "/images/guias/pagina-de-agendamento-estetica-automotiva-2.jpg",
+          "alt": "Diagrama da página de agendamento para estética automotiva: o cliente escolhe o serviço com preço por porte, vê a duração, escolhe o horário livre e confirma com nome e WhatsApp, recebendo a confirmação com link para remarcar",
+          "caption": "Página de agendamento para estética automotiva: serviço por porte com preço, horário livre e confirmação no WhatsApp, sem orçamento."
+        }
+      ]
+    },
+    {
+      "h2": "Passo a passo: montar a página de agendamento no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a estética ganha uma página de agendamento própria. Para ver como ela funciona do lado do cliente, abra a [página de demonstração](/agendar/corte-fino), que é de uma barbearia, mas segue o mesmo caminho. No menu Agendamento:"
+        },
+        {
+          "ol": [
+            "Em **Serviços**, cadastre um serviço por porte com Nome, Descrição, Duração, Preço e Tipo de Preço (Preço Fixo ou A partir de). Coloque uma Imagem do Serviço.",
+            "Nos serviços caros, ligue o Sinal próprio deste serviço, em valor fixo ou porcentagem. Veja o guia de [sinal no agendamento de estética automotiva](/guia/sinal-no-agendamento-estetica-automotiva).",
+            "Em **Profissionais**, cadastre cada box e diga quais serviços ele faz. Em **Disponibilidade**, defina o horário de cada box.",
+            "Em **Configurações**, aba Automação, ligue Permitir \"qualquer profissional\", para o cliente não precisar escolher o box.",
+            "Na aba Aparência, ajuste as cores da página. Se você tem site, dá para colocar a página dentro dele.",
+            "Copie o link da página e divulgue."
+          ]
+        },
+        {
+          "p": "O cliente escolhe o serviço, vê o preço e a duração, escolhe o dia e o horário livre e confirma com nome e WhatsApp. Com o WhatsApp da estética conectado, a confirmação chega com o link para cancelar ou remarcar dentro do prazo que você definiu. Quem vende produto pode ter também a loja virtual, com cera, cheirinho e kits de limpeza."
+        }
+      ]
+    },
+    {
+      "h2": "Onde divulgar o link da página de agendamento",
+      "blocks": [
+        {
+          "ul": [
+            "**Bio do Instagram** e nos destaques, com a frase \"Veja os preços e agende aqui\".",
+            "**Perfil da empresa no Google**, para quem acha a estética pelo mapa.",
+            "**Status e mensagem de ausência do WhatsApp**, para quem chama fora do horário.",
+            "**QR Code no balcão** e no cartão entregue com o carro.",
+            "**Mensagem depois do serviço**, junto com o pedido de avaliação. Veja [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google)."
+          ]
+        },
+        {
+          "p": "Cliente que lava toda semana pode virar mensalista com horário fixo: veja o [plano mensal de lavagem](/guia/plano-mensal-de-lavagem). Todos os recursos estão em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a página de agendamento da sua estética automotiva",
+    "p": [
+      "No Mostralo, a estética automotiva ganha uma página de agendamento própria com os serviços por porte, preço, duração e foto, e o cliente marca sozinho só nos horários livres de cada box. A confirmação e o lembrete saem no WhatsApp, e o serviço caro pode pedir sinal pelo Pix. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Serviços com preço fixo ou \"a partir de\", duração, descrição e foto",
+      "Horários livres por box, com a opção de o cliente não escolher o box",
+      "Confirmação no WhatsApp com link para cancelar ou remarcar e lembrete antes do horário",
+      "Loja virtual e caixa para vender cera, cheirinho e kits"
+    ]
+  },
+  "faq": [
+    [
+      "Como colocar o preço por porte do carro na página de agendamento?",
+      "Cadastre um serviço para cada porte, como \"Lavagem detalhada (SUV)\", com o preço e a duração daquele porte. O cliente escolhe o que combina com o carro dele."
+    ],
+    [
+      "Vale a pena mostrar o preço da estética automotiva na internet?",
+      "Para a maioria das estéticas, sim. O cliente decide mais rápido e você para de responder orçamento repetido. Nos serviços que dependem do estado do carro, use preço \"a partir de\"."
+    ],
+    [
+      "O cliente precisa escolher o box?",
+      "Não. No Mostralo, com Permitir \"qualquer profissional\" ligado, o cliente escolhe só o serviço e o horário, e a agenda usa um box livre."
+    ],
+    [
+      "E se o cliente marcar o porte errado?",
+      "Combine a regra na descrição: confira o carro na chegada, avise a diferença antes de começar e ajuste o valor na entrega."
+    ],
+    [
+      "Onde divulgar o link de agendamento?",
+      "Na bio do Instagram, no perfil da empresa no Google, no status e na mensagem de ausência do WhatsApp e num QR Code no balcão."
+    ]
+  ],
+  "sources": [
+    [
+      "Sebrae PR: Já pensou em agendamento online? (08/07/2020)",
+      "https://sebraepr.com.br/comunidade/artigo/ja-pensou-em-agendamento-online"
+    ],
+    [
+      "Webmotors: Polimento automotivo (consultado em 03/11/2026)",
+      "https://www.webmotors.com.br/servicos-automotivos/polimento-automotivo"
+    ],
+    [
+      "Vrum: Polimento, cristalização ou vitrificação, qual o ideal para seu carro (02/07/2026)",
+      "https://www.vrum.com.br/aceleradas/2026/07/7454057-polimento-cristalizacao-ou-vitrificacao-qual-o-ideal-para-seu-carro.html"
+    ]
+  ],
+  "related": [
+    "agendamento-para-lava-jato",
+    "quanto-cobrar-polimento-e-vitrificacao",
+    "sinal-no-agendamento-estetica-automotiva",
+    "plano-mensal-de-lavagem",
+    "como-conseguir-avaliacoes-no-google"
+  ]
+}

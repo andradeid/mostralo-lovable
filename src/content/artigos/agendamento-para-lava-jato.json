@@ -1,0 +1,317 @@
+{
+  "slug": "agendamento-para-lava-jato",
+  "title": "Sistema de agendamento para lava-jato e estética automotiva",
+  "h1": "Sistema de agendamento para lava-jato e estética automotiva: quantos carros cabem por dia sem lotar o pátio",
+  "description": "Sistema de agendamento para lava-jato e estética automotiva: como montar a agenda por box, a duração de cada serviço e quantos carros cabem no dia.",
+  "excerpt": "Carro sem hora marcada lota o pátio no sábado e deixa o box parado no resto da semana. Veja como montar a agenda por box, a duração de cada serviço e quantos carros cabem por dia.",
+  "date": "2026-11-03",
+  "readMinutes": 7,
+  "category": "Agendamento",
+  "keywords": [
+    "sistema de agendamento para lava-jato",
+    "agendamento estética automotiva",
+    "agenda online lava-jato",
+    "quantos carros por dia lava-jato",
+    "agenda por box",
+    "tempo de cada serviço estética automotiva"
+  ],
+  "image": "/images/guias/agendamento-para-lava-jato.jpg",
+  "imageAlt": "Dono de lava-jato confere no celular a agenda do dia enquanto um carro coberto de espuma e um SUV sendo secado ocupam os boxes, exemplo de sistema de agendamento para lava-jato",
+  "audio": {
+    "src": "/audio/guias/agendamento-para-lava-jato.mp3",
+    "duration": 496.8,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 47.67,
+        "target": "s1"
+      },
+      {
+        "t": 103.1,
+        "target": "s2"
+      },
+      {
+        "t": 176.21,
+        "target": "s3"
+      },
+      {
+        "t": 237.32,
+        "target": "s4"
+      },
+      {
+        "t": 311.51,
+        "target": "s5"
+      },
+      {
+        "t": 404.78,
+        "target": "s6"
+      },
+      {
+        "t": 444.65,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um sistema de agendamento para lava-jato e estética automotiva transforma cada box em uma agenda, com a duração real de cada serviço, para o cliente marcar só nos horários em que o carro cabe. O resultado é o pátio sem fila no sábado, o box ocupado nos dias fracos e o polimento que não atrasa a lavagem de ninguém.",
+    "Neste guia você vai ver quanto tempo cada serviço ocupa o box, se a agenda deve ser por box ou por lavador, a conta de quantos carros cabem no dia e o passo a passo para montar a agenda online e divulgar o link."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o lava-jato precisa de agenda, e não só de fila",
+      "blocks": [
+        {
+          "p": "Na fila por ordem de chegada, todo mundo aparece no mesmo horário. O sábado de manhã lota, o cliente espera em pé e vai embora, e na terça à tarde o box fica parado. Na estética automotiva é pior: um polimento ou uma vitrificação prende o box por horas, e quem chegou para uma lavagem rápida fica sem lugar."
+        },
+        {
+          "ul": [
+            "**Pátio cheio e cliente esperando**, porque todos chegaram juntos.",
+            "**Box parado** nos horários em que ninguém aparece.",
+            "**Serviço longo atrasando o curto**, porque ninguém sabia que o box ia ficar ocupado até o meio da tarde.",
+            "**Telefone tocando o dia todo** com a mesma pergunta: \"tem horário hoje?\""
+          ]
+        },
+        {
+          "p": "A agenda resolve as quatro coisas ao mesmo tempo, porque o cliente só vê o horário em que o serviço dele cabe."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto tempo leva cada serviço na estética automotiva",
+      "blocks": [
+        {
+          "p": "A agenda só funciona se a duração de cada serviço estiver certa. Use as referências de mercado como ponto de partida e depois cronometre o seu box por uma ou duas semanas:"
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Tempo de referência",
+              "Fonte"
+            ],
+            "rows": [
+              [
+                "Lavagem completa, com interior",
+                "cerca de 2 horas",
+                "Webmotors"
+              ],
+              [
+                "Higienização interna",
+                "cerca de 3 horas",
+                "Webmotors"
+              ],
+              [
+                "Polimento técnico",
+                "4 horas em média, de 2 a 6 horas",
+                "Consulta de Placa, outubro de 2026"
+              ],
+              [
+                "Vitrificação",
+                "de 2 a 3 dias com o preparo da pintura",
+                "iCarros, 2020"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "A duração na agenda é o tempo em que o box fica ocupado, não só o tempo de mão na massa. Some secagem, aspiração, acabamento e a limpeza do box antes do próximo carro."
+        },
+        {
+          "p": "Serviço que passa de um dia, como a vitrificação, não cabe em um horário comum: bloqueie o box nos dias seguintes. Para saber quanto cobrar por esse tempo, veja o guia [quanto cobrar por polimento e vitrificação](/guia/quanto-cobrar-polimento-e-vitrificacao)."
+        }
+      ]
+    },
+    {
+      "h2": "Agenda por box ou por lavador: quem é o profissional da agenda",
+      "blocks": [
+        {
+          "p": "Em sistemas de agendamento, cada agenda costuma ser um profissional. No lava-jato, o que limita o dia quase sempre é o espaço, não a pessoa. Escolha pelo gargalo:"
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "Cada agenda é",
+              "Exemplo de nome"
+            ],
+            "rows": [
+              [
+                "Cada box tem um uso, como lavagem ou polimento",
+                "um box",
+                "Box 1 lavagem, Box 2 polimento"
+              ],
+              [
+                "Os boxes são iguais e o lavador se move entre eles",
+                "um box",
+                "Box A, Box B, Box C"
+              ],
+              [
+                "Um detailer atende sozinho, com hora marcada",
+                "o detailer",
+                "o nome dele"
+              ],
+              [
+                "Atendimento em domicílio",
+                "o lavador ou a equipe",
+                "Equipe 1"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Com a agenda por box, dois carros nunca são marcados no mesmo box no mesmo horário. Se o cliente não precisa escolher o box, deixe a página escolher um box livre por ele."
+        }
+      ]
+    },
+    {
+      "h2": "Quantos carros cabem por dia: a conta do pátio",
+      "blocks": [
+        {
+          "p": "Exemplo: um lava-jato com 2 boxes, aberto das 8h às 18h, com uma hora de almoço. Cada box tem 9 horas de trabalho por dia. As durações abaixo são do exemplo; use as suas."
+        },
+        {
+          "table": {
+            "head": [
+              "Box",
+              "Serviços do dia",
+              "Horas ocupadas",
+              "Carros"
+            ],
+            "rows": [
+              [
+                "Box 1 lavagem",
+                "9 lavagens completas de 1 hora",
+                "9 horas",
+                "9"
+              ],
+              [
+                "Box 2 polimento",
+                "1 polimento técnico de 4 horas, 1 higienização de 3 horas e 2 lavagens de 1 hora",
+                "9 horas",
+                "4"
+              ],
+              [
+                "Total",
+                "nenhum",
+                "18 horas",
+                "13"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "São 13 carros sem ninguém esperando no pátio, porque cada um chega no seu horário. Sem agenda, esses mesmos 13 podem aparecer às 8h, e o lava-jato passa a manhã com fila e a tarde sem serviço."
+        },
+        {
+          "img": "/images/guias/agendamento-para-lava-jato-2.jpg",
+          "alt": "Diagrama de sistema de agendamento para lava-jato: agenda do dia de dois boxes das 8h às 18h, com lavagens de uma hora no box 1 e polimento, higienização e lavagens no box 2, somando 13 carros",
+          "caption": "Sistema de agendamento para lava-jato: com a duração certa de cada serviço, 2 boxes atendem 13 carros no dia sem fila no pátio."
+        },
+        {
+          "p": "A conta também mostra onde vender: se o Box 2 tem horas vagas na terça e na quarta, é ali que entram os clientes de [plano mensal de lavagem](/guia/plano-mensal-de-lavagem), com horário fixo toda semana."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a agenda online do lava-jato, passo a passo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o menu Agendamento já tem o que o lava-jato precisa. O box entra como profissional:"
+        },
+        {
+          "ol": [
+            "Em **Profissionais**, cadastre cada box, como \"Box 1 lavagem\" e \"Box 2 polimento\".",
+            "Em **Disponibilidade**, defina o horário de cada box, com a pausa do almoço. Feriado ou manutenção vira bloqueio daquele box.",
+            "Em **Serviços**, cadastre cada serviço com nome, preço e duração, que é o tempo total de box ocupado. Separe por porte, se o tempo muda: veja o guia de [página de agendamento com preço por porte](/guia/pagina-de-agendamento-estetica-automotiva).",
+            "Diga quais boxes fazem cada serviço. Polimento só aparece no box que tem luz e politriz.",
+            "Em **Configurações**, aba Regras, escolha o Intervalo entre horários (de 15 a 60 minutos) e a antecedência mínima e máxima para agendar.",
+            "Na aba Automação, ligue Permitir \"qualquer profissional\" para o cliente escolher só o serviço e o horário, sem escolher o box.",
+            "Divulgue o link da sua página de agendamento no Instagram, no perfil do Google e no status do WhatsApp."
+          ]
+        },
+        {
+          "p": "O cliente escolhe o serviço, a data e o horário livre e confirma com nome e WhatsApp. Veja mais em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Lembrete, sinal, avaliação e venda no balcão",
+      "blocks": [
+        {
+          "p": "Com a agenda pronta, o resto do atendimento fica mais simples:"
+        },
+        {
+          "ul": [
+            "**Lembrete no WhatsApp** algumas horas antes do horário, para o cliente não esquecer.",
+            "**Sinal pelo Pix** nos serviços longos, para não perder um dia de box com quem não aparece. Veja o guia de [sinal no agendamento de estética automotiva](/guia/sinal-no-agendamento-estetica-automotiva).",
+            "**Pedido de avaliação no Google** depois do serviço, enquanto o carro ainda está brilhando. Veja [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google).",
+            "**Loja virtual e caixa** para vender cheirinho, cera e pretinho na retirada do carro."
+          ]
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: agenda por box para o seu lava-jato",
+    "p": [
+      "No Mostralo, cada box tem a própria agenda, cada serviço tem a sua duração e o cliente marca pelo link do lava-jato só nos horários em que o carro cabe. O lembrete sai no WhatsApp antes do horário e o pedido de avaliação no Google sai depois. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Agenda por box ou por lavador, sem dois carros no mesmo horário",
+      "Duração e preço por serviço, com horários livres calculados sozinhos",
+      "Lembrete no WhatsApp antes do horário e pedido de avaliação no Google depois",
+      "Página de agendamento própria, loja virtual e caixa para vender produtos no balcão"
+    ]
+  },
+  "faq": [
+    [
+      "Qual o melhor sistema de agendamento para lava-jato?",
+      "O que deixa montar uma agenda por box, com a duração real de cada serviço, e mostra ao cliente só os horários livres. Lembrete no WhatsApp e sinal pelo Pix nos serviços longos ajudam a reduzir faltas."
+    ],
+    [
+      "Quantos carros um lava-jato consegue lavar por dia?",
+      "Depende do número de boxes, do horário e da duração de cada serviço. Exemplo: 2 boxes com 9 horas de trabalho atendem 13 carros num dia com 11 lavagens de 1 hora, 1 polimento de 4 horas e 1 higienização de 3 horas."
+    ],
+    [
+      "A agenda deve ser por box ou por lavador?",
+      "Pelo que limita o dia. Na maioria dos lava-jatos é o box. Se um detailer atende sozinho, a agenda pode ser dele."
+    ],
+    [
+      "Quanto tempo dura um polimento técnico?",
+      "Em média 4 horas, podendo ir de 2 a 6 horas conforme o carro e a pintura. Coloque na agenda o tempo total de box ocupado."
+    ],
+    [
+      "Como agendar uma vitrificação que leva mais de um dia?",
+      "Marque o primeiro dia como serviço e bloqueie o mesmo box nos dias seguintes, para ninguém agendar por cima."
+    ]
+  ],
+  "sources": [
+    [
+      "Webmotors: Lavagem de carro (duração média e preços, consultado em 03/11/2026)",
+      "https://www.webmotors.com.br/servicos-automotivos/lavagem-de-carro"
+    ],
+    [
+      "Webmotors: Higienização automotiva (consultado em 03/11/2026)",
+      "https://www.webmotors.com.br/servicos-automotivos/higienizacao-automotiva"
+    ],
+    [
+      "Consulta de Placa: Quanto custa polir um carro, preço, tempo e quanto dura (19/10/2026)",
+      "https://consultadeplaca.net/blog/quanto-custa-polir-um-carro"
+    ],
+    [
+      "iCarros: Vitrificação automotiva, o que é, preço e cuidados (16/09/2020)",
+      "https://www.icarros.com.br/noticias/manutencao-e-servicos/vitrificacao-automotiva:-o-que-e,-preco-e-5-cuidados/28431.html"
+    ]
+  ],
+  "related": [
+    "pagina-de-agendamento-estetica-automotiva",
+    "sinal-no-agendamento-estetica-automotiva",
+    "plano-mensal-de-lavagem",
+    "quanto-cobrar-polimento-e-vitrificacao",
+    "como-conseguir-avaliacoes-no-google"
+  ]
+}

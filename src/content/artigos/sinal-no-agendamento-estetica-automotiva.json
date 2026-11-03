@@ -1,0 +1,341 @@
+{
+  "slug": "sinal-no-agendamento-estetica-automotiva",
+  "title": "Sinal no agendamento de estética automotiva pelo Pix",
+  "h1": "Sinal no agendamento de estética automotiva: quanto pedir pelo Pix para acabar com o cliente que não aparece",
+  "description": "Sinal no agendamento de estética automotiva: quanto pedir por serviço, prazo para pagar, regra de cancelamento e remarcação e mensagens prontas.",
+  "excerpt": "Polimento marcado que não aparece é um dia de box perdido. Veja quanto pedir de sinal em cada serviço, o prazo para pagar, a regra de cancelamento e remarcação e mensagens prontas para o cliente.",
+  "date": "2026-11-03",
+  "readMinutes": 8,
+  "category": "Agendamento",
+  "keywords": [
+    "sinal no agendamento estética automotiva",
+    "cliente que não aparece lava-jato",
+    "no-show estética automotiva",
+    "cobrar sinal polimento",
+    "política de cancelamento estética automotiva",
+    "sinal pelo pix agendamento"
+  ],
+  "image": "/images/guias/sinal-no-agendamento-estetica-automotiva.jpg",
+  "imageAlt": "Detailer sentado no box vazio da estética automotiva confere no celular o sinal pelo Pix do próximo agendamento, com politriz e panos de microfibra prontos no carrinho",
+  "audio": {
+    "src": "/audio/guias/sinal-no-agendamento-estetica-automotiva.mp3",
+    "duration": 529.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 40.87,
+        "target": "s1"
+      },
+      {
+        "t": 87.86,
+        "target": "s2"
+      },
+      {
+        "t": 166.49,
+        "target": "s3"
+      },
+      {
+        "t": 198.08,
+        "target": "s4"
+      },
+      {
+        "t": 289.07,
+        "target": "s5"
+      },
+      {
+        "t": 314.58,
+        "target": "s6"
+      },
+      {
+        "t": 469.45,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Sinal no agendamento de estética automotiva é uma parte do preço paga pelo Pix na hora de marcar, que confirma o horário e é descontada do total no dia. Quem pagou o sinal avisa quando desiste, e o box não fica parado à espera de um carro que não vem.",
+    "Neste guia você vai ver quanto custa um box parado, quanto pedir de sinal em cada serviço, o prazo para pagar, a regra de cancelamento, remarcação e atraso, mensagens prontas e como cobrar o sinal direto na reserva."
+  ],
+  "sections": [
+    {
+      "h2": "Quanto custa um box parado por falta do cliente",
+      "blocks": [
+        {
+          "p": "Na lavagem rápida, uma falta custa uma hora. No polimento e na vitrificação, custa a manhã ou o dia inteiro, e o horário foi recusado para outro cliente. Exemplo com preços de sedã do guia [quanto cobrar por polimento e vitrificação](/guia/quanto-cobrar-polimento-e-vitrificacao):"
+        },
+        {
+          "table": {
+            "head": [
+              "Conta",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Polimentos técnicos que faltaram no mês",
+                "2"
+              ],
+              [
+                "Preço de cada polimento",
+                "R$ 390"
+              ],
+              [
+                "Faturamento perdido no mês",
+                "R$ 780"
+              ],
+              [
+                "Horas de box paradas",
+                "10 horas"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A Cielo (junho de 2026) recomenda manter as faltas abaixo de 10% dos agendamentos. Lembrete ajuda, mas é o sinal que faz o cliente avisar quando desiste."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto pedir de sinal em cada serviço",
+      "blocks": [
+        {
+          "p": "Não existe valor oficial. A Cielo cita sinal geralmente entre 20% e 50% do serviço. Quanto mais longo e caro o serviço, maior o sinal. Exemplo:"
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço do exemplo",
+              "Preço",
+              "Sinal",
+              "Valor do sinal",
+              "Restante no dia"
+            ],
+            "rows": [
+              [
+                "Lavagem simples",
+                "R$ 50",
+                "valor fixo",
+                "R$ 15",
+                "R$ 35"
+              ],
+              [
+                "Lavagem detalhada de sedã",
+                "R$ 175",
+                "30%",
+                "R$ 52,50",
+                "R$ 122,50"
+              ],
+              [
+                "Polimento técnico de sedã",
+                "R$ 390",
+                "30%",
+                "R$ 117",
+                "R$ 273"
+              ],
+              [
+                "Vitrificação de sedã",
+                "R$ 1.190",
+                "50%",
+                "R$ 595",
+                "R$ 595"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Sinal é parte do preço**, não taxa extra. No dia, o cliente paga só o restante.",
+            "**Lavagem rápida pode ficar sem sinal**, para não espantar quem passa na porta.",
+            "**Mensalista não paga sinal por lavagem:** paga o mês adiantado. Veja o [plano mensal de lavagem](/guia/plano-mensal-de-lavagem)."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Prazo para pagar: por quanto tempo segurar o horário",
+      "blocks": [
+        {
+          "p": "Reserva sem prazo vira box preso. A regra prática:"
+        },
+        {
+          "ul": [
+            "**De 15 a 30 minutos** é tempo de sobra para fazer um Pix.",
+            "**Pagou, confirmou.** Sem Pix no prazo, o horário volta para a agenda.",
+            "**Mande o prazo junto com a chave Pix**, para ninguém dizer que não sabia.",
+            "**Confira no extrato, não no print.** Comprovante pode ser editado; dinheiro na conta, não."
+          ]
+        },
+        {
+          "img": "/images/guias/sinal-no-agendamento-estetica-automotiva-2.jpg",
+          "alt": "Fluxo do sinal no agendamento de estética automotiva: o cliente escolhe o serviço e o horário, paga o sinal pelo Pix no prazo e a reserva é confirmada; sem pagamento, o horário volta para a agenda; no dia, paga só o restante",
+          "caption": "Sinal no agendamento de estética automotiva: pagou no prazo, confirma; não pagou, o box volta para a agenda."
+        }
+      ]
+    },
+    {
+      "h2": "Cancelamento, remarcação e atraso: a regra que vai na confirmação",
+      "blocks": [
+        {
+          "p": "O sinal só funciona com regra clara, dita antes do pagamento. A Cielo recomenda mandar a política por escrito na confirmação. Exemplo de regra:"
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "O que acontece com o sinal"
+            ],
+            "rows": [
+              [
+                "Cliente cancela com 24 horas ou mais",
+                "devolve ou vira crédito"
+              ],
+              [
+                "Cliente remarca com 24 horas ou mais",
+                "o sinal vai para o novo horário"
+              ],
+              [
+                "Cliente cancela com menos de 24 horas",
+                "fica com a estética ou vira crédito, conforme a sua regra"
+              ],
+              [
+                "Cliente não aparece",
+                "fica com a estética"
+              ],
+              [
+                "Cliente atrasa muito",
+                "o serviço pode ser remarcado se não couber no box"
+              ],
+              [
+                "A estética cancela",
+                "devolve ou remarca, à escolha do cliente"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O Código Civil trata o sinal, ou arras, nos artigos 417 a 420: quem pagou e desiste pode perder o sinal; quem recebeu e não cumpre devolve com acréscimo. Já o Código de Defesa do Consumidor, no artigo 51, anula cláusula que dá vantagem exagerada a quem vende. Por isso, prefira sinal proporcional, prazo razoável para cancelar e a opção de crédito."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui um advogado ou contador. Antes de fixar a regra de perda do sinal, converse com um profissional."
+        }
+      ]
+    },
+    {
+      "h2": "Modelos de mensagem para o cliente",
+      "blocks": [
+        {
+          "p": "Copie, troque os campos entre colchetes e salve como resposta rápida no WhatsApp da estética."
+        },
+        {
+          "templates": [
+            {
+              "title": "Pedido do sinal",
+              "text": "Oi, [nome]. Separei [serviço] para [dia] às [hora]. Para confirmar, o sinal é de [valor] pelo Pix, chave [chave Pix], até [hora limite]. O restante, [valor restante], você paga na retirada do carro. Sem o Pix até esse horário, o horário é liberado para outro cliente."
+            },
+            {
+              "title": "Sinal ainda não chegou",
+              "text": "Oi, [nome]. Ainda não identifiquei o Pix do sinal de [serviço], [dia] às [hora]. O horário fica reservado até [hora limite]. Se já pagou, me mande o comprovante para eu conferir."
+            },
+            {
+              "title": "Confirmado com a regra",
+              "text": "Pronto, [nome]. Sinal recebido e horário confirmado: [serviço], [dia] às [hora]. Cancelando ou remarcando até [horas] horas antes, o sinal vira crédito ou volta para você. Depois disso, ele fica com a estética. Até lá."
+            },
+            {
+              "title": "Depois de uma falta",
+              "text": "Oi, [nome]. Sentimos sua falta hoje às [hora]. Como combinado, o sinal ficou com a estética. Para marcar de novo, é só escolher o horário aqui: [link]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como cobrar o sinal da reserva no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o cliente marca pela página de agendamento da estética e o sinal é cobrado na própria reserva. No menu Agendamento:"
+        },
+        {
+          "ol": [
+            "Em **Configurações**, aba Pagamentos, ligue Exigir sinal para agendar e defina a Porcentagem padrão sobre o preço do serviço.",
+            "Em **Serviços**, dê ao polimento ou à vitrificação um sinal próprio, em valor fixo ou porcentagem. O sinal nunca passa do preço e serviço grátis não cobra sinal.",
+            "Escolha como receber. No **Pix da própria loja**, sem taxa do Mostralo, o cliente vê a sua chave e o valor na tela e no WhatsApp, e a reserva fica como Sinal pendente até você conferir o extrato e tocar em Confirmar sinal na agenda. No **Pix pelo Mostralo**, o Pix é gerado na hora e a reserva se confirma sozinha; esse modo tem uma taxa sobre o sinal, mostrada na própria tela.",
+            "No Pix pelo Mostralo, defina o Prazo para pagar, de 5 a 60 minutos (o padrão é 15). Sem pagamento, a reserva cai com o motivo \"Sinal não pago a tempo\" e o box volta para a agenda.",
+            "Na aba Automação, defina o Limite para cancelamento: até quantas horas antes o cliente pode cancelar ou remarcar pelo link que chega na confirmação.",
+            "Se quiser, ligue Enviar cobrança PIX automática: com o sinal pago, a cobrança enviada é só do restante."
+          ]
+        },
+        {
+          "ul": [
+            "**Remarcou com o sinal pago:** o sinal vai junto para o novo horário, sem pagar de novo.",
+            "**Remarcou com o sinal ainda pendente:** o horário antigo só é liberado quando o sinal do novo horário é pago. Se não pagar, o cliente continua com o horário antigo.",
+            "**Pagou depois do prazo:** se o horário continua livre, a reserva volta a valer sozinha; se já foi ocupado, ela fica cancelada com o aviso para devolver o sinal ao cliente."
+          ]
+        },
+        {
+          "tip": "Reserva com sinal pendente não recebe confirmação nem lembrete. Com o Pix da própria loja, ela também não cai sozinha: confirme o sinal ou cancele à mão as reservas fora do prazo."
+        },
+        {
+          "p": "Veja como o box entra na agenda no guia do [sistema de agendamento para lava-jato](/guia/agendamento-para-lava-jato). Arenas usam a mesma lógica: veja o [sinal na reserva de quadra](/guia/sinal-na-reserva-de-quadra)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: sinal pelo Pix na reserva da estética automotiva",
+    "p": [
+      "No Mostralo, o cliente escolhe o serviço e o horário na página da estética e paga o sinal pelo Pix para confirmar. Com o Pix pelo Mostralo, a reserva sem pagamento no prazo cai sozinha e o box volta para a agenda; com o sinal pago, saem a confirmação e o lembrete no WhatsApp, e o sinal acompanha o cliente se ele remarcar. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Sinal por serviço, em valor fixo ou porcentagem, com a porcentagem padrão da loja",
+      "Pix na chave da estética ou pelo Mostralo, com confirmação automática e prazo de 5 a 60 minutos",
+      "Cancelamento e remarcação pelo link da confirmação, até quantas horas antes você definir",
+      "Cobrança só do restante depois do sinal pago"
+    ]
+  },
+  "faq": [
+    [
+      "Posso cobrar sinal no agendamento de estética automotiva?",
+      "Pode, desde que diga antes do pagamento o valor, que ele é descontado do total e a regra de cancelamento. Na dúvida, consulte um advogado."
+    ],
+    [
+      "Quanto cobrar de sinal no polimento e na vitrificação?",
+      "É comum pedir de 20% a 50% do serviço. Exemplo: 30% num polimento de R$ 390 dá R$ 117; 50% numa vitrificação de R$ 1.190 dá R$ 595."
+    ],
+    [
+      "Quanto tempo dar para o cliente pagar o sinal?",
+      "De 15 a 30 minutos costuma bastar. No Mostralo, com o Pix pelo Mostralo, o prazo vai de 5 a 60 minutos e a reserva cai sozinha sem o Pix."
+    ],
+    [
+      "O sinal volta se o cliente remarcar?",
+      "Pela regra sugerida, remarcando com antecedência o sinal vai para o novo horário. No Mostralo, remarcando pelo link com o sinal pago, ele acompanha a nova reserva sem pagar de novo."
+    ],
+    [
+      "Receber o sinal pelo Mostralo tem taxa?",
+      "No Pix pela chave da própria loja, o Mostralo não cobra taxa. No Pix pelo Mostralo, com confirmação automática, há uma taxa sobre o sinal, mostrada na tela de Pagamentos."
+    ]
+  ],
+  "sources": [
+    [
+      "Cielo: No-show, como evitar que seus clientes faltem a agendamentos (02/06/2026)",
+      "https://blog.cielo.com.br/produtos-e-servicos/no-show-como-evitar-que-clientes-faltem-agendamentos/"
+    ],
+    [
+      "Planalto: Código Civil, Lei 10.406/2002, artigos 417 a 420 (arras ou sinal)",
+      "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm"
+    ],
+    [
+      "Planalto: Código de Defesa do Consumidor, Lei 8.078/1990, artigo 51",
+      "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm"
+    ]
+  ],
+  "related": [
+    "agendamento-para-lava-jato",
+    "quanto-cobrar-polimento-e-vitrificacao",
+    "plano-mensal-de-lavagem",
+    "pagina-de-agendamento-estetica-automotiva",
+    "sinal-na-reserva-de-quadra"
+  ]
+}

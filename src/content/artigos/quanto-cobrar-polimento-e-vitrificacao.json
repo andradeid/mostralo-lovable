@@ -1,0 +1,371 @@
+{
+  "slug": "quanto-cobrar-polimento-e-vitrificacao",
+  "title": "Quanto cobrar por polimento e vitrificação: tabela por porte",
+  "h1": "Quanto cobrar por lavagem detalhada, polimento e vitrificação: tabela por porte e a conta do preço",
+  "description": "Quanto cobrar por polimento, vitrificação e lavagem detalhada: faixas de mercado com fonte, a conta do preço pelo custo da hora e uma tabela por porte.",
+  "excerpt": "Copiar o preço do concorrente não diz se você está tendo lucro. Veja as faixas de mercado com fonte, a conta do preço pelo custo da hora do box e uma tabela de exemplo para hatch, sedã, SUV e picape.",
+  "date": "2026-11-03",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "quanto cobrar polimento",
+    "preço de vitrificação",
+    "tabela de preço estética automotiva",
+    "preço lavagem detalhada",
+    "preço por porte do carro",
+    "como calcular preço estética automotiva"
+  ],
+  "image": "/images/guias/quanto-cobrar-polimento-e-vitrificacao.jpg",
+  "imageAlt": "Detailer brasileiro de luvas pretas faz polimento técnico com politriz no capô de um sedã vermelho, serviço de estética automotiva com preço calculado por porte",
+  "audio": {
+    "src": "/audio/guias/quanto-cobrar-polimento-e-vitrificacao.mp3",
+    "duration": 631.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 46.99,
+        "target": "s1"
+      },
+      {
+        "t": 111.22,
+        "target": "s2"
+      },
+      {
+        "t": 179.49,
+        "target": "s3"
+      },
+      {
+        "t": 315.49,
+        "target": "s4"
+      },
+      {
+        "t": 467.45,
+        "target": "s5"
+      },
+      {
+        "t": 527.8,
+        "target": "s6"
+      },
+      {
+        "t": 579.59,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Para saber quanto cobrar por polimento e vitrificação, calcule o custo de cada hora do box, multiplique pelo tempo do serviço, some o produto usado e divida pelo que sobra depois do imposto e da margem que você quer. O porte do carro muda o tempo e o produto, por isso muda o preço.",
+    "Neste guia você vai ver as faixas de preço que o mercado cobra hoje, com fonte e data, por que o porte pesa no preço, a conta passo a passo e uma tabela de exemplo para hatch, sedã, SUV e picape."
+  ],
+  "sections": [
+    {
+      "h2": "Quanto o mercado cobra hoje, com fonte e data",
+      "blocks": [
+        {
+          "p": "As faixas abaixo são médias publicadas e mudam muito por região, porte e estado da pintura. Servem para conferir se o seu preço está fora da realidade, não para copiar:"
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Faixa de preço",
+              "Fonte"
+            ],
+            "rows": [
+              [
+                "Lavagem simples",
+                "R$ 30 a R$ 50",
+                "Webmotors, consultado em 03/11/2026"
+              ],
+              [
+                "Lavagem completa, com interior",
+                "R$ 80 a R$ 150",
+                "Webmotors, consultado em 03/11/2026"
+              ],
+              [
+                "Higienização completa",
+                "R$ 250 a R$ 500",
+                "Webmotors, consultado em 03/11/2026"
+              ],
+              [
+                "Polimento",
+                "R$ 250 a R$ 800",
+                "Vrum, 02/07/2026"
+              ],
+              [
+                "Vitrificação",
+                "R$ 1.000 a R$ 3.000",
+                "Vrum, 02/07/2026"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A faixa é larga porque cada estética cobra por um serviço diferente. Um polimento de uma etapa num hatch claro não é o mesmo trabalho que a correção de verniz num SUV preto."
+        }
+      ]
+    },
+    {
+      "h2": "Por que o porte do carro muda o preço",
+      "blocks": [
+        {
+          "p": "Carro maior tem mais pintura, mais vidro e mais interior. Isso quer dizer mais horas de box e mais produto:"
+        },
+        {
+          "ul": [
+            "**Mais área para polir e proteger.** Um SUV ou uma picape tem bem mais lataria que um hatch.",
+            "**Mais tempo de box.** O polimento técnico leva em média 4 horas e pode ir de 2 a 6, segundo a Consulta de Placa (outubro de 2026).",
+            "**Cor e estado da pintura.** Carro preto e pintura muito riscada pedem mais etapas.",
+            "**Mais produto.** Na vitrificação, o frasco de proteção rende menos num carro grande."
+          ]
+        },
+        {
+          "p": "Uma reportagem do iCarros de 2020 já mostrava essa diferença na vitrificação: R$ 800 a R$ 1.000 para hatch e sedã e R$ 1.000 a R$ 1.300 ou mais para picape e SUV. Os valores são antigos, mas a lógica continua: o porte pesa no preço."
+        }
+      ]
+    },
+    {
+      "h2": "A conta do preço: custo da hora do box, produto e margem",
+      "blocks": [
+        {
+          "p": "O que você vende de verdade é hora de box. Faça a conta em cinco passos:"
+        },
+        {
+          "ol": [
+            "**Some os custos fixos do mês:** aluguel, água, luz, salários, sistema e equipamentos.",
+            "**Estime as horas vendidas no mês**, não as horas abertas. Box parado não paga conta.",
+            "**Divida um pelo outro** para achar o custo de cada hora de box.",
+            "**Multiplique pelo tempo do serviço e some o produto** usado naquele carro. Esse é o custo do serviço.",
+            "**Divida o custo pelo que sobra depois do imposto e da margem.** Com 6% de imposto e 40% de margem, divida por 0,54."
+          ]
+        },
+        {
+          "p": "Exemplo: uma estética com R$ 4.800 de custos fixos e 160 horas vendidas por mês, calculando o polimento técnico de um sedã."
+        },
+        {
+          "table": {
+            "head": [
+              "Conta",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Custo da hora: R$ 4.800 dividido por 160 horas",
+                "R$ 30"
+              ],
+              [
+                "Tempo de box: 5 horas vezes R$ 30",
+                "R$ 150"
+              ],
+              [
+                "Produtos usados no carro",
+                "R$ 60"
+              ],
+              [
+                "Custo do serviço",
+                "R$ 210"
+              ],
+              [
+                "Preço: R$ 210 dividido por 0,54",
+                "R$ 388,89, arredondado para R$ 390"
+              ],
+              [
+                "Sobra: R$ 390 menos R$ 23,40 de imposto e R$ 210 de custo",
+                "R$ 156,60 de lucro"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Por que dividir e não somar 40%? Porque R$ 210 mais 40% dá R$ 294, e aí a margem real sobre o preço fica bem menor que 40%, e o imposto ainda sai dela."
+        },
+        {
+          "img": "/images/guias/quanto-cobrar-polimento-e-vitrificacao-2.jpg",
+          "alt": "Diagrama de quanto cobrar por polimento: custo fixo dividido pelas horas vendidas dá o custo da hora, vezes o tempo do serviço mais o produto dá o custo, dividido por 0,54 dá o preço de R$ 390",
+          "caption": "Quanto cobrar por polimento: custo da hora, tempo de box, produto e margem. Valores de exemplo."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui um contador. O imposto de 6% é só um exemplo: MEI paga um valor fixo por mês e outras empresas pagam percentuais diferentes. Confirme o seu antes de fechar a tabela."
+        }
+      ]
+    },
+    {
+      "h2": "Tabela de preço por porte: exemplo para hatch, sedã, SUV e picape",
+      "blocks": [
+        {
+          "p": "Com a mesma conta, o custo da hora de R$ 30 e o divisor de 0,54, mude só o tempo de box e o produto de cada porte. Os tempos e produtos abaixo são de exemplo:"
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Hatch",
+              "Sedã",
+              "SUV",
+              "Picape"
+            ],
+            "rows": [
+              [
+                "Lavagem detalhada: tempo e produto",
+                "2 h e R$ 15",
+                "2 h 30 e R$ 18",
+                "3 h e R$ 22",
+                "3 h 30 e R$ 25"
+              ],
+              [
+                "Polimento técnico: tempo e produto",
+                "4 h e R$ 50",
+                "5 h e R$ 60",
+                "6 h e R$ 75",
+                "7 h e R$ 90"
+              ],
+              [
+                "Vitrificação com polimento: tempo e produto",
+                "10 h e R$ 250",
+                "12 h e R$ 280",
+                "14 h e R$ 320",
+                "16 h e R$ 360"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O resultado, arredondado para cima até o próximo final 0 ou 5:"
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Hatch",
+              "Sedã",
+              "SUV",
+              "Picape"
+            ],
+            "rows": [
+              [
+                "Lavagem detalhada",
+                "R$ 140",
+                "R$ 175",
+                "R$ 210",
+                "R$ 245"
+              ],
+              [
+                "Polimento técnico",
+                "R$ 315",
+                "R$ 390",
+                "R$ 475",
+                "R$ 560"
+              ],
+              [
+                "Vitrificação com polimento",
+                "R$ 1.020",
+                "R$ 1.190",
+                "R$ 1.375",
+                "R$ 1.560"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Confira uma linha: a vitrificação do SUV custa 14 horas vezes R$ 30, ou R$ 420, mais R$ 320 de produto, total de R$ 740. Dividido por 0,54, dá R$ 1.370,37, que vira R$ 1.375. Os preços de polimento e vitrificação ficam dentro das faixas de mercado da Vrum."
+        }
+      ]
+    },
+    {
+      "h2": "O que entra em cada serviço, para o cliente não comparar errado",
+      "blocks": [
+        {
+          "p": "Boa parte da briga por preço vem de nomes iguais para serviços diferentes. Escreva o que cada um inclui:"
+        },
+        {
+          "ul": [
+            "**Lavagem detalhada:** lavagem técnica da lataria, rodas e caixas de roda, vidros, aspiração e limpeza do interior.",
+            "**Polimento técnico:** corrige riscos finos e devolve o brilho do verniz. Não protege a pintura e o resultado dura de 2 a 6 meses, segundo a Consulta de Placa.",
+            "**Vitrificação:** camada de proteção aplicada depois do polimento. Dura de 1 a 5 anos, conforme o produto e a manutenção, segundo a Vrum. O iCarros fala em cura total de 72 horas, sem água e química nesse período."
+          ]
+        },
+        {
+          "p": "Quando o estado da pintura muda muito o trabalho, mostre o preço como \"a partir de\" e diga na descrição o que faz o valor subir."
+        }
+      ]
+    },
+    {
+      "h2": "Como mostrar a tabela sem virar orçamento no WhatsApp",
+      "blocks": [
+        {
+          "p": "Tabela que só existe na sua cabeça vira dez mensagens de \"quanto fica?\". Coloque o preço onde o cliente vê:"
+        },
+        {
+          "ul": [
+            "Um serviço por porte na página de agendamento, como \"Polimento técnico (SUV)\", com preço e duração. Veja o guia de [página de agendamento com preço por porte](/guia/pagina-de-agendamento-estetica-automotiva).",
+            "Sinal pelo Pix nos serviços caros, para o horário não ficar preso por quem não vem. Veja [sinal no agendamento de estética automotiva](/guia/sinal-no-agendamento-estetica-automotiva).",
+            "A duração de cada porte na agenda, para o box não estourar o horário. Veja o [sistema de agendamento para lava-jato](/guia/agendamento-para-lava-jato).",
+            "Produtos de balcão, como cheirinho e cera, cobrados no caixa na retirada do carro."
+          ]
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: tabela por porte na página e no caixa",
+    "p": [
+      "No Mostralo, cada serviço tem nome, preço, duração e foto, e o cliente vê a tabela por porte na sua página de agendamento antes de marcar. Serviço caro pode pedir sinal pelo Pix, e o caixa registra o restante e os produtos vendidos no balcão. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Um serviço por porte, com preço fixo ou \"a partir de\" e a duração certa na agenda",
+      "Sinal por serviço, em valor fixo ou porcentagem, cobrado na reserva",
+      "Agenda por box, sem dois carros no mesmo horário",
+      "Caixa e loja virtual para vender cera, cheirinho e kits"
+    ]
+  },
+  "faq": [
+    [
+      "Quanto cobrar por um polimento técnico?",
+      "As faixas publicadas vão de R$ 250 a R$ 800 (Vrum, julho de 2026). Faça a sua conta: horas de box vezes o custo da hora, mais o produto, divididos pelo que sobra depois do imposto e da margem."
+    ],
+    [
+      "Quanto custa uma vitrificação?",
+      "A Vrum cita de R$ 1.000 a R$ 3.000 (julho de 2026). O valor depende do porte, do produto e de quanto polimento a pintura precisa antes."
+    ],
+    [
+      "Como calcular o preço de um serviço de estética automotiva?",
+      "Custo fixo do mês dividido pelas horas vendidas dá o custo da hora. Multiplique pelo tempo do serviço, some o produto e divida por um menos o imposto e a margem."
+    ],
+    [
+      "SUV e picape pagam mais caro?",
+      "Normalmente sim, porque têm mais área de pintura e de interior e ocupam o box por mais tempo. Faça a tabela por porte com o tempo e o produto de cada um."
+    ],
+    [
+      "Posso usar preço a partir de?",
+      "Pode, quando o estado do carro muda muito o trabalho. Diga na descrição o que faz o preço subir e combine o valor final antes de começar."
+    ]
+  ],
+  "sources": [
+    [
+      "Vrum: Polimento, cristalização ou vitrificação, qual o ideal para seu carro (02/07/2026)",
+      "https://www.vrum.com.br/aceleradas/2026/07/7454057-polimento-cristalizacao-ou-vitrificacao-qual-o-ideal-para-seu-carro.html"
+    ],
+    [
+      "Consulta de Placa: Quanto custa polir um carro, preço, tempo e quanto dura (19/10/2026)",
+      "https://consultadeplaca.net/blog/quanto-custa-polir-um-carro"
+    ],
+    [
+      "Webmotors: Lavagem de carro (consultado em 03/11/2026)",
+      "https://www.webmotors.com.br/servicos-automotivos/lavagem-de-carro"
+    ],
+    [
+      "iCarros: Vitrificação automotiva, o que é, preço e cuidados (16/09/2020)",
+      "https://www.icarros.com.br/noticias/manutencao-e-servicos/vitrificacao-automotiva:-o-que-e,-preco-e-5-cuidados/28431.html"
+    ]
+  ],
+  "related": [
+    "pagina-de-agendamento-estetica-automotiva",
+    "agendamento-para-lava-jato",
+    "sinal-no-agendamento-estetica-automotiva",
+    "plano-mensal-de-lavagem",
+    "relatorio-de-vendas-pequeno-negocio"
+  ]
+}

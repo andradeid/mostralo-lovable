@@ -82,7 +82,7 @@ export function TableMenuFeatureSection() {
             'Integração com KDS/Cozinha',
             'QR Codes personalizáveis',
             'Cliente acompanha pedido',
-            'Funciona offline (PWA)',
+            'Instala como app no celular (PWA)',
             'Modo retirada no balcão'
           ].map((feature, i) => (
             <div key={i} className="flex items-center gap-2 text-sm">

@@ -16,6 +16,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { UpsellModal } from '@/components/upsell/UpsellModal';
+import { toast } from 'sonner';
+import { useProductScan, SCAN_TOAST_ID } from '@/hooks/barcode/useProductScan';
+import { QuickProductDialog } from '@/components/admin/products/quick/QuickProductDialog';
 
 export default function ComandaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +34,28 @@ export default function ComandaDetailPage() {
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
+  const [productSearch, setProductSearch] = useState('');
+
+  // Leitor de código de barras: com a comanda aberta na tela, o produto lido entra nela (quantidade 1)
+  const scan = useProductScan({
+    storeId,
+    enabled: !!data,
+    typedSearchCodes: true,
+    onClearSearch: () => setProductSearch(''),
+    onProduct: async (product) => {
+      if (!data || data.comanda.status !== 'open') {
+        toast.error('Esta comanda está fechada', { id: SCAN_TOAST_ID });
+        return;
+      }
+      await addItem({
+        comanda_id: data.comanda.id,
+        product_id: product.id,
+        product_name: product.name,
+        unit_price: Number(product.price),
+        quantity: 1,
+      });
+    },
+  });
 
   // Auto-scroll para produtos quando abrir no mobile
   useEffect(() => {
@@ -190,7 +215,13 @@ export default function ComandaDetailPage() {
               <CardTitle>Adicionar Produtos</CardTitle>
             </CardHeader>
             <CardContent>
-              <PDVProductGrid onAddProduct={handleAddProduct} isAdding={isAddingItem} />
+              <PDVProductGrid
+                onAddProduct={handleAddProduct}
+                isAdding={isAddingItem}
+                externalSearchTerm={productSearch}
+                onSearchChange={setProductSearch}
+                showSearchInput
+              />
             </CardContent>
           </Card>
         )}
@@ -289,7 +320,13 @@ export default function ComandaDetailPage() {
               <CardTitle>Adicionar Produtos</CardTitle>
             </CardHeader>
             <CardContent>
-              <PDVProductGrid onAddProduct={handleAddProduct} isAdding={isAddingItem} />
+              <PDVProductGrid
+                onAddProduct={handleAddProduct}
+                isAdding={isAddingItem}
+                externalSearchTerm={productSearch}
+                onSearchChange={setProductSearch}
+                showSearchInput
+              />
             </CardContent>
           </Card>
         )}
@@ -303,6 +340,8 @@ export default function ComandaDetailPage() {
         isProcessing={isClosing}
         onPrint={handlePrint}
       />
+
+      <QuickProductDialog {...scan.quickDialogProps} />
 
       {/* Upsell Modal */}
       {storeId && (

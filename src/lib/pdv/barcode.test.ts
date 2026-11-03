@@ -6,11 +6,9 @@ import {
   barcodeKind,
   findByBarcode,
   hasValidGtinCheckDigit,
-  isScannerBurst,
   looksLikeBarcode,
   nameOrBarcodeFilter,
   normalizeBarcode,
-  pushKeyTime,
 } from './barcode.ts';
 
 test('normaliza espaços e quebras de linha do leitor', () => {
@@ -63,21 +61,4 @@ test('filtro nome OU código só quando o termo é seguro para o .or()', () => {
   assert.equal(nameOrBarcodeFilter('coca, lata'), null);
   assert.equal(nameOrBarcodeFilter('pão (grande)'), null);
   assert.equal(nameOrBarcodeFilter('  '), null);
-});
-
-test('leitor USB: muitas teclas em sequência rápida', () => {
-  const leitor = [0, 8, 15, 22, 30, 38, 45, 52, 60, 68, 75, 82, 90];
-  const pessoa = [0, 150, 310, 420, 600, 760, 900, 1100];
-  assert.equal(isScannerBurst(leitor), true);
-  assert.equal(isScannerBurst(pessoa), false);
-  assert.equal(isScannerBurst([0, 5, 10]), false); // curto demais
-});
-
-test('teclas recentes recomeçam depois de uma pausa', () => {
-  let t: number[] = [];
-  t = pushKeyTime(t, 0);
-  t = pushKeyTime(t, 10);
-  assert.deepEqual(t, [0, 10]);
-  t = pushKeyTime(t, 500);
-  assert.deepEqual(t, [500]);
 });

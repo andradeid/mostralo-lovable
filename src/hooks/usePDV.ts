@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useComandas, CreateComandaInput, AddItemInput, CloseComandaInput, Comanda, ComandaItem } from './useComandas';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { mergeScannedItem } from '@/lib/pdv/cartScan';
 
 export interface CartItem {
   id: string;
@@ -31,6 +32,11 @@ export function usePDV() {
     };
 
     setCart(prev => [...prev, newItem]);
+  }, []);
+
+  // Leitor de código de barras: o mesmo produto lido de novo soma na linha que já está no carrinho
+  const addScannedToCart = useCallback((item: Omit<CartItem, 'id' | 'total_price'>) => {
+    setCart(prev => mergeScannedItem(prev, item, () => crypto.randomUUID()));
   }, []);
 
   // Atualizar quantidade de item no carrinho
@@ -173,6 +179,7 @@ export function usePDV() {
     subtotal,
     cartItemsCount: cart.length,
     addToCart,
+    addScannedToCart,
     updateCartItemQuantity,
     removeFromCart,
     clearCart,

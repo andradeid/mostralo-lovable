@@ -5,60 +5,31 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Search, Loader2, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Plus, Search, Loader2, X, ScanBarcode } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { brl } from '@/lib/brl';
-import { catalogBasePrice, lineSubtotal } from '@/lib/orders/adminOrderRequest';
+import { notFoundMessage, scanAddedMessage } from '@/lib/barcode/scanRules';
+import { useProductScan, SCAN_TOAST_ID } from '@/hooks/barcode/useProductScan';
+import { QuickProductDialog } from '@/components/admin/products/quick/QuickProductDialog';
+import {
+  buildOrderItem,
+  loadSelectorProduct,
+  searchSelectorProducts,
+  type OrderItem,
+  type SelectorProduct as Product,
+} from './productSelectorData';
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  category?: { name: string };
-  variants?: ProductVariant[];
-  product_addons?: { addon: Addon }[];
-}
+export type { OrderItem } from './productSelectorData';
 
-interface ProductVariant {
-  id: string;
-  name: string;
-  price: number;
-  is_available: boolean;
-  product_id?: string;
-}
-
-interface Addon {
-  id: string;
-  name: string;
-  price: number;
-  is_available: boolean;
-}
-
-export interface OrderItem {
-  productId: string;
-  productName: string;
-  variantId?: string;
-  variantName?: string;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  notes?: string;
-  addons: {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
-}
+/** Zona do leitor de código de barras: data-barcode-zone no conteúdo do diálogo "Novo pedido". */
+export const NEW_ORDER_BARCODE_ZONE = 'novo-pedido';
 
 interface ProductSelectorProps {
   storeId: string;
   onAddProduct: (item: OrderItem) => void;
 }
 
-const SEARCH_LIMIT = 20;
 const DEBOUNCE_MS = 400;
 
 export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps) {
@@ -87,86 +58,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
 
     setIsSearching(true);
     try {
-      // 1. Buscar produtos que correspondem ao termo
-      const { data: products, error } = await supabase
-        .from('products')
-        .select('id, name, price, offer_price, is_on_offer')
-        .eq('store_id', storeId)
-        .eq('is_available', true)
-        .ilike('name', `%${term}%`)
-        .order('name')
-        .limit(SEARCH_LIMIT);
-
-      if (error) throw error;
-
-      if (!products || products.length === 0) {
-        setSearchResults([]);
-        setShowResults(true);
-        return;
-      }
-
-      const productIds = products.map(p => p.id);
-
-      // 2. Buscar variantes e addons em batch (apenas para os resultados)
-      const [variantsRes, addonsRes, productAddonsRes] = await Promise.all([
-        supabase
-          .from('product_variants')
-          .select('*')
-          .in('product_id', productIds)
-          .eq('is_available', true),
-        supabase
-          .from('addons')
-          .select('*')
-          .eq('store_id', storeId)
-          .eq('is_available', true),
-        supabase
-          .from('product_addons')
-          .select('product_id, addon_id')
-          .in('product_id', productIds),
-      ]);
-
-      // 3. Indexar para lookup O(1)
-      const variantsByProduct = new Map<string, ProductVariant[]>();
-      for (const v of variantsRes.data || []) {
-        const list = variantsByProduct.get(v.product_id) || [];
-        list.push(v);
-        variantsByProduct.set(v.product_id, list);
-      }
-
-      const addonsById = new Map<string, Addon>();
-      for (const a of addonsRes.data || []) {
-        addonsById.set(a.id, a);
-      }
-
-      const addonIdsByProduct = new Map<string, string[]>();
-      for (const pa of productAddonsRes.data || []) {
-        const list = addonIdsByProduct.get(pa.product_id) || [];
-        list.push(pa.addon_id);
-        addonIdsByProduct.set(pa.product_id, list);
-      }
-
-      // 4. Montar resultado
-      const results: Product[] = products.map((product) => {
-        const variants = variantsByProduct.get(product.id) || [];
-        const linkedAddonIds = addonIdsByProduct.get(product.id) || [];
-        const productAddons = linkedAddonIds
-          .map(addonId => {
-            const addon = addonsById.get(addonId);
-            return addon ? { addon } : null;
-          })
-          .filter(Boolean) as { addon: Addon }[];
-
-        return {
-          id: product.id,
-          name: product.name,
-          // Mesmo preço que o servidor grava: oferta quando o produto está em oferta
-          price: catalogBasePrice(product),
-          variants,
-          product_addons: productAddons,
-        };
-      });
-
-      setSearchResults(results);
+      setSearchResults(await searchSelectorProducts(storeId, term));
       setShowResults(true);
     } catch (error) {
       console.error('Erro ao buscar produtos:', error);
@@ -219,6 +111,32 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
     setNotes('');
   };
 
+  // Leitor de código de barras: com o diálogo aberto, sem precisar de campo focado
+  const [notFoundCode, setNotFoundCode] = useState<string | null>(null);
+  const scan = useProductScan({
+    storeId: storeId || null,
+    zone: NEW_ORDER_BARCODE_ZONE,
+    onClearSearch: () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      setIsSearching(false);
+      handleClearSelection();
+    },
+    onNotFound: setNotFoundCode,
+    onProduct: async (scanned) => {
+      setNotFoundCode(null);
+      const product = await loadSelectorProduct(storeId, scanned.id);
+      if (!product) return;
+      // Com variações: abre a escolha da opção, como no clique
+      if (product.variants?.some((v) => v.is_available)) {
+        handleProductSelect(product);
+        toast.info(`Escolha a opção de ${product.name}`, { id: SCAN_TOAST_ID });
+        return;
+      }
+      onAddProduct(buildOrderItem(product, undefined, {}, 1, ''));
+      toast.success(scanAddedMessage(product.name), { id: SCAN_TOAST_ID, duration: 1500 });
+    },
+  });
+
   const handleAddonToggle = (addonId: string, checked: boolean) => {
     if (checked) {
       setSelectedAddons(prev => ({ ...prev, [addonId]: { quantity: 1 } }));
@@ -249,33 +167,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
       return;
     }
 
-    const variant = selectedProduct.variants?.find(v => v.id === selectedVariantId);
-    const basePrice = variant ? variant.price : selectedProduct.price;
-
-    const addons = Object.entries(selectedAddons).map(([addonId, { quantity: addonQty }]) => {
-      const addonData = selectedProduct.product_addons
-        ?.find(pa => pa.addon.id === addonId)?.addon;
-      return {
-        id: addonId,
-        name: addonData?.name || '',
-        price: addonData?.price || 0,
-        quantity: addonQty,
-      };
-    });
-
-    const itemSubtotal = lineSubtotal(basePrice, addons, quantity);
-
-    const orderItem: OrderItem = {
-      productId: selectedProduct.id,
-      productName: selectedProduct.name,
-      variantId: variant?.id,
-      variantName: variant?.name,
-      quantity,
-      unitPrice: basePrice,
-      subtotal: itemSubtotal,
-      notes,
-      addons,
-    };
+    const orderItem = buildOrderItem(selectedProduct, selectedVariantId || undefined, selectedAddons, quantity, notes);
 
     onAddProduct(orderItem);
     toast.success('Produto adicionado ao pedido');
@@ -302,7 +194,9 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
                   setShowResults(true);
                 }
               }}
-              placeholder="Digite o nome do produto para buscar..."
+              placeholder="Digite o nome ou leia o código de barras..."
+              data-barcode-search=""
+              autoComplete="off"
               className="pl-10 pr-10"
               disabled={!!selectedProduct}
             />
@@ -347,6 +241,33 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
             </div>
           )}
         </div>
+        {notFoundCode && (
+          <div className="flex items-center justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm">
+            <span className="flex items-center gap-2 min-w-0">
+              <ScanBarcode className="h-4 w-4 shrink-0 text-destructive" />
+              <span className="truncate">{notFoundMessage(notFoundCode)}</span>
+            </span>
+            <div className="flex items-center gap-1 shrink-0">
+              {scan.canCreate ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    scan.openQuickCreate(notFoundCode);
+                    setNotFoundCode(null);
+                  }}
+                >
+                  Cadastrar agora
+                </Button>
+              ) : (
+                <span className="text-xs text-muted-foreground">Peça ao dono ou admin para cadastrar</span>
+              )}
+              <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => setNotFoundCode(null)} aria-label="Fechar aviso">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
         {!selectedProduct && searchTerm.length > 0 && searchTerm.length < 2 && (
           <p className="text-xs text-muted-foreground">Digite pelo menos 2 caracteres para buscar</p>
         )}
@@ -437,6 +358,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
         <Plus className="h-4 w-4 mr-2" />
         Adicionar ao Pedido
       </Button>
+      <QuickProductDialog {...scan.quickDialogProps} />
     </div>
   );
 }

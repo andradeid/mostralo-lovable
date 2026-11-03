@@ -1,6 +1,6 @@
-// Código de barras: normalização, tipo (EAN/GTIN ou interno), busca exata e
-// detecção do leitor USB (que "digita" muito rápido e termina com Enter).
+// Código de barras: normalização, tipo (EAN/GTIN ou interno) e busca exata.
 // Funções puras, usadas no PDV, no cadastro de produto e na tela de Estoque.
+// A detecção do leitor (rajada de teclas + Enter) fica em src/lib/barcode/scanner.ts.
 
 export type BarcodeKind = 'ean8' | 'upc12' | 'ean13' | 'gtin14' | 'interno';
 
@@ -69,25 +69,4 @@ export function nameOrBarcodeFilter(term: string, extraColumns: string[] = []): 
   const t = term.trim();
   if (!t || !isFilterSafeCode(t)) return null;
   return [`name.ilike.%${t}%`, ...extraColumns.map((c) => `${c}.ilike.%${t}%`), `barcode.eq.${t}`].join(',');
-}
-
-/**
- * Leitor USB: os caracteres chegam quase juntos. Recebe os horários (ms) de cada tecla
- * digitada antes do Enter e diz se foi leitor: pelo menos `minLength` teclas e intervalo
- * médio até `maxAvgIntervalMs` (pessoa digitando fica bem acima de 60 ms).
- */
-export function isScannerBurst(
-  keyTimes: number[],
-  { minLength = 6, maxAvgIntervalMs = 35 }: { minLength?: number; maxAvgIntervalMs?: number } = {},
-): boolean {
-  if (keyTimes.length < minLength) return false;
-  const total = keyTimes[keyTimes.length - 1] - keyTimes[0];
-  return total / (keyTimes.length - 1) <= maxAvgIntervalMs;
-}
-
-/** Guarda as teclas recentes; recomeça quando passa muito tempo entre uma e outra. */
-export function pushKeyTime(keyTimes: number[], now: number, resetAfterMs = 120): number[] {
-  const last = keyTimes[keyTimes.length - 1];
-  if (last !== undefined && now - last > resetAfterMs) return [now];
-  return [...keyTimes, now];
 }

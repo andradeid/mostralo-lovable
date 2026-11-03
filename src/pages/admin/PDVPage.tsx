@@ -29,17 +29,29 @@ import { CashBar } from '@/components/pdv/cash/CashBar';
 import { CashDialogs } from '@/components/pdv/cash/CashDialogs';
 import { CashTab } from '@/components/pdv/cash/CashTab';
 import type { CashDialogKind } from '@/components/pdv/cash/types';
+import { usePDVScan } from '@/components/pdv/usePDVScan';
+import { QuickProductDialog } from '@/components/admin/products/quick/QuickProductDialog';
 
 export default function PDVPage() {
   const navigate = useNavigate();
   const { storeId } = useStoreAccess();
-  const { cart, subtotal, addToCart, updateCartItemQuantity, removeFromCart, clearCart, finalizeSale, isProcessing } = usePDV();
+  const { cart, subtotal, addToCart, addScannedToCart, updateCartItemQuantity, removeFromCart, clearCart, finalizeSale, isProcessing } = usePDV();
   const { openComandas, closeComanda, isClosing, pendingApprovalsByComanda } = useComandas();
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [selectedComanda, setSelectedComanda] = useState<Comanda | null>(null);
   const isMobile = useIsMobile();
   const [pdvSearchTerm, setPdvSearchTerm] = useState('');
+  const [mobileTab, setMobileTab] = useState('products');
+  const [desktopTab, setDesktopTab] = useState('pdv');
+
+  // Leitor de código de barras (sem precisar de campo focado): produto lido vai ao carrinho
+  const scan = usePDVScan({
+    storeId,
+    comandasTabActive: (isMobile ? mobileTab : desktopTab) === 'comandas',
+    addScannedToCart,
+    clearSearch: () => setPdvSearchTerm(''),
+  });
 
   // Caixa (abertura/fechamento). Se a loja exige caixa aberto e ele está fechado, bloqueia fechar venda/comanda.
   const cash = useCashSession(storeId);
@@ -195,7 +207,7 @@ export default function PDVPage() {
             <SalesChannelPausedBanner message={channelMessage} className="mx-2 mt-2" />
           )}
           <CashBar cash={cash} onAction={setCashDialog} timeZone={storeTimeZone} compact className="ml-2 mr-14 mt-2" />
-          <Tabs defaultValue="products" className="flex-1 flex flex-col min-h-0">
+          <Tabs value={mobileTab} onValueChange={setMobileTab} className="flex-1 flex flex-col min-h-0">
             <TabsList className="grid grid-cols-3 gap-2 h-auto mx-2 mb-2 p-2">
               <TabsTrigger value="products" className="h-12 text-sm gap-1.5">
                 <Package className="h-5 w-5" />
@@ -230,7 +242,7 @@ export default function PDVPage() {
             </TabsList>
 
             <TabsContent value="products" className="flex-1 min-h-0 overflow-auto px-2 pb-2 mt-0">
-              <PDVProductGrid onAddProduct={addToCart} />
+              <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onSearchChange={setPdvSearchTerm} />
             </TabsContent>
 
             <TabsContent value="cart" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
@@ -304,6 +316,7 @@ export default function PDVPage() {
           />
 
           <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
+          <QuickProductDialog {...scan.quickDialogProps} />
         </div>
       </ModuleGate>
     );
@@ -317,13 +330,15 @@ export default function PDVPage() {
           <SalesChannelPausedBanner message={channelMessage} className="mb-4" />
         )}
         <CashBar cash={cash} onAction={setCashDialog} timeZone={storeTimeZone} className="mb-3" />
-        <Tabs defaultValue="pdv" className="flex-1 flex flex-col min-h-0">
+        <Tabs value={desktopTab} onValueChange={setDesktopTab} className="flex-1 flex flex-col min-h-0">
           <div className="flex items-center gap-4 mb-4">
             {/* Barra de busca primeiro */}
             <div className="relative w-64 lg:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar produto..."
+                data-barcode-search=""
+                placeholder="Buscar produto ou ler código..."
+                autoComplete="off"
                 value={pdvSearchTerm}
                 onChange={(e) => setPdvSearchTerm(e.target.value)}
                 className="pl-10 h-9"
@@ -459,6 +474,7 @@ export default function PDVPage() {
         />
 
         <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
+        <QuickProductDialog {...scan.quickDialogProps} />
       </div>
     </ModuleGate>
   );

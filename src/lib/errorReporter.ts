@@ -6,6 +6,8 @@
  * - No máximo 10 registros por visita e sem repetir o mesmo erro na mesma página.
  */
 
+import { isChunkLoadError, reloadOnceForChunkError } from "@/lib/chunk/chunkReload";
+
 const SUPABASE_URL = "https://noshwvwpjtnvndokbfjx.supabase.co";
 const ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA";
@@ -130,11 +132,20 @@ export function installErrorReporter() {
   }, true);
 
   window.addEventListener("unhandledrejection", (e) => {
-    reportClientError("unhandledrejection", (e as PromiseRejectionEvent).reason);
+    const reason = (e as PromiseRejectionEvent).reason;
+    if (isChunkLoadError(reason)) {
+      const reloading = reloadOnceForChunkError();
+      reportClientError("chunk", reason, reloading ? "recarregou" : undefined);
+      return;
+    }
+    reportClientError("unhandledrejection", reason);
   });
 
-  // Vite: parte do app (rota) não carregou — típico de versão antiga guardada depois de um deploy
+  // Vite: parte do app (rota) não carregou — típico de versão antiga aberta depois de um deploy.
+  // Recarrega uma vez para pegar a versão nova (sem laço; ver chunkReload).
   window.addEventListener("vite:preloadError", (e) => {
-    reportClientError("chunk", (e as Event & { payload?: unknown }).payload ?? "Falha ao carregar parte do app");
+    const reloading = reloadOnceForChunkError();
+    if (reloading) e.preventDefault();
+    reportClientError("chunk", (e as Event & { payload?: unknown }).payload ?? "Falha ao carregar parte do app", reloading ? "recarregou" : undefined);
   });
 }

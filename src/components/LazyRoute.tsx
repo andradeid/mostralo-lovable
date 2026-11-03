@@ -1,6 +1,7 @@
 import { Suspense, ComponentType, lazy } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { LoadingFallback } from './LoadingFallback';
+import { isChunkLoadError, reloadOnceForChunkError } from '@/lib/chunk/chunkReload';
 
 interface LazyRouteProps {
   children: React.ReactNode;
@@ -42,6 +43,10 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
       }
     }
     
+    // Versão antiga aberta depois de um deploy: recarrega uma vez em vez de mostrar erro
+    if (isChunkLoadError(lastError) && reloadOnceForChunkError()) {
+      return new Promise<{ default: T }>(() => {});
+    }
     throw lastError;
   });
 }

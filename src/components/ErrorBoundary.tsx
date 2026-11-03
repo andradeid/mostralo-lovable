@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { reportClientError } from '@/lib/errorReporter';
+import { isChunkLoadError, reloadOnceForChunkError } from '@/lib/chunk/chunkReload';
 
 interface Props {
   children: ReactNode;
@@ -27,6 +28,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    if (isChunkLoadError(error) && reloadOnceForChunkError()) {
+      reportClientError('chunk', error, 'recarregou');
+      return;
+    }
     reportClientError('react', error, errorInfo?.componentStack?.split('\n').find((l) => l.trim())?.trim());
   }
 

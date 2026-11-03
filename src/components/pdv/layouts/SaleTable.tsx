@@ -33,7 +33,7 @@ export function SaleTable({ items, lastItemId, onUpdateQuantity, onRemoveItem, c
             <th className="px-3 py-2 text-left font-semibold">Produto</th>
             {!compact && <th className="hidden px-3 py-2 text-left font-semibold md:table-cell">Código</th>}
             <th className="px-3 py-2 text-center font-semibold">Qtd</th>
-            <th className="hidden px-3 py-2 text-right font-semibold sm:table-cell">Unit.</th>
+            {!compact && <th className="hidden px-3 py-2 text-right font-semibold sm:table-cell">Unit.</th>}
             <th className="px-3 py-2 text-right font-semibold">Total</th>
             <th className="w-10 px-1 py-2"><span className="sr-only">Remover</span></th>
           </tr>
@@ -41,7 +41,7 @@ export function SaleTable({ items, lastItemId, onUpdateQuantity, onRemoveItem, c
         <tbody>
           {items.length === 0 ? (
             <tr>
-              <td colSpan={compact ? 6 : 7} className="px-3 py-10 text-center text-muted-foreground">
+              <td colSpan={compact ? 5 : 7} className="px-3 py-10 text-center text-muted-foreground">
                 Nenhum item na venda.
               </td>
             </tr>
@@ -58,6 +58,13 @@ export function SaleTable({ items, lastItemId, onUpdateQuantity, onRemoveItem, c
                   <td className={cn('px-3 py-2 tabular-nums text-muted-foreground', isLast && 'border-l-4 border-l-primary pl-2')}>{i + 1}</td>
                   <td className="px-3 py-2">
                     <span className="line-clamp-2 break-words">{item.product_name}</span>
+                    {compact && (
+                      <span className="block text-xs text-muted-foreground tabular-nums">
+                        {weighed
+                          ? `${formatKg(item.weight_kg!)} kg × ${formatCurrency(item.price_per_kg ?? 0)}/kg`
+                          : `${formatCurrency(item.unit_price)} cada`}
+                      </span>
+                    )}
                     {item.notes && <span className="block text-xs italic text-muted-foreground">Obs: {item.notes}</span>}
                   </td>
                   {!compact && (
@@ -88,7 +95,7 @@ export function SaleTable({ items, lastItemId, onUpdateQuantity, onRemoveItem, c
                       </Button>
                     </div>
                   </td>
-                  <td className="hidden px-3 py-2 text-right tabular-nums sm:table-cell">
+                  {!compact && <td className="hidden px-3 py-2 text-right tabular-nums sm:table-cell">
                     {weighed ? (
                       <span title={`${formatKg(item.weight_kg!)} kg × ${formatCurrency(item.price_per_kg ?? 0)}/kg`}>
                         {formatCurrency(item.unit_price)}
@@ -96,7 +103,7 @@ export function SaleTable({ items, lastItemId, onUpdateQuantity, onRemoveItem, c
                     ) : (
                       formatCurrency(item.unit_price)
                     )}
-                  </td>
+                  </td>}
                   <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatCurrency(item.total_price)}</td>
                   <td className="px-1 py-1">
                     <Button

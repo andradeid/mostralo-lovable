@@ -14,6 +14,9 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ModuleGate } from '@/components/admin/ModuleGate';
+import { toast } from 'sonner';
+import { useBarcodeScanner } from '@/hooks/barcode/useBarcodeScanner';
+import { SCAN_TOAST_ID } from '@/hooks/barcode/useProductScan';
 
 export default function ComandasPage() {
   const navigate = useNavigate();
@@ -24,6 +27,11 @@ export default function ComandasPage() {
   const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [selectedComanda, setSelectedComanda] = useState<Comanda | null>(null);
+
+  // Leitor de código de barras na lista: o item só entra com uma comanda aberta na tela
+  useBarcodeScanner({
+    onScan: () => toast.info('Selecione uma comanda', { id: SCAN_TOAST_ID, description: 'Abra a comanda e leia o código de novo.' }),
+  });
 
   // Buscar nome da loja para impressão
   const { data: storeData } = useQuery({

@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { CustomerSelector } from './CustomerSelector';
-import { ProductSelector, type OrderItem } from './ProductSelector';
+import { ProductSelector, NEW_ORDER_BARCODE_ZONE, type OrderItem } from './ProductSelector';
+import { keepOpenOnToastClick } from '@/hooks/barcode/useBarcodeScanner';
 import { OrderItemsList } from './OrderItemsList';
 import { DriverSelector } from './DriverSelector';
 import { CustomerFormDialog } from '../CustomerFormDialog';
@@ -256,7 +257,11 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+        <DialogContent
+          className="max-w-4xl max-h-[90vh] p-0"
+          data-barcode-zone={NEW_ORDER_BARCODE_ZONE}
+          onInteractOutside={keepOpenOnToastClick}
+        >
           <DialogHeader className="px-6 pt-6">
             <DialogTitle>Criar Novo Pedido</DialogTitle>
           </DialogHeader>

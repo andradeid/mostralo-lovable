@@ -1,7 +1,7 @@
 // Tela de Estoque: produtos com estoque controlado (custo, valor e margem), entrada de
-// mercadoria (também pelo leitor de código de barras) e histórico de entradas.
+// mercadoria (também pelo leitor de código de barras, sem precisar de campo focado; código
+// não cadastrado oferece o cadastro rápido e depois abre a entrada) e histórico de entradas.
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +10,11 @@ import { AlertCircle, Loader2, PackagePlus, ScanBarcode, Warehouse } from 'lucid
 import { usePageSEO } from '@/hooks/useSEO';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useStockOverview } from '@/hooks/stock/useStockOverview';
-import { findStockProductByBarcode, type StockProduct } from '@/hooks/stock/stockQueries';
+import type { StockProduct } from '@/hooks/stock/stockQueries';
+import { useProductScan } from '@/hooks/barcode/useProductScan';
+import { QuickProductDialog } from '@/components/admin/products/quick/QuickProductDialog';
 import { brl } from '@/lib/brl';
-import { findByBarcode, looksLikeBarcode, normalizeBarcode } from '@/lib/pdv/barcode';
+import { looksLikeBarcode, normalizeBarcode } from '@/lib/pdv/barcode';
 import { stockValue } from '@/lib/products/margin';
 import { stockStatus } from '@/lib/stock/stockEntry';
 import { StockEntryDialog } from '@/components/admin/stock/StockEntryDialog';
@@ -35,6 +37,15 @@ const StockPage = () => {
     setDialogOpen(true);
   };
 
+  // Leitor de código de barras: abre a entrada do produto lido (inclusive indisponível)
+  const scan = useProductScan({
+    storeId: hasAccess ? storeId : null,
+    requireAvailable: false,
+    askInitialStock: false,
+    onClearSearch: () => setSearch(''),
+    onProduct: (product) => openEntry(product),
+  });
+
   const filtered = useMemo(() => {
     const t = search.trim();
     if (!t) return products;
@@ -53,26 +64,13 @@ const StockPage = () => {
     return { value, low };
   }, [products, costs]);
 
-  // Enter na busca (leitor): código exato abre a entrada do produto, mesmo sem estoque controlado
-  const handleSearchEnter = async () => {
+  // Enter na busca com código digitado: mesmo fluxo do leitor; com nome, abre se sobrar um produto só
+  const handleSearchEnter = () => {
     const t = search.trim();
     if (!t || !storeId) return;
     if (looksLikeBarcode(t)) {
-      const local = findByBarcode(products, t);
-      if (local) {
-        setSearch('');
-        return openEntry(local);
-      }
-      try {
-        const found = await findStockProductByBarcode(storeId, t);
-        if (found) {
-          setSearch('');
-          return openEntry(found);
-        }
-        toast.error('Nenhum produto com este código de barras.');
-      } catch (e) {
-        console.error('Erro ao buscar código:', e);
-      }
+      setSearch('');
+      scan.scanCode(normalizeBarcode(t));
       return;
     }
     if (filtered.length === 1) openEntry(filtered[0]);
@@ -141,6 +139,7 @@ const StockPage = () => {
           <div className="relative max-w-md">
             <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              data-barcode-search=""
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {
@@ -188,6 +187,7 @@ const StockPage = () => {
         product={dialogProduct}
         onSaved={() => reload()}
       />
+      <QuickProductDialog {...scan.quickDialogProps} />
     </div>
   );
 };

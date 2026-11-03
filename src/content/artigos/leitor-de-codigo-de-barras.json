@@ -1,0 +1,300 @@
+{
+  "slug": "leitor-de-codigo-de-barras",
+  "title": "Leitor de código de barras no PDV: como funciona",
+  "h1": "Leitor de código de barras no PDV: como funciona e como escolher o seu",
+  "description": "Leitor de código de barras no PDV: como ele funciona, o que acontece quando o produto é lido, leitor de mão ou de mesa, 1D ou 2D e quanto custa.",
+  "excerpt": "O leitor de código de barras funciona como um teclado: lê o número, digita sozinho e aperta Enter. Veja o que acontece no PDV quando você passa o produto e como escolher o leitor certo.",
+  "date": "2026-11-03",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "leitor de código de barras para PDV",
+    "como funciona leitor de código de barras",
+    "leitor de código de barras USB",
+    "leitor de código de barras 1D ou 2D",
+    "leitor de código de barras de mesa",
+    "leitor de código de barras sem fio"
+  ],
+  "image": "/images/guias/leitor-de-codigo-de-barras.jpg",
+  "imageAlt": "Operadora de caixa de mercadinho passando um pacote no leitor de código de barras de mão no PDV",
+  "audio": {
+    "src": "/audio/guias/leitor-de-codigo-de-barras.mp3",
+    "duration": 628.8,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 53.71,
+        "target": "s1"
+      },
+      {
+        "t": 135.66,
+        "target": "s2"
+      },
+      {
+        "t": 241.05,
+        "target": "s3"
+      },
+      {
+        "t": 312.52,
+        "target": "s4"
+      },
+      {
+        "t": 360.19,
+        "target": "s5"
+      },
+      {
+        "t": 437.3,
+        "target": "s6"
+      },
+      {
+        "t": 504.97,
+        "target": "s7"
+      },
+      {
+        "t": 563.04,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "O leitor de código de barras para PDV funciona como um teclado: ele lê as barras do produto, digita o número sozinho, muito rápido, e aperta Enter no final. O sistema de frente de caixa recebe esse número, acha o produto cadastrado com aquele código e coloca o item na venda, sem ninguém digitar nada.",
+    "Neste guia você vai ver como o leitor funciona por dentro, o que acontece no caixa quando você passa um produto (inclusive quando o código não está cadastrado), a diferença entre leitor de mão, de mesa e sem fio, se vale comprar 1D ou 2D, quanto custa e como resolver os problemas mais comuns."
+  ],
+  "sections": [
+    {
+      "h2": "Como funciona um leitor de código de barras?",
+      "blocks": [
+        {
+          "p": "O código de barras é só um número escrito em listras. No Brasil, o mais comum nos produtos de mercado é o **EAN-13**, também chamado de GTIN-13: treze dígitos que identificam aquele produto e a empresa que o registrou na GS1. O leitor ilumina as barras, transforma as listras de volta em número e manda esse número para o computador."
+        },
+        {
+          "p": "Quase todo leitor USB vendido para comércio trabalha em **modo teclado**: o computador acha que um teclado foi ligado. Na hora da leitura, o leitor \"digita\" os treze dígitos em uma fração de segundo e termina com Enter. Por isso a maioria funciona sem instalar programa nenhum: é ligar no USB e usar."
+        },
+        {
+          "ul": [
+            "**O leitor não sabe o nome nem o preço do produto.** Ele só lê o número. Quem sabe que 7891234567895 é \"Café 500 g\" é o seu sistema, no cadastro do produto.",
+            "**O começo 789 não quer dizer que o produto é brasileiro.** Ele mostra que o código foi registrado no Brasil, o que vale também para produto importado.",
+            "**O mesmo código serve em qualquer loja.** Por isso dá para cadastrar o produto uma vez, lendo a embalagem, e usar o código em toda venda dali para frente."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "O que acontece no PDV quando você passa o produto",
+      "blocks": [
+        {
+          "p": "No [PDV do Mostralo](/guia/pdv-para-pequeno-negocio), o leitor funciona direto, sem configurar nada. O sistema percebe que a rajada de números veio do leitor (e não de uma pessoa digitando) e faz o resto:"
+        },
+        {
+          "ol": [
+            "**Passou o produto, ele entra na venda.** O item aparece no pedido com o preço do cadastro e um bip confirma a leitura.",
+            "**Leu de novo, soma mais um.** Três latas iguais são três leituras seguidas; a quantidade vai para 3 sem abrir nada.",
+            "**Produto vendido por quilo abre o peso.** O operador digita o peso e o sistema calcula o valor.",
+            "**Código que não está cadastrado avisa na hora.** Para o dono ou administrador da loja, o aviso traz o botão **Cadastrar agora**: abre um cadastro rápido com o código já preenchido, nome, preço de venda, categoria, custo e estoque inicial. Quem é da equipe vê o aviso para pedir o cadastro ao dono.",
+            "**Leitura com um diálogo aberto não bagunça a tela.** O leitor fica parado enquanto você digita uma observação ou confere o pagamento."
+          ]
+        },
+        {
+          "img": "/images/guias/leitor-de-codigo-de-barras-2.jpg",
+          "alt": "Diagrama de como funciona o leitor de código de barras no PDV: o leitor digita o código e o Enter, o sistema acha o produto e o item entra na venda",
+          "caption": "O leitor de código de barras só digita o número; o PDV acha o produto e coloca na venda."
+        },
+        {
+          "p": "O mesmo leitor vale em outras telas do painel: na **comanda aberta** (o item entra na comanda da mesa), no **Novo pedido** (produto com variação abre a escolha do tamanho ou sabor) e na tela de **Estoque**, onde a leitura abre a entrada de mercadoria daquele produto. Veja o passo a passo no guia de [entrada de mercadoria e custo médio](/guia/entrada-de-mercadoria-e-custo-medio)."
+        },
+        {
+          "tip": "Comece cadastrando os produtos que mais vendem. Com os 50 primeiros lidos, a maior parte das vendas do dia já passa no leitor."
+        }
+      ]
+    },
+    {
+      "h2": "Leitor de mão, de mesa ou sem fio: qual escolher",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Tipo",
+              "Como se usa",
+              "Bom para"
+            ],
+            "rows": [
+              [
+                "De mão (pistola)",
+                "Aponta para o código e aperta o gatilho; muitos vêm com suporte que lê sozinho",
+                "Mercadinho, loja de conveniência, pet shop e loja com produtos grandes ou pesados"
+              ],
+              [
+                "De mesa (fixo ou de bancada)",
+                "Fica parado no balcão; o operador passa o produto na frente e ele lê sem gatilho",
+                "Caixa com fila e muitos itens por compra, como minimercado e farmácia"
+              ],
+              [
+                "Sem fio (bluetooth ou com base)",
+                "Mesmo uso do de mão, sem cabo preso no balcão",
+                "Ler fardos no carrinho, conferir mercadoria no estoque e loja com produto longe do caixa"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Para a maioria dos pequenos comércios, um leitor de mão com suporte resolve: ele lê com o gatilho quando o produto é pesado e lê sozinho quando está no suporte. O de mesa vale quando o caixa passa muitas compras grandes seguidas. O sem fio é útil para quem confere mercadoria longe do computador."
+        }
+      ]
+    },
+    {
+      "h2": "Leitor 1D ou 2D: qual tecnologia comprar?",
+      "blocks": [
+        {
+          "ul": [
+            "**1D (laser ou CCD):** lê só o código de barras comum, de listras. É o mais simples e ainda resolve a embalagem de mercado.",
+            "**2D (imager):** lê o código de barras comum e também QR Code e outros códigos quadrados. Lê melhor código amassado, pequeno ou na tela do celular."
+          ]
+        },
+        {
+          "p": "Se a diferença de preço for pequena, prefira o **2D**. Ele lê o código de barras de hoje e já atende QR Code de cupom, de comprovante e de etiqueta de fornecedor. O 1D faz sentido quando o orçamento está curto e você só vai ler embalagem."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto custa um leitor de código de barras",
+      "blocks": [
+        {
+          "p": "O preço muda muito por marca e loja. Numa consulta feita em 3 de novembro de 2026, um leitor 1D e 2D USB com suporte aparecia por R$ 159,90 no Ponto Frio, e o Nonus QR202D, também 1D e 2D com suporte, por R$ 340,20 na Casas Bahia. Leitor de mesa para caixa de supermercado e modelos sem fio de marcas conhecidas costumam custar mais."
+        },
+        {
+          "p": "Antes de comprar, confira:"
+        },
+        {
+          "ul": [
+            "**Conexão USB e modo teclado** (aparece como \"plug and play\" ou \"emulação de teclado\"). É o que faz funcionar em qualquer sistema que roda no navegador.",
+            "**Termina com Enter.** Quase todos vêm assim de fábrica; se não vier, o manual traz o código para configurar.",
+            "**Suporte incluso**, se você quer leitura automática no balcão.",
+            "**Garantia e assistência no Brasil**, porque o leitor do caixa trabalha o dia inteiro."
+          ]
+        },
+        {
+          "tip": "Preço de leitor muda toda semana. Use os valores acima como referência e compare na hora da compra."
+        }
+      ]
+    },
+    {
+      "h2": "Como cadastrar o código de barras dos produtos",
+      "blocks": [
+        {
+          "ol": [
+            "No painel, abra **Produtos** e edite o produto (ou crie um novo).",
+            "Em **Código e custo**, clique no campo **Código de barras** e leia a embalagem com o leitor. O Enter do leitor não salva o produto antes da hora.",
+            "Confira o tipo que aparece embaixo do campo: EAN-13, EAN-8 e UPC são códigos de fábrica; o resto aparece como código interno.",
+            "Salve. Um código só pode estar em um produto da loja; se ele já estiver em outro, o sistema avisa."
+          ]
+        },
+        {
+          "p": "Produto sem código de fábrica, como pão, salgado, hortifrúti ou granel, não precisa de etiqueta: ele entra pela busca por nome, por um atalho na tela ou pelo peso. Veja como isso funciona no [sistema para padaria](/guia/sistema-para-padaria) e no [sistema para mercadinho](/guia/sistema-para-mercadinho)."
+        },
+        {
+          "tip": "Se for criar etiquetas com código interno, use códigos de 8 a 13 dígitos, sem espaço. Código muito curto pode ser confundido com digitação."
+        }
+      ]
+    },
+    {
+      "h2": "Problemas comuns com o leitor e como resolver",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Problema",
+              "Causa mais comum",
+              "O que fazer"
+            ],
+            "rows": [
+              [
+                "O leitor bipa, mas nada aparece",
+                "Leitor configurado sem Enter no final ou cabo com mau contato",
+                "Teste num bloco de notas: o número tem que aparecer e pular de linha. Se não pular, configure o Enter pelo manual"
+              ],
+              [
+                "Não lê alguns produtos",
+                "Código amassado, molhado, com brilho ou muito pequeno",
+                "Incline o produto, afaste um pouco ou digite o código na busca"
+              ],
+              [
+                "Aparece código não cadastrado",
+                "Produto novo ou código diferente no fardo e na unidade",
+                "Cadastre o código da unidade que você vende; o do fardo é outro número"
+              ],
+              [
+                "O mesmo código em dois produtos",
+                "Cadastro repetido",
+                "Deixe o código só no produto certo"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: passou o produto, entrou na venda",
+    "p": [
+      "No Mostralo, o leitor USB de mão ou de mesa funciona no PDV, nas comandas, no Novo pedido e no Estoque, sem instalar nada. Código novo vira produto em segundos, e cada venda já baixa o estoque. A gente deixa tudo pronto para você, com garantia de 7 dias. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Leitura direta no PDV: ler de novo soma mais um e produto por quilo abre o peso",
+      "Cadastro rápido de código não cadastrado, só para o dono ou administrador",
+      "Atalhos de teclado F2, F3, F4 e Del no modo Lista, estilo supermercado",
+      "Estoque, custo e margem do produto no mesmo painel da loja online"
+    ]
+  },
+  "faq": [
+    [
+      "Precisa instalar programa para usar o leitor de código de barras?",
+      "Na maioria dos leitores USB, não. Eles funcionam em modo teclado: é ligar no computador e ler. No Mostralo, que roda no navegador, o leitor funciona direto no PDV."
+    ],
+    [
+      "Leitor de código de barras funciona no celular?",
+      "Leitores sem fio por bluetooth em modo teclado podem funcionar em tablet e celular. O PDV do Mostralo não usa a câmera do celular como leitor; para ler código no caixa, use um leitor USB ou bluetooth."
+    ],
+    [
+      "Qual a diferença entre leitor 1D e 2D?",
+      "O 1D lê só o código de barras de listras. O 2D lê o de listras e também QR Code, e costuma ler melhor código amassado ou na tela do celular."
+    ],
+    [
+      "O que acontece se eu passar um produto que não está cadastrado?",
+      "O Mostralo avisa que o código não foi encontrado. O dono ou administrador pode cadastrar na hora, com o código já preenchido; o produto entra na venda logo depois."
+    ],
+    [
+      "Dá para usar o leitor sem cadastrar todos os produtos?",
+      "Dá. O que tem código cadastrado entra pelo leitor; o resto entra pela busca por nome (F3 no modo Lista) ou por atalho na tela."
+    ]
+  ],
+  "sources": [
+    [
+      "Aos Fatos — Código de barras iniciado com 789 não indica que produto foi fabricado no Brasil",
+      "https://www.aosfatos.org/noticias/codigo-de-barras-iniciado-com-789-nao-indica-que-produto-foi-fabricado-no-brasil/"
+    ],
+    [
+      "Linear Sistemas — Importância e tipos de leitor de código de barras no varejo",
+      "https://blog.linearsistemas.com.br/?p=2430"
+    ],
+    [
+      "Ponto Frio — Scanner leitor de código de barras 1D 2D USB com suporte (preço consultado em 03/11/2026)",
+      "https://www.pontofrio.com.br/scanner-leitor-codigo-de-barras-1d-2d-usb-com-suporte/p/1582985409"
+    ],
+    [
+      "Casas Bahia — Leitor de código de barras 2D QR 202D com suporte (preço consultado em 03/11/2026)",
+      "https://www.casasbahia.com.br/leitor-de-codigo-de-barras-2d-qr-202d-com-suporte/p/1562557397"
+    ]
+  ],
+  "related": [
+    "pdv-para-pequeno-negocio",
+    "sistema-para-mercadinho",
+    "entrada-de-mercadoria-e-custo-medio",
+    "sistema-para-padaria",
+    "controle-de-estoque-para-delivery",
+    "abertura-e-fechamento-de-caixa"
+  ]
+}

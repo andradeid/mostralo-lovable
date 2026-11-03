@@ -1,0 +1,324 @@
+{
+  "slug": "plano-mensal-de-lavagem",
+  "title": "Plano mensal de lavagem: como montar e quanto cobrar",
+  "h1": "Plano mensal de lavagem de carro: como montar, quanto cobrar e garantir o horário toda semana",
+  "description": "Plano mensal de lavagem de carro: ilimitado ou com limite, quanto cobrar, horário fixo toda semana e as regras de falta, chuva e cancelamento.",
+  "excerpt": "Cliente mensalista paga antes, volta toda semana e enche os dias fracos do lava-jato. Veja como montar o plano, fazer a conta do preço, fixar o horário semanal e combinar falta, chuva e cancelamento.",
+  "date": "2026-11-03",
+  "readMinutes": 8,
+  "category": "Agendamento",
+  "keywords": [
+    "plano mensal de lavagem",
+    "assinatura de lavagem de carro",
+    "clube de lavagem",
+    "mensalista lava-jato",
+    "lavagem semanal de carro",
+    "quanto cobrar plano de lavagem"
+  ],
+  "image": "/images/guias/plano-mensal-de-lavagem.jpg",
+  "imageAlt": "Cliente entrega a chave do carro branco a um lavador sorridente no lava-jato, cena de plano mensal de lavagem com horário fixo toda semana",
+  "audio": {
+    "src": "/audio/guias/plano-mensal-de-lavagem.mp3",
+    "duration": 531.4,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 44.23,
+        "target": "s1"
+      },
+      {
+        "t": 96.9,
+        "target": "s2"
+      },
+      {
+        "t": 168.17,
+        "target": "s3"
+      },
+      {
+        "t": 249.28,
+        "target": "s4"
+      },
+      {
+        "t": 298.87,
+        "target": "s5"
+      },
+      {
+        "t": 373.38,
+        "target": "s6"
+      },
+      {
+        "t": 475.93,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Plano mensal de lavagem é um pacote pago adiantado que dá ao cliente um número de lavagens por mês, de preferência com dia e horário fixos toda semana, por um valor menor que o do avulso. Para o lava-jato, é dinheiro previsível e box ocupado nos dias em que o movimento é fraco.",
+    "Neste guia você vai ver se o plano deve ser ilimitado ou com limite, como fazer a conta do preço, como fixar o horário semanal sem lotar o sábado, que regras combinar e um modelo de mensagem para fechar o plano."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o plano mensal de lavagem enche a agenda",
+      "blocks": [
+        {
+          "p": "O cliente avulso lava quando lembra, e quase sempre no sábado. O mensalista lava no horário combinado, paga antes e volta toda semana. Três ganhos:"
+        },
+        {
+          "ul": [
+            "**Receita do mês garantida** no começo do mês, antes da primeira lavagem.",
+            "**Box ocupado nos dias fracos**, porque o horário fixo pode ficar na terça ou na quarta.",
+            "**Cliente que não troca de lava-jato**, porque já pagou e já tem horário."
+          ]
+        },
+        {
+          "p": "O custo de produto de uma lavagem é baixo perto do preço. Uma reportagem da Catraca Livre (janeiro de 2026) cita lavagem completa com preço médio de R$ 90 e custo médio de R$ 12. O que pesa de verdade é a hora de box, e é ela que o plano preenche."
+        }
+      ]
+    },
+    {
+      "h2": "Plano ilimitado ou com número de lavagens?",
+      "blocks": [
+        {
+          "p": "Nos Estados Unidos, o clube de lavagem ilimitada é comum. Um guia de contabilidade para lava-jatos (Beancount, maio de 2026) diz que o assinante costuma ir de 3 a 5 vezes por mês, mas o uso varia muito: tem quem lave quase todo dia numa semana e suma na seguinte. Num lava-jato com poucos boxes, isso pode travar a agenda."
+        },
+        {
+          "table": {
+            "head": [
+              "Modelo",
+              "Como funciona",
+              "Risco",
+              "Bom para"
+            ],
+            "rows": [
+              [
+                "Ilimitado",
+                "lava quantas vezes quiser no mês",
+                "cliente que lava demais e ocupa o box",
+                "túnel ou lavagem automática"
+              ],
+              [
+                "Com limite",
+                "um número de lavagens no mês, como 4",
+                "baixo: o uso já está no preço",
+                "lava-jato com boxes e lavagem manual"
+              ],
+              [
+                "Horário fixo semanal",
+                "com limite e sempre no mesmo dia e hora",
+                "nenhum, se as regras estiverem escritas",
+                "quem quer previsão de agenda"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Para a maioria dos lava-jatos de bairro, o melhor é o plano com limite e horário fixo."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto cobrar no plano mensal de lavagem",
+      "blocks": [
+        {
+          "p": "Comece pelo preço do avulso e dê um desconto pequeno em troca da previsão. Exemplo: um lava-jato que cobra R$ 50 a lavagem simples e R$ 175 a lavagem detalhada de sedã."
+        },
+        {
+          "table": {
+            "head": [
+              "Plano",
+              "O que inclui",
+              "Conta",
+              "Valor do mês"
+            ],
+            "rows": [
+              [
+                "Semanal",
+                "4 lavagens simples",
+                "4 vezes R$ 50 = R$ 200, menos 10%",
+                "R$ 180"
+              ],
+              [
+                "Quinzenal",
+                "2 lavagens simples",
+                "2 vezes R$ 50 = R$ 100, menos 5%",
+                "R$ 95"
+              ],
+              [
+                "Semanal completo",
+                "3 lavagens simples e 1 detalhada",
+                "R$ 150 + R$ 175 = R$ 325, menos 10%",
+                "R$ 292,50, arredondado para R$ 290"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Mês com 5 semanas:** diga se a quinta lavagem entra ou não. Plano com limite de 4 lavagens resolve.",
+            "**Desconto maior só em dia fraco.** Plano com horário no sábado de manhã pode ter desconto menor, porque esse horário você vende cheio no avulso.",
+            "Para acertar o preço do avulso, veja [quanto cobrar por polimento e vitrificação](/guia/quanto-cobrar-polimento-e-vitrificacao), que tem a conta do custo da hora."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Horário fixo toda semana sem lotar o sábado",
+      "blocks": [
+        {
+          "p": "O horário fixo é o que faz o plano funcionar para os dois lados: o cliente não precisa marcar toda semana e você sabe quem vem. Organize assim:"
+        },
+        {
+          "ol": [
+            "Olhe a agenda das últimas semanas e veja os horários que ficam vagos.",
+            "Ofereça o plano primeiro nesses horários, como terça às 9h ou quarta às 14h.",
+            "Deixe o sábado de manhã para o avulso ou com vagas limitadas de plano.",
+            "Lance as lavagens do mês na agenda de uma vez, no box certo, para ninguém marcar por cima."
+          ]
+        },
+        {
+          "img": "/images/guias/plano-mensal-de-lavagem-2.jpg",
+          "alt": "Diagrama do plano mensal de lavagem: pagamento antes do mês, horário fixo toda terça às 9h lançado nas quatro semanas, lembrete no WhatsApp antes de cada lavagem e renovação no fim do mês",
+          "caption": "Plano mensal de lavagem: pagou antes, o horário fixo entra nas quatro semanas e o lembrete sai antes de cada lavagem."
+        },
+        {
+          "p": "Para ver quantos carros cabem por box no dia, veja o [sistema de agendamento para lava-jato](/guia/agendamento-para-lava-jato)."
+        }
+      ]
+    },
+    {
+      "h2": "Regras do plano: falta, chuva, remarcação e cancelamento",
+      "blocks": [
+        {
+          "p": "Regra que não foi dita vira discussão. A lógica mais simples: se o problema é do cliente, a lavagem conta; se é do lava-jato, o lava-jato repõe."
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "Regra sugerida"
+            ],
+            "rows": [
+              [
+                "Cliente falta sem avisar",
+                "a lavagem da semana conta como usada"
+              ],
+              [
+                "Cliente avisa com 24 horas ou mais",
+                "remarca em horário vago dentro do mês"
+              ],
+              [
+                "Choveu logo depois da lavagem",
+                "opcional: relavagem simples em até 48 horas, se você quiser oferecer"
+              ],
+              [
+                "Lava-jato fechado por feriado ou manutenção",
+                "repõe em outro horário ou desconta no mês seguinte"
+              ],
+              [
+                "Cliente quer cancelar o plano",
+                "avisa até o dia combinado e o próximo mês não é cobrado"
+              ]
+            ]
+          }
+        },
+        {
+          "templates": [
+            {
+              "title": "Combinado do plano mensal",
+              "text": "Oi, [nome]. Segue o combinado do seu plano de lavagem. Plano: [plano], com [número] lavagens por mês. Horário fixo: toda [dia da semana] às [hora]. Valor: [valor] por mês, pago por Pix até o dia [dia]. Se faltar sem avisar, a lavagem da semana conta como usada. Avisando com 24 horas, a gente remarca dentro do mês. Para cancelar, avise até o dia [dia]. Responda \"de acordo\" para confirmar."
+            },
+            {
+              "title": "Lembrete de renovação",
+              "text": "Oi, [nome]. Seu plano de lavagem de [mês] vence em [data]. Valor: [valor]. Chave Pix: [chave]. Suas lavagens do mês ficam nos dias [datas], às [hora]."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui um advogado ou contador. Para multa, fidelidade ou regras de cancelamento, converse com um profissional antes de fechar o combinado."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar o plano mensal de lavagem no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o plano fica no **Clube de Assinaturas** e o horário fixo fica na agenda do box:"
+        },
+        {
+          "ol": [
+            "Em **Planos de Assinatura**, toque em Novo Plano: nome, como \"Lavagem semanal\", valor, Ciclo de Cobrança mensal, Tipo de Uso Com Limite, Limite de Usos 4 e o serviço incluso.",
+            "Em **Assinantes**, cadastre o cliente no plano. Quando o Pix chegar, use Ativar (pagamento recebido). Férias viram Pausar e depois Reativar. O detalhe do assinante mostra quantos usos já foram no período.",
+            "Na **Agenda**, em Novo Agendamento, escolha o box, o serviço, a data e o horário e ligue **Repetir toda semana**. Escolha quantas semanas (até 12) ou até que data.",
+            "O sistema mostra as datas da série e marca as que já estão ocupadas, fora do expediente ou bloqueadas. Essas ficam de fora e as outras entram de uma vez.",
+            "Com o WhatsApp do lava-jato conectado, o cliente recebe o lembrete antes de cada lavagem."
+          ]
+        },
+        {
+          "p": "A repetição é semanal. Para o plano quinzenal, lance as datas uma a uma. Se quiser, ligue em Configurações a opção Exibir planos de assinatura, que mostra os planos na página de agendamento. Veja mais em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "tip": "Se o cliente cancelar o plano no meio do mês, abra uma das lavagens e use Cancelar esta e as próximas da série. As datas seguintes ficam livres e o cliente recebe um aviso só no WhatsApp."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: plano mensal pago e horário fixo na agenda do box",
+    "p": [
+      "No Mostralo, o plano mensal de lavagem vira um plano do Clube de Assinaturas, com valor, limite de lavagens e serviço incluso, e o horário fixo entra na agenda do box para as próximas semanas de uma vez, pulando as datas ocupadas. O lembrete sai no WhatsApp antes de cada lavagem. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Planos com limite de usos, ciclo mensal e serviços inclusos",
+      "Lista de assinantes com período, status ativo ou pausado e usos do mês",
+      "Repetir toda semana: até 12 semanas lançadas de uma vez, sem marcar por cima",
+      "Lembrete no WhatsApp antes de cada lavagem e cancelamento da série com um aviso só"
+    ]
+  },
+  "faq": [
+    [
+      "Como funciona um plano mensal de lavagem de carro?",
+      "O cliente paga o mês adiantado e tem direito a um número de lavagens, de preferência com dia e horário fixos toda semana, por um valor menor que o do avulso."
+    ],
+    [
+      "Quanto cobrar no plano mensal de lavagem?",
+      "Parta do preço do avulso e dê um desconto pequeno. Exemplo: 4 lavagens simples de R$ 50 dão R$ 200; com 10% de desconto, o plano sai por R$ 180."
+    ],
+    [
+      "Plano ilimitado vale a pena para lava-jato pequeno?",
+      "Quase sempre não. Com poucos boxes, quem lava demais ocupa horário de outro cliente. O plano com limite de lavagens é mais seguro."
+    ],
+    [
+      "O que fazer quando o mensalista falta?",
+      "Combine antes: falta sem aviso conta como lavagem usada; com aviso de 24 horas, remarca dentro do mês. Se o lava-jato fechar, o lava-jato repõe."
+    ],
+    [
+      "Dá para reservar o mesmo horário toda semana?",
+      "Dá. No Mostralo, o Repetir toda semana lança até 12 semanas de uma vez no mesmo box e horário, e pula as datas que já estão ocupadas."
+    ]
+  ],
+  "sources": [
+    [
+      "Catraca Livre: Quantos carros lavados no final de semana pagam a prestação do seu próprio veículo (23/01/2026)",
+      "https://catracalivre.com.br/noticias/quantos-carros-lavados-no-final-de-semana-pagam-a-prestacao-do-seu-proprio-veiculo/"
+    ],
+    [
+      "Beancount: Contabilidade de lavagem de carros, clube de lavagem ilimitada e taxa de cancelamento (22/05/2026)",
+      "https://beancount.io/pt/blog/2026/05/22/car-wash-bookkeeping-unlimited-wash-club-membership-deferred-revenue-asc-606-cost-per-car-water-power-chemicals-tunnel-equipment-15-year-macrs-cost-segregation-bonus-depreciation-churn-rate-guide"
+    ],
+    [
+      "Webmotors: Lavagem de carro (preços médios, consultado em 03/11/2026)",
+      "https://www.webmotors.com.br/servicos-automotivos/lavagem-de-carro"
+    ]
+  ],
+  "related": [
+    "agendamento-para-lava-jato",
+    "sinal-no-agendamento-estetica-automotiva",
+    "quanto-cobrar-polimento-e-vitrificacao",
+    "pagina-de-agendamento-estetica-automotiva",
+    "mensalista-de-quadra-society"
+  ]
+}

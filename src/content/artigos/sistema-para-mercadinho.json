@@ -1,0 +1,317 @@
+{
+  "slug": "sistema-para-mercadinho",
+  "title": "Sistema para mercadinho: caixa rápido e estoque em dia",
+  "h1": "Sistema para mercadinho: como passar as compras rápido, controlar o estoque e fechar o caixa",
+  "description": "Sistema para mercadinho e minimercado: caixa estilo supermercado com leitor, atalhos F2, F3 e F4, estoque que baixa a cada venda e fechamento de caixa.",
+  "excerpt": "Um bom sistema para mercadinho passa a compra no leitor, mostra o total grande, baixa o estoque sozinho e fecha o caixa no fim do dia. Veja o que olhar, os atalhos de teclado e um exemplo completo.",
+  "date": "2026-11-03",
+  "readMinutes": 7,
+  "category": "Por segmento",
+  "keywords": [
+    "sistema para mercadinho",
+    "sistema para minimercado",
+    "pdv para mercadinho",
+    "frente de caixa para mercado",
+    "sistema de caixa para mercearia",
+    "programa para mercadinho"
+  ],
+  "image": "/images/guias/sistema-para-mercadinho.jpg",
+  "imageAlt": "Dono de mercadinho de bairro embalando compras no caixa com leitor de código de barras de mesa e computador do sistema",
+  "audio": {
+    "src": "/audio/guias/sistema-para-mercadinho.mp3",
+    "duration": 544.2,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 51.51,
+        "target": "s1"
+      },
+      {
+        "t": 114.62,
+        "target": "s2"
+      },
+      {
+        "t": 179.45,
+        "target": "s3"
+      },
+      {
+        "t": 226.0,
+        "target": "s4"
+      },
+      {
+        "t": 323.23,
+        "target": "s5"
+      },
+      {
+        "t": 384.62,
+        "target": "s6"
+      },
+      {
+        "t": 421.85,
+        "target": "s7"
+      },
+      {
+        "t": 480.32,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um sistema para mercadinho é o programa do caixa que lê o código de barras de cada produto, soma a compra, registra a forma de pagamento e já desconta o estoque, tudo numa tela feita para fila andar. No fim do dia, ele mostra quanto entrou em dinheiro, Pix e cartão para você fechar o caixa sem calculadora.",
+    "Neste guia você vai ver o que um sistema para minimercado precisa ter, como é a tela de caixa estilo supermercado, os atalhos de teclado que tiram a mão do mouse, uma compra passada do começo ao fim, como fica o estoque e o caixa e o que fazer com produto que não tem código, como pão e hortifrúti."
+  ],
+  "sections": [
+    {
+      "h2": "O que um sistema para mercadinho precisa ter",
+      "blocks": [
+        {
+          "p": "Mercadinho de bairro vive de compra pequena e frequente. O cliente entra para levar leite, pão e um detergente e não quer esperar. Por isso o sistema precisa ser rápido no caixa e simples para quem não é da área de tecnologia. Veja também a página do Mostralo para [supermercados e mercadinhos](/nicho-supermercados)."
+        },
+        {
+          "ul": [
+            "**Leitor de código de barras** funcionando direto, sem configurar nada. Veja como escolher no guia do [leitor de código de barras](/guia/leitor-de-codigo-de-barras).",
+            "**Tela pensada para fila:** último item em destaque, total grande e atalhos de teclado.",
+            "**Estoque que baixa sozinho** a cada venda, com aviso de estoque baixo.",
+            "**Entrada de mercadoria** com custo, fornecedor e número da nota.",
+            "**Custo e margem** de cada produto, para saber o que dá lucro.",
+            "**Abertura e fechamento de caixa** com sangria e suprimento.",
+            "**Busca por nome** para o que não tem código."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como é a tela de caixa estilo supermercado",
+      "blocks": [
+        {
+          "p": "O PDV do Mostralo tem três modos de tela. Para mercadinho, o certo é o **modo Lista (supermercado)**, feito para quem vende passando produto no leitor:"
+        },
+        {
+          "ul": [
+            "**Último item em destaque:** o nome e o preço do produto que acabou de passar aparecem grandes no topo, para o operador e o cliente conferirem.",
+            "**Tabela da venda:** cada item com quantidade, preço e total, na ordem em que foi lido.",
+            "**Total grande:** o valor da compra fica sempre à vista.",
+            "**Tela vazia que ensina:** sem itens, ela mostra \"Passe o código de barras. Ou aperte F3 para buscar pelo nome\"."
+          ]
+        },
+        {
+          "p": "O dono escolhe o modo padrão da loja na aba **Caixa** do PDV, e cada computador pode trocar de modo pelo botão no topo da tela. Assim, o caixa da frente fica no modo Lista e o computador do balcão de frios pode usar outro."
+        },
+        {
+          "img": "/images/guias/sistema-para-mercadinho-2.jpg",
+          "alt": "Tela do sistema para mercadinho no modo Lista: último item em destaque, tabela da venda, total grande e atalhos F2, F3, F4 e Del",
+          "caption": "Modo Lista do PDV: último item em destaque, total grande e atalhos de teclado."
+        }
+      ]
+    },
+    {
+      "h2": "Atalhos de teclado que tiram a mão do mouse",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Tecla",
+              "O que faz",
+              "Quando usar"
+            ],
+            "rows": [
+              [
+                "F2",
+                "Muda a quantidade do último item (de 1 a 999)",
+                "Cliente levou 12 iogurtes iguais: passa um e aperta F2"
+              ],
+              [
+                "F3",
+                "Vai para a busca por nome",
+                "Produto sem código ou com código que não lê"
+              ],
+              [
+                "F4",
+                "Abre o pagamento",
+                "Terminou de passar a compra"
+              ],
+              [
+                "Del",
+                "Remove o último item",
+                "Leu um produto a mais ou o cliente desistiu"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O leitor nunca aperta essas teclas, então não há conflito com ele. E o Delete dentro de um campo de texto só apaga texto, nunca tira item da venda por engano."
+        }
+      ]
+    },
+    {
+      "h2": "Exemplo: uma compra passada do começo ao fim",
+      "blocks": [
+        {
+          "p": "Exemplo: uma cliente chega no caixa do mercadinho com três latas de refrigerante, um pacote de arroz de 5 kg, dois pacotes de feijão e um detergente."
+        },
+        {
+          "ol": [
+            "O operador passa uma lata no leitor e aperta **F2**, digita 3 e Enter. (Ou passa as três latas: cada leitura repetida soma mais um.)",
+            "Passa o arroz, os dois feijões e o detergente. Cada um aparece no destaque com o preço.",
+            "A cliente desiste do detergente: o operador aperta **Del** e ele sai da venda.",
+            "Ela muda de ideia e volta com o detergente: o operador passa de novo.",
+            "Aperta **F4**, escolhe Dinheiro, informa R$ 100,00 recebidos e o sistema mostra o troco."
+          ]
+        },
+        {
+          "table": {
+            "head": [
+              "Item",
+              "Quantidade",
+              "Preço",
+              "Total"
+            ],
+            "rows": [
+              [
+                "Refrigerante lata 350 ml",
+                "3",
+                "R$ 5,50",
+                "R$ 16,50"
+              ],
+              [
+                "Arroz 5 kg",
+                "1",
+                "R$ 27,90",
+                "R$ 27,90"
+              ],
+              [
+                "Feijão 1 kg",
+                "2",
+                "R$ 8,49",
+                "R$ 16,98"
+              ],
+              [
+                "Detergente",
+                "1",
+                "R$ 2,99",
+                "R$ 2,99"
+              ],
+              [
+                "Total da compra",
+                "7 itens",
+                "nenhum",
+                "R$ 64,37"
+              ],
+              [
+                "Recebido em dinheiro",
+                "nenhum",
+                "nenhum",
+                "R$ 100,00"
+              ],
+              [
+                "Troco",
+                "nenhum",
+                "nenhum",
+                "R$ 35,63"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Treine o operador com uma compra de teste antes de abrir a loja: passar, F2, Del e F4. Em dez minutos a pessoa pega o jeito."
+        }
+      ]
+    },
+    {
+      "h2": "Estoque que baixa a cada venda",
+      "blocks": [
+        {
+          "p": "Cada venda fechada no PDV desconta a quantidade do estoque do produto. Quando o produto chega no limite que você escolheu (o padrão é 5), ele aparece como estoque baixo; quando zera, fica indisponível."
+        },
+        {
+          "p": "Quando o fornecedor entrega, você lança a **entrada de mercadoria** na tela **Estoque**: lê o código, digita a quantidade e o custo, e o estoque sobe. O sistema guarda o fornecedor e o número da nota e recalcula o custo do produto pela média. O passo a passo está no guia de [entrada de mercadoria e custo médio](/guia/entrada-de-mercadoria-e-custo-medio), e a conta de quanto sobra de cada venda, no guia de [margem de lucro](/guia/como-calcular-margem-de-lucro)."
+        },
+        {
+          "p": "A tela Estoque mostra quantos produtos têm controle, quantos estão baixos ou zerados e o **valor em estoque a preço de custo**, um número que todo dono de mercadinho deveria olhar antes de fazer o próximo pedido."
+        }
+      ]
+    },
+    {
+      "h2": "Caixa aberto e fechado todo dia",
+      "blocks": [
+        {
+          "p": "No mercadinho, o dinheiro passa pela gaveta o dia inteiro. O PDV do Mostralo tem abertura de caixa com o troco inicial, registro de sangria e suprimento e fechamento com o resumo por forma de pagamento: dinheiro, Pix, crédito e débito separados. O relatório sai na impressora térmica de 80 mm."
+        },
+        {
+          "p": "Se a loja quiser, dá para exigir caixa aberto para vender. A rotina completa está nos guias de [abertura e fechamento de caixa](/guia/abertura-e-fechamento-de-caixa) e de [sangria de caixa](/guia/sangria-de-caixa)."
+        }
+      ]
+    },
+    {
+      "h2": "Produto sem código: hortifrúti, pão e granel",
+      "blocks": [
+        {
+          "ul": [
+            "**Busca por nome:** F3, digita \"banana\" e escolhe. Serve para qualquer produto sem código.",
+            "**Produto por quilo:** marque o produto como vendido por quilo e cadastre o preço do kg. No caixa, o operador digita o peso que a balança mostrou e o sistema calcula o valor.",
+            "**Atalhos grandes:** se o mercadinho também vende pão e café, o modo Misto mostra botões grandes para esses itens. Veja no [sistema para padaria](/guia/sistema-para-padaria)."
+          ]
+        },
+        {
+          "p": "Hoje o Mostralo não se conecta à balança nem lê a etiqueta impressa por ela: o peso é digitado. Também não emite nota fiscal; o comprovante do PDV não tem valor fiscal. Se o seu mercadinho precisa emitir NFC-e, veja o que vale para o seu caso no guia de [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o caixa do mercadinho e a loja online no mesmo sistema",
+    "p": [
+      "No Mostralo, o caixa do mercadinho funciona no modo Lista, com leitor, atalhos de teclado, estoque que baixa sozinho e fechamento de caixa. E o mesmo cadastro de produtos vira o seu catálogo online para pedidos pelo WhatsApp e delivery próprio. A gente deixa tudo pronto para você, com garantia de 7 dias. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "PDV estilo supermercado: último item em destaque, total grande e F2, F3, F4 e Del",
+      "Leitor de código de barras e cadastro rápido de produto novo",
+      "Estoque com entrada de mercadoria, custo médio e margem por produto",
+      "Abertura, sangria e fechamento de caixa com relatório impresso"
+    ]
+  },
+  "faq": [
+    [
+      "Qual o melhor sistema para mercadinho pequeno?",
+      "O que passa a compra rápido no leitor, baixa o estoque sozinho e fecha o caixa sem planilha. Para mercadinho, procure uma tela estilo supermercado com atalhos de teclado e o total sempre à vista."
+    ],
+    [
+      "Preciso de computador para usar o sistema do mercadinho?",
+      "Para o caixa com leitor de código de barras, sim: um computador com navegador e um leitor USB. O painel do Mostralo também abre no celular para consultar vendas e estoque."
+    ],
+    [
+      "O sistema funciona com balança?",
+      "No Mostralo, o produto por quilo tem o preço do kg e o operador digita o peso que a balança mostrou. O sistema ainda não se conecta à balança nem lê a etiqueta dela."
+    ],
+    [
+      "O Mostralo funciona sem internet?",
+      "Não. O Mostralo roda no navegador e precisa de internet para registrar as vendas. Vale ter um plano de internet de reserva, como o roteador do celular."
+    ],
+    [
+      "Dá para vender em mais de um computador?",
+      "Dá. Vários computadores podem abrir o PDV da mesma loja, cada um no modo de tela que preferir. A abertura e o fechamento de caixa hoje são um só por loja: a conferência no fim do dia junta as vendas de todos os computadores."
+    ]
+  ],
+  "sources": [
+    [
+      "Omie — Sistema para mercados: saiba como escolher o melhor (04/09/2026)",
+      "https://www.omie.com.br/blog/sistema-para-mercados-saiba-como-escolher-o-melhor/"
+    ],
+    [
+      "Sebrae/PR — Minimercado: comece seu negócio",
+      "https://sebraepr.com.br/wp-content/uploads/2024/09/Minimercado-Comece-seu-negocio.pdf"
+    ]
+  ],
+  "related": [
+    "leitor-de-codigo-de-barras",
+    "entrada-de-mercadoria-e-custo-medio",
+    "como-calcular-margem-de-lucro",
+    "abertura-e-fechamento-de-caixa",
+    "sangria-de-caixa",
+    "sistema-para-padaria"
+  ]
+}

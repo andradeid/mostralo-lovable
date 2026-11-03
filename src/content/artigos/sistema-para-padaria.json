@@ -1,0 +1,326 @@
+{
+  "slug": "sistema-para-padaria",
+  "title": "Sistema para padaria: pão por quilo e caixa rápido",
+  "h1": "Sistema para padaria: como vender pão por quilo, café e salgado no mesmo caixa",
+  "description": "Sistema para padaria com pão por quilo: o operador digita o peso e o caixa calcula, atalhos grandes para café e salgado e o que diz a regra do Inmetro.",
+  "excerpt": "Na padaria, o mesmo cliente leva pão por quilo, café, salgado e leite com código de barras. Veja como um sistema para padaria resolve tudo num caixa só, com o peso digitado e atalhos grandes.",
+  "date": "2026-11-03",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "sistema para padaria",
+    "pdv para padaria",
+    "como vender pão por quilo",
+    "preço do pão francês por quilo",
+    "frente de caixa para padaria",
+    "programa para padaria"
+  ],
+  "image": "/images/guias/sistema-para-padaria.jpg",
+  "imageAlt": "Atendente de padaria colocando pão francês no saco de papel ao lado da balança e do sistema de caixa no balcão",
+  "audio": {
+    "src": "/audio/guias/sistema-para-padaria.mp3",
+    "duration": 584.3,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 63.19,
+        "target": "s1"
+      },
+      {
+        "t": 118.22,
+        "target": "s2"
+      },
+      {
+        "t": 185.93,
+        "target": "s3"
+      },
+      {
+        "t": 283.08,
+        "target": "s4"
+      },
+      {
+        "t": 361.75,
+        "target": "s5"
+      },
+      {
+        "t": 423.79,
+        "target": "s6"
+      },
+      {
+        "t": 479.18,
+        "target": "s7"
+      },
+      {
+        "t": 528.37,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um sistema para padaria precisa vender, no mesmo caixa, três tipos de produto: o que é cobrado por quilo (pão francês, rosca, pão de queijo a granel), o que é vendido por unidade sem código (café, salgado, fatia de bolo) e o que tem código de barras (leite, refrigerante, manteiga). O caixa certo deixa os três rápidos: o peso digitado vira valor, o café é um botão grande e o leite passa no leitor.",
+    "Neste guia você vai ver o que diz a regra do Inmetro sobre o pão francês, como o sistema calcula o valor do pão pelo peso, como funcionam os atalhos grandes no caixa, um exemplo de venda do balcão da manhã e como ficam o estoque e o caixa da padaria."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a padaria precisa de um caixa diferente",
+      "blocks": [
+        {
+          "p": "No mercadinho, quase tudo tem código de barras. Na padaria, a maior parte do que sai no pico da manhã não tem: o pão é pesado, o café é feito na hora e o salgado sai da estufa. Um caixa feito só para leitor obriga o operador a procurar tudo pelo nome, e a fila cresce justo entre as seis e as nove da manhã."
+        },
+        {
+          "table": {
+            "head": [
+              "Tipo de produto",
+              "Exemplos",
+              "Como entra no caixa"
+            ],
+            "rows": [
+              [
+                "Vendido por quilo",
+                "Pão francês, rosca, biscoito a granel",
+                "O operador digita o peso e o sistema calcula o valor"
+              ],
+              [
+                "Unidade sem código",
+                "Café, pão na chapa, coxinha, fatia de bolo",
+                "Um toque no botão grande do atalho"
+              ],
+              [
+                "Com código de barras",
+                "Leite, refrigerante, manteiga, iogurte",
+                "Passa no leitor de código de barras"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Pão francês por quilo: o que diz a regra do Inmetro",
+      "blocks": [
+        {
+          "p": "Desde 1º de junho de 2021, pela Portaria Inmetro nº 181, de 21 de abril de 2021, o pão francês (pão de sal, carioquinha) só pode ser vendido por peso, e não por unidade. A portaria pede ainda:"
+        },
+        {
+          "ul": [
+            "**Preço do quilo à vista:** afixado perto do balcão, em local fácil de ver, com números de pelo menos 5 cm de altura.",
+            "**Balança adequada:** com divisão de até 5 gramas, mostrando o peso e o valor a pagar para o cliente."
+          ]
+        },
+        {
+          "p": "Ou seja, a balança continua no balcão e é nela que o cliente confere o peso. O sistema de caixa entra depois: registra a venda com o mesmo peso e o mesmo valor."
+        },
+        {
+          "tip": "Este guia é informativo. A fiscalização é feita pelo órgão de metrologia do seu estado (Ipem); confirme lá as regras para os produtos que você vende."
+        }
+      ]
+    },
+    {
+      "h2": "Como o sistema calcula o valor do pão pelo peso",
+      "blocks": [
+        {
+          "p": "No Mostralo, você marca o produto como **Vendido por quilo** no cadastro e coloca o preço do kg no lugar do preço. No caixa, quando o operador escolhe o pão, abre o campo **Peso (kg)**. Ele digita o peso que a balança mostrou, com vírgula (0,450 é 450 gramas), aperta Enter e o item entra na venda com o valor calculado e o peso no nome, por exemplo \"Pão francês (0,380 kg)\"."
+        },
+        {
+          "p": "Exemplo: uma padaria cobra R$ 18,90 o quilo do pão francês. O valor é sempre o peso vezes o preço do kg, arredondado nos centavos:"
+        },
+        {
+          "table": {
+            "head": [
+              "Peso na balança",
+              "Conta",
+              "Valor no caixa"
+            ],
+            "rows": [
+              [
+                "0,300 kg (300 g)",
+                "0,300 × R$ 18,90",
+                "R$ 5,67"
+              ],
+              [
+                "0,380 kg (380 g)",
+                "0,380 × R$ 18,90 = R$ 7,182",
+                "R$ 7,18"
+              ],
+              [
+                "0,620 kg (620 g)",
+                "0,620 × R$ 18,90 = R$ 11,718",
+                "R$ 11,72"
+              ],
+              [
+                "1,000 kg",
+                "1,000 × R$ 18,90",
+                "R$ 18,90"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/sistema-para-padaria-2.jpg",
+          "alt": "Diagrama do sistema para padaria: a balança mostra o peso, o operador digita no caixa, o sistema multiplica pelo preço do quilo e o pão entra na venda",
+          "caption": "Pão por quilo no sistema para padaria: o peso da balança é digitado e o caixa calcula o valor."
+        },
+        {
+          "p": "Errou o peso? Com o item do pão por último na venda, a tecla **F2** abre o peso de novo para corrigir. Hoje o Mostralo não se conecta à balança nem lê a etiqueta impressa por ela: o peso é sempre digitado pelo operador."
+        }
+      ]
+    },
+    {
+      "h2": "Modo Misto: atalhos grandes para o que não tem código",
+      "blocks": [
+        {
+          "p": "O PDV do Mostralo tem um modo de tela feito para padaria, o **Misto**. De um lado ficam os **atalhos**: botões grandes com os produtos que mais saem no balcão, como pão francês, café com leite, pão de queijo e coxinha. Do outro, a lista do pedido com o total. Em cima, a busca por nome, que também recebe a leitura do leitor de código de barras."
+        },
+        {
+          "ol": [
+            "No cadastro do produto, ligue **Mostrar como atalho no PDV**. Ou, no próprio PDV, use **Editar** e **Escolher atalho**.",
+            "Coloque os atalhos na ordem do balcão: pão primeiro, depois bebidas, depois salgados.",
+            "Na aba **Caixa** do PDV, o dono deixa o modo Misto como padrão da loja. Cada computador ainda pode trocar de modo no botão do topo."
+          ]
+        },
+        {
+          "p": "Os atalhos de teclado do caixa (F2 quantidade, F3 busca, F4 pagar e Del para tirar o último item) também valem no modo Misto. Se a padaria tem um caixa só de produtos com código, ele pode usar o modo Lista, igual ao do [sistema para mercadinho](/guia/sistema-para-mercadinho)."
+        },
+        {
+          "tip": "Deixe no máximo 12 a 16 atalhos. Com mais do que isso, o operador volta a procurar botão e perde o ganho de tempo."
+        }
+      ]
+    },
+    {
+      "h2": "Exemplo: uma venda no balcão da manhã",
+      "blocks": [
+        {
+          "p": "Exemplo: às sete da manhã, um cliente leva pão francês, um café com leite, dois pães de queijo e um litro de leite."
+        },
+        {
+          "ol": [
+            "O operador toca no atalho **Pão francês**, digita 0,380 (o peso da balança) e aperta Enter.",
+            "Toca em **Café com leite** uma vez e em **Pão de queijo** duas vezes; o segundo toque soma mais um.",
+            "Passa o leite no leitor de código de barras.",
+            "Aperta **F4**, escolhe Pix e finaliza."
+          ]
+        },
+        {
+          "table": {
+            "head": [
+              "Item",
+              "Como entrou",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Pão francês (0,380 kg)",
+                "Atalho e peso digitado",
+                "R$ 7,18"
+              ],
+              [
+                "Café com leite",
+                "Atalho",
+                "R$ 6,00"
+              ],
+              [
+                "Pão de queijo, 2 unidades de R$ 4,50",
+                "Atalho, dois toques",
+                "R$ 9,00"
+              ],
+              [
+                "Leite 1 litro",
+                "Leitor de código de barras",
+                "R$ 5,49"
+              ],
+              [
+                "Total",
+                "nenhum",
+                "R$ 27,67"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Estoque, custo e encomendas na padaria",
+      "blocks": [
+        {
+          "ul": [
+            "**Produto por quilo não tem controle de estoque.** Ao marcar \"Vendido por quilo\", o controle de quantidade é desligado, porque pão pesado não se conta em unidades. Acompanhe a produção pela [ficha técnica e contagem](/guia/controle-de-estoque-para-delivery).",
+            "**Revenda com código controla estoque.** Leite, refrigerante e manteiga baixam a cada venda e sobem com a [entrada de mercadoria](/guia/entrada-de-mercadoria-e-custo-medio).",
+            "**Custo e margem:** cadastre o preço de custo e o sistema mostra a margem de cada produto. Veja como calcular no guia de [margem de lucro](/guia/como-calcular-margem-de-lucro).",
+            "**Encomendas e delivery:** o mesmo cadastro vira cardápio digital para pedidos pelo WhatsApp, delivery próprio e encomenda de bolo e ceia. Veja a página para [padarias](/nicho-padarias) e o guia de [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal)."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "O caixa da padaria: abertura, sangria e fechamento",
+      "blocks": [
+        {
+          "p": "Padaria abre cedo e mexe com muito dinheiro trocado. Abra o caixa com o troco contado, faça sangria quando a gaveta passar do limite e feche no fim do turno conferindo dinheiro, Pix e cartão separados. O PDV do Mostralo faz isso e imprime o relatório na térmica de 80 mm. O passo a passo está nos guias de [abertura e fechamento de caixa](/guia/abertura-e-fechamento-de-caixa) e de [sangria de caixa](/guia/sangria-de-caixa)."
+        },
+        {
+          "p": "Dois avisos para planejar: o Mostralo precisa de internet para registrar as vendas (não funciona offline) e não emite nota fiscal; o comprovante do caixa não tem valor fiscal."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: pão por quilo, café e leite no mesmo caixa",
+    "p": [
+      "No Mostralo, a padaria usa o modo Misto do PDV: atalhos grandes para o que sai no balcão, pão por quilo com o peso digitado e o valor calculado na hora, leitor de código de barras para a revenda e o caixa fechado no fim do dia. A gente deixa tudo pronto para você, com garantia de 7 dias. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Produto vendido por quilo: preço do kg e valor calculado pelo peso digitado",
+      "Modo Misto com botões grandes para pão, café e salgado",
+      "Leitor de código de barras e estoque para os produtos de revenda",
+      "Cardápio digital e encomendas no mesmo cadastro de produtos"
+    ]
+  },
+  "faq": [
+    [
+      "O sistema da padaria se conecta à balança?",
+      "O Mostralo ainda não se conecta à balança nem lê a etiqueta dela. O operador digita o peso que a balança mostrou e o sistema calcula o valor pelo preço do quilo."
+    ],
+    [
+      "Posso vender pão francês por unidade?",
+      "Pela Portaria Inmetro nº 181 de 2021, o pão francês deve ser vendido por peso, com o preço do quilo à vista no balcão. Para outros pães e salgados, confirme a regra no órgão de metrologia do seu estado (Ipem)."
+    ],
+    [
+      "Como cadastrar o pão por quilo no Mostralo?",
+      "No cadastro do produto, em Código e custo, ligue \"Vendido por quilo\" e coloque o preço do kg no campo de preço. No caixa, ao escolher o produto, abre o campo de peso."
+    ],
+    [
+      "Dá para controlar estoque do pão francês?",
+      "Produto por quilo não tem controle de quantidade no Mostralo. Controle a produção pela ficha técnica e pela contagem; os produtos de revenda com código têm estoque normal."
+    ],
+    [
+      "Quantos atalhos posso ter no modo Misto?",
+      "Você escolhe quais produtos viram atalho e em que ordem. Para o balcão andar rápido, o ideal é ficar entre 12 e 16 botões."
+    ]
+  ],
+  "sources": [
+    [
+      "Migalhas — Preço do pão francês deverá ser fixado próximo ao balcão de venda (Portaria Inmetro 181/2021)",
+      "https://www.migalhas.com.br/quentes/344335/preco-do-pao-frances-devera-ser-fixado-proximo-ao-balcao-de-venda"
+    ],
+    [
+      "Diário do Nordeste — Pão francês não poderá ser vendido por unidade a partir de junho (23/04/2021)",
+      "https://diariodonordeste.verdesmares.com.br/negocios/pao-carioquinha-tera-novas-regras-de-venda-a-partir-de-junho-aponta-inmetro-1.3076825"
+    ],
+    [
+      "Brasil 61 — Preço do pão francês deve ser fixado em local de fácil visualização do consumidor",
+      "https://brasil61.com/noticias/preco-do-pao-frances-deve-ser-fixado-em-local-de-facil-visualizacao-do-consumidor-bras214693"
+    ]
+  ],
+  "related": [
+    "sistema-para-mercadinho",
+    "leitor-de-codigo-de-barras",
+    "como-calcular-margem-de-lucro",
+    "encomenda-de-ceia-de-natal",
+    "abertura-e-fechamento-de-caixa",
+    "pdv-para-pequeno-negocio"
+  ]
+}

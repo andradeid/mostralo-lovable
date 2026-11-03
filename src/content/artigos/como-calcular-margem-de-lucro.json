@@ -1,0 +1,299 @@
+{
+  "slug": "como-calcular-margem-de-lucro",
+  "title": "Como calcular margem de lucro (e a diferença do markup)",
+  "h1": "Como calcular margem de lucro: a diferença para o markup e o preço de venda certo",
+  "description": "Como calcular margem de lucro do produto, a diferença entre margem e markup, a fórmula do preço de venda e onde a margem vaza, com exemplos que fecham.",
+  "excerpt": "Margem de lucro é quanto do preço de venda sobra depois de pagar o custo do produto. Veja a fórmula, por que markup de 30% não dá 30% de margem e como chegar ao preço de venda certo.",
+  "date": "2026-11-03",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "como calcular margem de lucro",
+    "margem de lucro e markup",
+    "diferença entre margem e markup",
+    "como calcular preço de venda",
+    "custo do produto",
+    "fórmula da margem de lucro"
+  ],
+  "image": "/images/guias/como-calcular-margem-de-lucro.jpg",
+  "imageAlt": "Dono de pequeno comércio no escritório dos fundos da loja calculando a margem de lucro no notebook com caderno e café",
+  "audio": {
+    "src": "/audio/guias/como-calcular-margem-de-lucro.mp3",
+    "duration": 585.9,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 50.19,
+        "target": "s1"
+      },
+      {
+        "t": 92.98,
+        "target": "s2"
+      },
+      {
+        "t": 137.69,
+        "target": "s3"
+      },
+      {
+        "t": 236.72,
+        "target": "s4"
+      },
+      {
+        "t": 343.63,
+        "target": "s5"
+      },
+      {
+        "t": 400.34,
+        "target": "s6"
+      },
+      {
+        "t": 460.93,
+        "target": "s7"
+      },
+      {
+        "t": 528.12,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Para calcular a margem de lucro de um produto, subtraia o custo do preço de venda e divida o resultado pelo preço de venda: margem = (preço − custo) ÷ preço × 100. Um produto que custa R$ 6,00 e é vendido por R$ 10,00 deixa R$ 4,00, ou seja, 40% de margem.",
+    "Neste guia você vai ver a conta da margem passo a passo, o que é markup e por que ele não é a mesma coisa, como chegar ao preço de venda a partir da margem que você quer, o que entra no custo do produto, onde a margem costuma vazar e como ver a margem de cada produto no sistema."
+  ],
+  "sections": [
+    {
+      "h2": "O que é margem de lucro",
+      "blocks": [
+        {
+          "p": "Margem de lucro é a parte do preço de venda que fica com você depois de pagar o produto. Ela é medida **sobre o preço de venda**: uma margem de 40% quer dizer que, de cada R$ 10,00 vendidos, R$ 4,00 sobram depois do custo da mercadoria."
+        },
+        {
+          "p": "Neste guia falamos da margem sobre o custo do produto, também chamada de margem bruta. Dela ainda saem aluguel, salários, luz, taxas da maquininha e impostos. Por isso a margem do produto precisa ser maior do que essas despesas somadas, senão a loja vende muito e não sobra nada."
+        }
+      ]
+    },
+    {
+      "h2": "Como calcular a margem de lucro passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "**Pegue o preço de venda** do produto (o que o cliente paga).",
+            "**Pegue o custo** do produto (o que você pagou por ele).",
+            "**Calcule o lucro por unidade:** preço menos custo.",
+            "**Divida o lucro pelo preço de venda** e multiplique por 100."
+          ]
+        },
+        {
+          "p": "Exemplo: um mercadinho compra o refrigerante de 2 litros por R$ 6,00 e vende por R$ 10,00. O lucro por unidade é R$ 10,00 − R$ 6,00 = R$ 4,00. A margem é R$ 4,00 ÷ R$ 10,00 = 0,40, ou seja, **40%**."
+        },
+        {
+          "img": "/images/guias/como-calcular-margem-de-lucro-2.jpg",
+          "alt": "Diagrama de como calcular margem de lucro e markup: preço de R$ 10 com custo de R$ 6 e lucro de R$ 4, margem de 40% sobre o preço e markup de 66,7% sobre o custo",
+          "caption": "Mesmo lucro, duas contas: a margem de lucro divide pelo preço; o markup divide pelo custo."
+        }
+      ]
+    },
+    {
+      "h2": "Margem de lucro e markup: qual a diferença?",
+      "blocks": [
+        {
+          "p": "O **markup** usa o mesmo lucro, mas divide pelo **custo**, e não pelo preço. No refrigerante do exemplo: R$ 4,00 ÷ R$ 6,00 = 66,7% de markup. O mesmo produto tem 40% de margem e 66,7% de markup. As duas contas estão certas; elas só medem coisas diferentes."
+        },
+        {
+          "p": "O erro mais comum é colocar uma porcentagem em cima do custo e achar que essa é a margem. Exemplo: um produto custa R$ 10,00 e o dono coloca 30% em cima, vendendo por R$ 13,00. O lucro é R$ 3,00, e a margem é R$ 3,00 ÷ R$ 13,00 = **23,1%**, não 30%."
+        },
+        {
+          "table": {
+            "head": [
+              "Margem que você quer",
+              "Markup necessário sobre o custo",
+              "Multiplique o custo por"
+            ],
+            "rows": [
+              [
+                "20%",
+                "25%",
+                "1,25"
+              ],
+              [
+                "30%",
+                "42,9%",
+                "1,429"
+              ],
+              [
+                "40%",
+                "66,7%",
+                "1,667"
+              ],
+              [
+                "50%",
+                "100%",
+                "2"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Quando alguém disser \"coloco 50% em cima\", traduza: isso é markup de 50% e dá uma margem de 33,3%."
+        }
+      ]
+    },
+    {
+      "h2": "Como chegar ao preço de venda pela margem",
+      "blocks": [
+        {
+          "p": "Se você sabe a margem que quer, o preço de venda sai assim: **preço = custo ÷ (1 − margem)**. Exemplo: um produto custa R$ 12,00 e você quer 35% de margem. O preço é R$ 12,00 ÷ 0,65 = R$ 18,46. Conferindo: R$ 18,46 − R$ 12,00 = R$ 6,46, e R$ 6,46 ÷ R$ 18,46 = 35,0%."
+        },
+        {
+          "p": "O Sebrae ensina um caminho que já inclui as despesas da loja no preço: o índice de markup = 100 ÷ (100 − soma das porcentagens de despesas e do lucro). Exemplo: impostos e taxas de 10% sobre a venda, despesas fixas de 20% e lucro desejado de 10%. A soma é 40%, e o índice é 100 ÷ 60 = 1,667. Para um custo de R$ 12,00, o preço fica R$ 12,00 × 100 ÷ 60 = R$ 20,00."
+        },
+        {
+          "table": {
+            "head": [
+              "Para onde vai o preço de R$ 20,00",
+              "Porcentagem",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Custo do produto",
+                "60%",
+                "R$ 12,00"
+              ],
+              [
+                "Impostos e taxas",
+                "10%",
+                "R$ 2,00"
+              ],
+              [
+                "Despesas fixas",
+                "20%",
+                "R$ 4,00"
+              ],
+              [
+                "Lucro",
+                "10%",
+                "R$ 2,00"
+              ],
+              [
+                "Total",
+                "100%",
+                "R$ 20,00"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Depois da conta, compare com o preço da concorrência do bairro. Se o seu preço ficou muito acima, o caminho é negociar o custo, cortar despesa ou aceitar margem menor nesse produto e maior em outro."
+        }
+      ]
+    },
+    {
+      "h2": "O que entra no custo do produto",
+      "blocks": [
+        {
+          "ul": [
+            "**Revenda:** o preço pago ao fornecedor por unidade, mais o frete se ele veio à parte. Comprou a caixa com 12 por R$ 60,00? O custo da unidade é R$ 5,00.",
+            "**Produção própria (lanche, bolo, pizza):** a soma dos ingredientes e da embalagem de uma unidade. A conta sai da ficha técnica, explicada no guia de [controle de estoque para delivery](/guia/controle-de-estoque-para-delivery).",
+            "**Perdas:** se 1 em cada 20 unidades vence ou quebra, esse prejuízo precisa estar no preço das outras 19."
+          ]
+        },
+        {
+          "p": "O custo muda a cada compra. Se você comprou café a R$ 14,00 e agora pagou R$ 16,50, qual é o custo? A resposta está no custo médio, explicado no guia de [entrada de mercadoria e custo médio](/guia/entrada-de-mercadoria-e-custo-medio)."
+        }
+      ]
+    },
+    {
+      "h2": "Onde a margem de lucro costuma vazar",
+      "blocks": [
+        {
+          "ul": [
+            "**Oferta sem conta:** um produto de R$ 10,00 com custo de R$ 6,00 tem 40% de margem. Em oferta por R$ 8,00, a margem cai para R$ 2,00 ÷ R$ 8,00 = 25%. Para lucrar o mesmo valor total, você precisa vender o dobro.",
+            "**Preço parado depois do aumento do fornecedor:** o custo sobe e o preço da prateleira fica igual por meses.",
+            "**Taxa da maquininha e do Pix de cobrança:** sai do preço de venda, não do custo. Some nas despesas.",
+            "**Produto que ninguém sabe o custo:** sem custo cadastrado, não existe margem, só palpite."
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui o seu contador. Impostos e regime de tributação mudam o cálculo do preço; confirme os percentuais do seu negócio com um contador."
+        }
+      ]
+    },
+    {
+      "h2": "Como ver a margem de cada produto no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "No painel, abra **Produtos** e edite o produto.",
+            "Em **Código e custo**, preencha o **Preço de custo**. Só o dono ou administrador da loja grava o custo.",
+            "Logo abaixo, o sistema mostra a margem e o lucro por unidade, por exemplo \"Margem: 40% · lucro R$ 4,00\". Se o custo passar do preço, aparece \"prejuízo\" em vermelho.",
+            "Se o produto estiver em oferta, a margem é calculada sobre o preço da oferta, que é o que o cliente paga."
+          ]
+        },
+        {
+          "p": "O custo fica guardado separado do produto e nunca aparece na loja online, no cardápio ou no totem. Na tela **Estoque**, cada produto mostra custo, valor em estoque e margem, e o total do estoque a preço de custo aparece no topo. Quando você lança uma entrada de mercadoria com o custo da nota, o custo do produto é atualizado pela média. Veja também o guia de [relatório de vendas](/guia/relatorio-de-vendas-pequeno-negocio) e as demais [funcionalidades](/funcionalidades)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a margem de cada produto sem planilha",
+    "p": [
+      "No Mostralo, o custo de cada produto fica guardado separado, só a equipe da loja vê, e o sistema mostra a margem e o lucro por unidade na hora, inclusive na oferta. A entrada de mercadoria atualiza o custo pela média. A gente deixa tudo pronto para você, com garantia de 7 dias. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Preço de custo por produto, gravado só pelo dono ou administrador",
+      "Margem e lucro por unidade calculados no cadastro, com aviso de prejuízo",
+      "Tela de Estoque com custo, valor em estoque e margem de cada produto",
+      "Custo atualizado pela média a cada entrada de mercadoria"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a fórmula da margem de lucro?",
+      "Margem = (preço de venda − custo) ÷ preço de venda × 100. Exemplo: custo de R$ 6,00 e venda de R$ 10,00 dão 40% de margem."
+    ],
+    [
+      "Qual a diferença entre margem e markup?",
+      "A margem divide o lucro pelo preço de venda; o markup divide pelo custo. Com custo de R$ 6,00 e preço de R$ 10,00, a margem é 40% e o markup é 66,7%."
+    ],
+    [
+      "Como calcular o preço de venda a partir da margem?",
+      "Divida o custo por (1 − margem). Para custo de R$ 12,00 e margem de 35%: R$ 12,00 ÷ 0,65 = R$ 18,46."
+    ],
+    [
+      "Qual é uma boa margem de lucro?",
+      "Depende do ramo, do giro e das despesas da loja. A margem do produto precisa cobrir as despesas fixas, as taxas e os impostos e ainda deixar lucro; faça a conta com os números do seu negócio."
+    ],
+    [
+      "O cliente vê o custo do produto no Mostralo?",
+      "Não. O custo fica guardado separado e não aparece na loja online, no cardápio nem no totem. Só a equipe da loja vê, e só o dono ou administrador grava."
+    ]
+  ],
+  "sources": [
+    [
+      "Sebrae/PR — Preço de venda: como calcular (índice de mark-up)",
+      "https://sebraepr.com.br/comunidade/artigo/preco-de-venda-como-calcular"
+    ],
+    [
+      "Omie — Margem de lucro e markup: como calcular as diferenças",
+      "https://www.omie.com.br/blog/margem-de-lucro-e-markup-como-calcular-as-diferencas/"
+    ],
+    [
+      "Qive — Margem de lucro x markup: o que é, diferenças e como calcular (atualizado em 16/01/2026)",
+      "https://qive.com.br/blog/margem-de-lucro-e-markup"
+    ]
+  ],
+  "related": [
+    "entrada-de-mercadoria-e-custo-medio",
+    "relatorio-de-vendas-pequeno-negocio",
+    "sistema-para-mercadinho",
+    "controle-de-estoque-para-delivery",
+    "promocao-leve-x-pague-y",
+    "pdv-para-pequeno-negocio"
+  ]
+}

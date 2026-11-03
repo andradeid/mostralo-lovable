@@ -1,0 +1,286 @@
+{
+  "slug": "entrada-de-mercadoria-e-custo-medio",
+  "title": "Entrada de mercadoria e custo médio: como lançar",
+  "h1": "Entrada de mercadoria no estoque: como lançar e por que o custo médio importa",
+  "description": "Entrada de mercadoria no estoque passo a passo: como conferir a nota, lançar quantidade e custo e calcular o custo médio ponderado, com exemplo que fecha.",
+  "excerpt": "Lançar a entrada de mercadoria mantém o estoque certo e o custo de cada produto atualizado. Veja o passo a passo, como funciona o custo médio ponderado e por que ele muda a sua margem.",
+  "date": "2026-11-03",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "entrada de mercadoria",
+    "custo médio ponderado",
+    "como calcular custo médio",
+    "entrada de estoque",
+    "custo médio do estoque",
+    "lançar nota de compra no estoque"
+  ],
+  "image": "/images/guias/entrada-de-mercadoria-e-custo-medio.jpg",
+  "imageAlt": "Dona de minimercado conferindo as caixas da entrega do fornecedor no estoque para lançar a entrada de mercadoria",
+  "audio": {
+    "src": "/audio/guias/entrada-de-mercadoria-e-custo-medio.mp3",
+    "duration": 630.8,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 45.87,
+        "target": "s1"
+      },
+      {
+        "t": 93.26,
+        "target": "s2"
+      },
+      {
+        "t": 152.25,
+        "target": "s3"
+      },
+      {
+        "t": 214.8,
+        "target": "s4"
+      },
+      {
+        "t": 318.19,
+        "target": "s5"
+      },
+      {
+        "t": 411.98,
+        "target": "s6"
+      },
+      {
+        "t": 525.17,
+        "target": "s7"
+      },
+      {
+        "t": 575.2,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Entrada de mercadoria é o registro de tudo o que chegou do fornecedor: qual produto, quantas unidades, quanto custou cada uma, de quem veio e qual a nota. Com ela, o estoque do sistema bate com a prateleira e o custo de cada produto acompanha o que você realmente paga, pelo custo médio.",
+    "Neste guia você vai ver como conferir e lançar uma entrada de mercadoria, o que é custo médio ponderado, um exemplo completo com duas compras e uma venda, por que esse número muda a sua margem, como fazer isso no sistema e os erros que mais bagunçam o estoque."
+  ],
+  "sections": [
+    {
+      "h2": "O que é entrada de mercadoria e por que lançar",
+      "blocks": [
+        {
+          "p": "Toda vez que o fornecedor entrega, o estoque sobe. Se essa subida não é registrada, o sistema continua achando que o produto acabou (e tira da venda) ou mostra uma quantidade que não existe. Lançar a entrada resolve três coisas de uma vez:"
+        },
+        {
+          "ul": [
+            "**Estoque certo:** a quantidade do sistema bate com a da prateleira, e o aviso de estoque baixo funciona.",
+            "**Custo certo:** o custo do produto acompanha o preço que você pagou nesta compra, e a margem mostrada é real.",
+            "**Histórico:** você sabe quando comprou, de quem, quanto pagou e em qual nota. Na hora de negociar, isso vale ouro."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como lançar a entrada de mercadoria passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "**Confira a entrega com a nota** antes de assinar: produto, quantidade e validade. Faltou ou veio avariado? Anote na hora.",
+            "**Separe por produto** e conte na unidade em que você vende. Se compra caixa com 12 e vende a unidade, a entrada é de 12.",
+            "**Calcule o custo unitário:** valor do item na nota dividido pela quantidade. Caixa com 12 por R$ 60,00 dá R$ 5,00 a unidade. Se o frete veio cobrado à parte, divida entre os itens.",
+            "**Lance item por item:** produto, quantidade, custo unitário, fornecedor e número da nota.",
+            "**Guarde a nota** junto com a data do lançamento."
+          ]
+        },
+        {
+          "tip": "Lance a entrada no mesmo dia em que a mercadoria chega. Deixar para o fim da semana é o caminho mais curto para o estoque do sistema não bater."
+        }
+      ]
+    },
+    {
+      "h2": "O que é custo médio ponderado",
+      "blocks": [
+        {
+          "p": "O mesmo produto costuma ser comprado por preços diferentes ao longo do mês. O **custo médio ponderado** junta tudo num custo só, pesando cada compra pela quantidade:"
+        },
+        {
+          "p": "**Custo médio = (valor do estoque que você já tinha + valor da nova compra) ÷ (quantidade que você já tinha + quantidade nova).**"
+        },
+        {
+          "p": "Ele é chamado de ponderado porque uma compra grande pesa mais na média do que uma compra pequena. E só muda quando entra mercadoria nova com outro preço; a venda tira unidades do estoque, mas não muda o custo de cada uma."
+        },
+        {
+          "p": "Existem outros métodos, como o PEPS (primeiro que entra, primeiro que sai). Na prateleira, para produto com validade, vale sempre o PEPS físico: vender primeiro o lote mais antigo. No custo, o médio é o mais simples para o pequeno comércio acompanhar."
+        }
+      ]
+    },
+    {
+      "h2": "Exemplo: custo médio com duas compras e uma venda",
+      "blocks": [
+        {
+          "p": "Exemplo: um mercadinho tem 20 pacotes de café que custaram R$ 14,00 cada. Chega uma nova compra de 30 pacotes a R$ 16,50. Depois, vende 25 pacotes e compra mais 25 a R$ 17,00."
+        },
+        {
+          "table": {
+            "head": [
+              "Momento",
+              "Quantidade",
+              "Valor do estoque",
+              "Custo médio"
+            ],
+            "rows": [
+              [
+                "Estoque inicial: 20 a R$ 14,00",
+                "20",
+                "R$ 280,00",
+                "R$ 14,00"
+              ],
+              [
+                "Entrada: 30 a R$ 16,50 (R$ 495,00)",
+                "50",
+                "R$ 775,00",
+                "R$ 15,50"
+              ],
+              [
+                "Venda de 25 pacotes",
+                "25",
+                "R$ 387,50",
+                "R$ 15,50"
+              ],
+              [
+                "Entrada: 25 a R$ 17,00 (R$ 425,00)",
+                "50",
+                "R$ 812,50",
+                "R$ 16,25"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Repare: R$ 775,00 ÷ 50 = R$ 15,50. A venda tirou 25 pacotes a R$ 15,50 (R$ 387,50) e o custo médio continuou igual. Na segunda compra, R$ 387,50 + R$ 425,00 = R$ 812,50, dividido por 50 pacotes, dá R$ 16,25."
+        },
+        {
+          "img": "/images/guias/entrada-de-mercadoria-e-custo-medio-2.jpg",
+          "alt": "Diagrama do custo médio ponderado na entrada de mercadoria: 20 pacotes a R$ 14 mais 30 a R$ 16,50 dão 50 pacotes com custo médio de R$ 15,50",
+          "caption": "Custo médio ponderado: o valor do estoque somado ao da nova compra, dividido pela quantidade total."
+        }
+      ]
+    },
+    {
+      "h2": "Por que o custo médio muda a sua margem",
+      "blocks": [
+        {
+          "p": "Continuando o exemplo, o café é vendido por R$ 22,90. Depois da primeira entrada, com custo médio de R$ 15,50, a margem é R$ 7,40 ÷ R$ 22,90 = **32,3%**. Se você olhasse só a última compra, de R$ 16,50, veria R$ 6,40 ÷ R$ 22,90 = **27,9%**. E se continuasse usando o custo antigo de R$ 14,00, acharia que ganha 38,9%, sem perceber que o fornecedor aumentou."
+        },
+        {
+          "ul": [
+            "**Para saber quanto o estoque vale e quanto você ganhou,** use o custo médio. Ele representa o que está na prateleira.",
+            "**Para decidir o preço da próxima remarcação,** olhe também o custo da última compra. É ele que você vai pagar para repor.",
+            "**Se o custo médio sobe compra após compra,** é hora de renegociar, trocar de fornecedor ou ajustar o preço."
+          ]
+        },
+        {
+          "p": "A conta completa de margem e preço de venda está no guia de [como calcular margem de lucro](/guia/como-calcular-margem-de-lucro)."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui o seu contador. A avaliação do estoque para fins contábeis e fiscais segue regras próprias; confirme com um contador como o seu negócio deve registrar."
+        }
+      ]
+    },
+    {
+      "h2": "Como lançar a entrada de mercadoria no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "No painel, abra **Estoque** e clique em **Entrada de mercadoria**. Ou passe o produto no leitor de código de barras com a tela Estoque aberta: a entrada daquele produto abre sozinha.",
+            "Escolha o produto pelo nome ou pelo código. Código que ainda não está cadastrado abre o cadastro rápido para o dono ou administrador, e depois a entrada.",
+            "Digite a **quantidade** (número inteiro de unidades) e o **custo unitário** da nota.",
+            "Confira o quadro de prévia: o estoque antes e depois (por exemplo, 20 para 50) e o custo do produto antes e depois, marcado como média.",
+            "Preencha **Fornecedor**, **Nº da nota** e **Observação**, se quiser.",
+            "Clique em **Registrar entrada**. Para lançar o próximo item da mesma nota, use **Registrar e lançar outro**: o fornecedor e o número da nota ficam preenchidos."
+          ]
+        },
+        {
+          "p": "O Mostralo calcula o custo médio ponderado sozinho, com a mesma conta do exemplo acima. Se o produto estava com estoque zerado, o custo passa a ser o da nova compra. Se você deixar o custo em branco, o estoque sobe e o custo do produto não muda."
+        },
+        {
+          "ul": [
+            "A primeira entrada de um produto liga o controle de estoque dele.",
+            "Produto que estava zerado volta a ficar disponível para venda.",
+            "A aba **Entradas** guarda o histórico com data, quantidade, custo, fornecedor, nota e o estoque depois de cada entrada.",
+            "Produtos vendidos por quilo não têm controle de quantidade; a entrada vale para o que é vendido por unidade."
+          ]
+        },
+        {
+          "p": "Depois, cada venda no PDV baixa o estoque, e a tela Estoque mostra o valor do estoque a preço de custo. Veja como isso funciona no dia a dia do [sistema para mercadinho](/guia/sistema-para-mercadinho) e no guia de [controle de estoque](/guia/controle-de-estoque-para-delivery)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros que bagunçam o estoque e o custo",
+      "blocks": [
+        {
+          "ul": [
+            "**Lançar o valor total da nota como custo unitário:** 12 unidades por R$ 60,00 viram um custo de R$ 60,00 cada, e a margem do produto vira prejuízo na tela.",
+            "**Misturar caixa e unidade:** lançar 1 (caixa) quando você vende 12 unidades. O estoque fica errado no primeiro dia.",
+            "**Esquecer a entrada:** o produto chega, vai para a prateleira e o sistema continua achando que está zerado.",
+            "**Não conferir a entrega:** a nota diz 30, chegaram 28, e você lançou 30.",
+            "**Lançar a mesma nota duas vezes:** use o campo do número da nota e confira a aba Entradas antes de lançar."
+          ]
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: estoque e custo médio atualizados a cada entrega",
+    "p": [
+      "No Mostralo, a entrada de mercadoria leva segundos: lê o código, digita quantidade e custo, e o sistema sobe o estoque, recalcula o custo médio e guarda fornecedor e nota. A margem de cada produto fica certa sem planilha. A gente deixa tudo pronto para você, com garantia de 7 dias. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Entrada de mercadoria com quantidade, custo, fornecedor e número da nota",
+      "Custo médio ponderado calculado sozinho, com prévia antes de gravar",
+      "Leitor de código de barras e cadastro rápido de produto novo",
+      "Histórico de entradas e valor do estoque a preço de custo"
+    ]
+  },
+  "faq": [
+    [
+      "Como calcular o custo médio ponderado?",
+      "Some o valor do estoque que você já tinha com o valor da nova compra e divida pela quantidade total. Exemplo: 20 a R$ 14,00 (R$ 280,00) mais 30 a R$ 16,50 (R$ 495,00) dão R$ 775,00 ÷ 50 = R$ 15,50."
+    ],
+    [
+      "A venda muda o custo médio?",
+      "Não. A venda tira unidades do estoque, mas o custo de cada unidade continua o mesmo. O custo médio só muda quando entra mercadoria com outro preço."
+    ],
+    [
+      "O Mostralo calcula o custo médio sozinho?",
+      "Sim. Ao registrar a entrada com o custo unitário, o Mostralo recalcula o custo do produto pela média ponderada e mostra o antes e depois antes de gravar."
+    ],
+    [
+      "O que fazer se lancei uma entrada errada?",
+      "Corrija a quantidade em estoque e, se precisar, o preço de custo no cadastro do produto (o custo só o dono ou administrador grava). Para não acontecer, confira a prévia de estoque e de custo antes de registrar."
+    ],
+    [
+      "Preciso lançar a entrada de todos os produtos?",
+      "Dos produtos que você controla por quantidade, sim. Serviços, combos e produtos vendidos por quilo não precisam de entrada."
+    ]
+  ],
+  "sources": [
+    [
+      "Omie — Custo médio ponderado: como funciona essa administração de estoques",
+      "https://www.omie.com.br/blog/custo-medio-ponderado-como-funciona-essa-administracao-de-estoques/"
+    ],
+    [
+      "Suno — Custo médio ponderado: entenda essa forma de administrar estoques",
+      "https://www.suno.com.br/artigos/custo-medio-ponderado"
+    ]
+  ],
+  "related": [
+    "como-calcular-margem-de-lucro",
+    "controle-de-estoque-para-delivery",
+    "sistema-para-mercadinho",
+    "leitor-de-codigo-de-barras",
+    "pdv-para-pequeno-negocio",
+    "relatorio-de-vendas-pequeno-negocio"
+  ]
+}

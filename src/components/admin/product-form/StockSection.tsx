@@ -11,6 +11,8 @@ import {
 import type { ProductFormApi } from './types';
 
 export function StockSection({ form }: { form: ProductFormApi }) {
+  // Vendido por quilo: a quantidade dos itens é inteira, então o estoque não é controlado
+  const soldByWeight = !!form.watch('sold_by_weight');
   return <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -41,7 +43,8 @@ export function StockSection({ form }: { form: ProductFormApi }) {
                 <div className="flex items-center gap-2">
                   <Switch
                     id="track_stock"
-                    checked={form.watch('track_stock')}
+                    checked={form.watch('track_stock') && !soldByWeight}
+                    disabled={soldByWeight}
                     onCheckedChange={(checked) => {
                       form.setValue('track_stock', checked);
                       if (!checked) {
@@ -53,7 +56,11 @@ export function StockSection({ form }: { form: ProductFormApi }) {
                 </div>
               </div>
 
-              {form.watch('track_stock') && (
+              {soldByWeight && (
+                <p className="text-xs text-muted-foreground">Produto vendido por quilo: o estoque não é controlado.</p>
+              )}
+
+              {form.watch('track_stock') && !soldByWeight && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/50">
                   <div className="space-y-2">
                     <Label htmlFor="stock_quantity">Quantidade em Estoque *</Label>

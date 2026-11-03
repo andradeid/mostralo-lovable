@@ -13,6 +13,8 @@ export interface QuickProductForm {
   cost: number | null;
   /** Quantidade inicial em estoque (texto do campo); vazio = sem entrada. */
   initialStock: string;
+  /** Vendido por quilo (preço = preço do kg); ignora o estoque inicial. */
+  soldByWeight?: boolean;
 }
 
 export interface QuickProductBuilt {
@@ -31,13 +33,14 @@ export function buildQuickProduct(form: QuickProductForm): QuickProductBuilt | {
     price: Number(form.price) || 0,
     category_id: form.categoryId,
     barcode,
+    sold_by_weight: !!form.soldByWeight,
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Confira os campos' };
 
   const cost = form.cost !== null && Number.isFinite(form.cost) && form.cost > 0 ? form.cost : null;
   if (form.cost !== null && form.cost < 0) return { error: 'O custo não pode ser negativo' };
 
-  const rawStock = form.initialStock.trim();
+  const rawStock = form.soldByWeight ? '' : form.initialStock.trim();
   if (rawStock !== '' && (!/^\d+$/.test(rawStock) || Number(rawStock) <= 0)) {
     return { error: 'Estoque inicial: informe um número inteiro maior que zero' };
   }

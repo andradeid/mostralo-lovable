@@ -23,9 +23,11 @@ interface PDVProductGridProps {
   onSearchChange?: (term: string) => void;
   /** Mostra o campo de busca também no computador (no celular ele sempre aparece). */
   showSearchInput?: boolean;
+  /** Produto vendido por quilo: a tela pede o peso em vez da quantidade. */
+  onWeighProduct?: (product: PDVProduct) => void;
 }
 
-export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchTerm = '', onSearchChange, showSearchInput = false }: PDVProductGridProps) {
+export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchTerm = '', onSearchChange, showSearchInput = false, onWeighProduct }: PDVProductGridProps) {
   const { storeId } = useStoreAccess();
   const isMobile = useIsMobile();
   
@@ -88,6 +90,10 @@ export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchT
   const primaryColor = (storeColors?.theme_colors as any)?.primary || '#3B82F6';
 
   const handleProductClick = (product: PDVProduct) => {
+    if (product.sold_by_weight && onWeighProduct) {
+      onWeighProduct(product);
+      return;
+    }
     setSelectedProduct(product);
     setConfirmModalOpen(true);
   };
@@ -236,6 +242,7 @@ export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchT
                 </h4>
                 <p className={`text-primary font-bold mt-1 ${isMobile ? 'text-lg' : 'text-sm'}`}>
                   {formatCurrency(product.price)}
+                  {product.sold_by_weight && <span className="font-normal text-muted-foreground">/kg</span>}
                 </p>
                 <Button 
                   size={isMobile ? "lg" : "sm"}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,9 +33,11 @@ interface PDVPaymentModalProps {
   isProcessing?: boolean;
   storeName?: string;
   storeLogo?: string;
+  /** Forma já escolhida ao abrir (botões de pagamento do modo Lista/Misto). */
+  initialMethod?: string;
 }
 
-const paymentMethods = [
+export const paymentMethods = [
   { value: 'dinheiro', label: 'Dinheiro', icon: Banknote },
   { value: 'credito', label: 'Crédito', icon: CreditCard },
   { value: 'debito', label: 'Débito', icon: CreditCard },
@@ -52,8 +54,14 @@ export function PDVPaymentModal({
   isProcessing = false,
   storeName,
   storeLogo,
+  initialMethod,
 }: PDVPaymentModalProps) {
   const [selectedMethod, setSelectedMethod] = useState('dinheiro');
+
+  // Abriu por um botão de forma de pagamento: já vem escolhida
+  useEffect(() => {
+    if (open && initialMethod) setSelectedMethod(initialMethod);
+  }, [open, initialMethod]);
   const [discount, setDiscount] = useState(0);
   const [receivedAmount, setReceivedAmount] = useState(0);
   const [shouldPrint, setShouldPrint] = useState(true);

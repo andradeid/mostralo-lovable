@@ -60,3 +60,8 @@
 # Modos do PDV e produto por quilo (03/11/2026)
 - Três modos (Grade, Lista/supermercado, Misto/padaria): `stores.pdv_layout` (padrão da loja; gravar só por `set_store_pdv_layout`, dono/admin via `is_store_admin_of`) com troca por computador em localStorage `mostralo:pdv-layout:<storeId>` (`src/hooks/pdv/usePDVLayout.ts`). O `PDVPage` só escolhe o modo; venda, peso, F2/F3/F4/Del e leitor ficam em `src/hooks/pdv/usePDVSaleControls.ts` (atalhos em `usePDVHotkeys`, regra pura `src/lib/pdv/hotkeys.ts`), peças em `src/components/pdv/layouts/`. Carrinho/pagamento/caixa são os mesmos nos três modos — não duplicar.
 - Produto por quilo (`products.sold_by_weight`, preço = preço do kg): a quantidade no banco continua inteira; o item entra como 1 unidade com `unit_price = round(peso × preço, 2)` e nome "Pão francês (0,450 kg)" (regras puras e testes em `src/lib/pdv/weight.ts`). Salvar produto por quilo desliga `track_stock` (`productPdvFields`). Atalhos do modo Misto: `products.pdv_shortcut`/`pdv_shortcut_order`.
+
+# Deploy sem quebrar quem está com a página aberta (03/11/2026)
+- `scripts/keep-old-assets.mjs` (no `npm run build`, só age no build da Cloudflare): publica `dist/assets-manifest.json` e herda do site do mesmo ramo os `/assets/*` dos últimos 7 dias, para tabs antigas e o Googlebot não pedirem arquivo que sumiu (a Cloudflare devolve o index.html, 200 text/html, no lugar).
+- Erro de pedaço do app recarrega a página uma vez (`src/lib/chunk/chunkReload.ts`, usado em `errorReporter`, `lazyWithRetry` e `ErrorBoundary`; trava de 30 s em sessionStorage contra laço).
+- `public/sw.js`: JS/CSS que volta como text/html vira 404 e não entra no cache. Ao mudar a estratégia de cache, subir a versão dos nomes de cache.

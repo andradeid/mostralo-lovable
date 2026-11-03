@@ -1,5 +1,5 @@
-const CACHE_NAME = 'mostralo-v3';
-const RUNTIME_CACHE = 'mostralo-runtime-v3';
+const CACHE_NAME = 'mostralo-v4';
+const RUNTIME_CACHE = 'mostralo-runtime-v4';
 const IMAGE_CACHE = 'mostralo-images-v3';
 const FONT_CACHE = 'mostralo-fonts-v3';
 const MEDIA_CACHE = 'mostralo-media-v2';
@@ -122,9 +122,11 @@ self.addEventListener('fetch', (event) => {
       return;
     }
 
-    // Assets estáticos (JS, CSS) - Stale While Revalidate
+    // Arquivos do app (JS, CSS) - Stale While Revalidate, guardando só JS/CSS de verdade.
+    // Arquivo que sumiu depois de um deploy volta como index.html (200 text/html): vira 404 e
+    // não entra no cache, para o app recarregar e pegar a versão nova.
     if (url.pathname.match(/\.(js|css)$/)) {
-      event.respondWith(staleWhileRevalidate(request, CACHE_NAME));
+      event.respondWith(staleWhileRevalidate(request, CACHE_NAME, isScriptOrStyle));
       return;
     }
 
@@ -196,12 +198,26 @@ async function networkFirst(request, cacheName) {
   }
 }
 
+// Resposta é JS/CSS de verdade (e não o index.html devolvido para arquivo inexistente)?
+function isScriptOrStyle(response) {
+  const ct = (response.headers.get('content-type') || '').toLowerCase();
+  return !ct.includes('text/html');
+}
+
 // Estratégia Stale While Revalidate - melhor UX
-async function staleWhileRevalidate(request, cacheName) {
+async function staleWhileRevalidate(request, cacheName, isValid) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
+  if (cached && isValid && !isValid(cached)) {
+    // Cache envenenado por versão antiga do SW: descarta e busca de novo
+    await cache.delete(request);
+    return staleWhileRevalidate(request, cacheName, isValid);
+  }
 
   const fetchPromise = fetch(request).then(response => {
+    if (isValid && response.ok && !isValid(response)) {
+      return new Response('Arquivo não encontrado', { status: 404, statusText: 'Not Found' });
+    }
     if (response.ok) {
       cache.put(request, response.clone());
     }

@@ -29,29 +29,47 @@ import { CashBar } from '@/components/pdv/cash/CashBar';
 import { CashDialogs } from '@/components/pdv/cash/CashDialogs';
 import { CashTab } from '@/components/pdv/cash/CashTab';
 import type { CashDialogKind } from '@/components/pdv/cash/types';
-import { usePDVScan } from '@/components/pdv/usePDVScan';
 import { QuickProductDialog } from '@/components/admin/products/quick/QuickProductDialog';
+import { usePDVLayout } from '@/hooks/pdv/usePDVLayout';
+import { usePDVSaleControls } from '@/hooks/pdv/usePDVSaleControls';
+import { ListLayout } from '@/components/pdv/layouts/ListLayout';
+import { MixedLayout } from '@/components/pdv/layouts/MixedLayout';
+import { LayoutSwitcher } from '@/components/pdv/layouts/LayoutSwitcher';
+import { StoreLayoutSetting } from '@/components/pdv/layouts/StoreLayoutSetting';
+import { WeightDialog } from '@/components/pdv/layouts/WeightPanel';
+import { QuantityDialog } from '@/components/pdv/layouts/QuantityDialog';
+import type { PDVSaleProps } from '@/components/pdv/layouts/types';
+import type { PDVLayout } from '@/lib/pdv/layout';
+
+/** Modos Lista e Misto (a Grade é o PDV de sempre, montado na página). */
+function SaleLayout({ layout, sale }: { layout: PDVLayout; sale: PDVSaleProps }) {
+  // Tela estreita empilha (total embaixo) e rola; no computador cada coluna rola por dentro
+  return (
+    <div className="h-full min-h-0 overflow-auto lg:overflow-hidden">
+      {layout === 'mixed' ? <MixedLayout {...sale} /> : <ListLayout {...sale} />}
+    </div>
+  );
+}
 
 export default function PDVPage() {
   const navigate = useNavigate();
   const { storeId } = useStoreAccess();
-  const { cart, subtotal, addToCart, addScannedToCart, updateCartItemQuantity, removeFromCart, clearCart, finalizeSale, isProcessing } = usePDV();
+  const pdv = usePDV();
+  const { cart, subtotal, addToCart, updateCartItemQuantity, removeFromCart, clearCart, finalizeSale, isProcessing } = pdv;
   const { openComandas, closeComanda, isClosing, pendingApprovalsByComanda } = useComandas();
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [selectedComanda, setSelectedComanda] = useState<Comanda | null>(null);
   const isMobile = useIsMobile();
-  const [pdvSearchTerm, setPdvSearchTerm] = useState('');
   const [mobileTab, setMobileTab] = useState('products');
   const [desktopTab, setDesktopTab] = useState('pdv');
 
-  // Leitor de código de barras (sem precisar de campo focado): produto lido vai ao carrinho
-  const scan = usePDVScan({
-    storeId,
-    comandasTabActive: (isMobile ? mobileTab : desktopTab) === 'comandas',
-    addScannedToCart,
-    clearSearch: () => setPdvSearchTerm(''),
-  });
+  // Modo da tela: padrão da loja, com troca só neste computador
+  const pdvLayout = usePDVLayout(storeId);
+  const layout = pdvLayout.layout;
+  // Lista e Misto não têm a aba Carrinho no celular (a venda fica numa aba só)
+  useEffect(() => {
+    if (layout !== 'grid' && mobileTab === 'cart') setMobileTab('products');
+  }, [layout, mobileTab]);
 
   // Caixa (abertura/fechamento). Se a loja exige caixa aberto e ele está fechado, bloqueia fechar venda/comanda.
   const cash = useCashSession(storeId);
@@ -124,9 +142,32 @@ export default function PDVPage() {
   const { isEnabled: isPdvEnabled, message: channelMessage } = useCheckSalesChannel(storeId, 'pdv_enabled');
   const salesPaused = !isPdvEnabled;
 
+  // Venda (os três modos usam o mesmo carrinho, caixa e pagamento): busca, peso, F2/F3/F4/Del e leitor
+  const saleTabActive = isMobile ? mobileTab === 'products' || mobileTab === 'cart' : desktopTab === 'pdv';
+  const controls = usePDVSaleControls({
+    storeId,
+    pdv,
+    layout,
+    saleTabActive,
+    comandasTabActive: (isMobile ? mobileTab : desktopTab) === 'comandas',
+    salesPaused,
+    blockedMessage,
+  });
+  const { sale, scan } = controls;
+  const pdvSearchTerm = sale.searchTerm;
+  const setPdvSearchTerm = sale.onSearchChange;
+  const openPayment = () => sale.onPay();
+  const layoutSetting = <StoreLayoutSetting controller={pdvLayout} />;
+  const saleDialogs = (
+    <>
+      <WeightDialog {...controls.weightDialog} />
+      <QuantityDialog {...controls.quantityDialog} />
+    </>
+  );
+
   const handleFinalize = async (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>, shouldPrint: boolean = true) => {
     const result = await finalizeSale(paymentMethod, discount, paymentDetails);
-    setPaymentModalOpen(false);
+    controls.payment.onOpenChange(false);
     if (result) cash.refreshAfterSale();
     
     // Impressão automática após finalizar venda de balcão (se habilitada)
@@ -189,7 +230,8 @@ export default function PDVPage() {
       <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
         <div className="flex flex-col flex-1 min-h-0 h-[100dvh] overflow-hidden relative">
           {/* Botão flutuante para sair do modo tela cheia - Mobile */}
-          <div className="absolute top-2 right-2 z-10">
+          <div className="absolute top-2 right-2 z-10 flex gap-1">
+            <LayoutSwitcher controller={pdvLayout} className="bg-background/90 shadow-md" />
             <Button
               variant={isFullscreen ? "default" : "outline"}
               size="sm"
@@ -206,22 +248,29 @@ export default function PDVPage() {
           {salesPaused && (
             <SalesChannelPausedBanner message={channelMessage} className="mx-2 mt-2" />
           )}
-          <CashBar cash={cash} onAction={setCashDialog} timeZone={storeTimeZone} compact className="ml-2 mr-14 mt-2" />
+          <CashBar cash={cash} onAction={setCashDialog} timeZone={storeTimeZone} compact className="ml-2 mr-24 mt-2" />
           <Tabs value={mobileTab} onValueChange={setMobileTab} className="flex-1 flex flex-col min-h-0">
             <TabsList className="grid grid-cols-3 gap-2 h-auto mx-2 mb-2 p-2">
-              <TabsTrigger value="products" className="h-12 text-sm gap-1.5">
+              <TabsTrigger value="products" className="h-12 text-sm gap-1.5 relative">
                 <Package className="h-5 w-5" />
-                Produtos
-              </TabsTrigger>
-              <TabsTrigger value="cart" className="h-12 text-sm gap-1.5 relative">
-                <ShoppingCart className="h-5 w-5" />
-                Carrinho
-                {cartItemsCount > 0 && (
+                {layout === 'grid' ? 'Produtos' : 'Venda'}
+                {layout !== 'grid' && cartItemsCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {cartItemsCount}
                   </span>
                 )}
               </TabsTrigger>
+              {layout === 'grid' && (
+                <TabsTrigger value="cart" className="h-12 text-sm gap-1.5 relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  Carrinho
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </TabsTrigger>
+              )}
               <TabsTrigger value="comandas" className="h-12 text-sm gap-1.5 relative">
                 <ClipboardList className="h-5 w-5" />
                 Comandas
@@ -242,7 +291,11 @@ export default function PDVPage() {
             </TabsList>
 
             <TabsContent value="products" className="flex-1 min-h-0 overflow-auto px-2 pb-2 mt-0">
-              <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onSearchChange={setPdvSearchTerm} />
+              {layout === 'grid' ? (
+                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onSearchChange={setPdvSearchTerm} onWeighProduct={controls.startWeighing} />
+              ) : (
+                <SaleLayout layout={layout} sale={sale} />
+              )}
             </TabsContent>
 
             <TabsContent value="cart" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
@@ -252,7 +305,7 @@ export default function PDVPage() {
                 onUpdateQuantity={updateCartItemQuantity}
                 onRemoveItem={removeFromCart}
                 onClearCart={clearCart}
-                onFinalize={() => setPaymentModalOpen(true)}
+                onFinalize={openPayment}
                 isProcessing={isProcessing}
                 salesPaused={salesPaused}
                 blockedMessage={blockedMessage}
@@ -289,14 +342,15 @@ export default function PDVPage() {
             </TabsContent>
 
             <TabsContent value="cash" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
-              <CashTab cash={cash} storeId={storeId} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} onAction={setCashDialog} />
+              <CashTab cash={cash} storeId={storeId} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} onAction={setCashDialog} extraSettings={layoutSetting} />
             </TabsContent>
           </Tabs>
 
           {/* Modal de pagamento PDV */}
           <PDVPaymentModal
-            open={paymentModalOpen}
-            onOpenChange={setPaymentModalOpen}
+            open={controls.payment.open}
+            onOpenChange={controls.payment.onOpenChange}
+            initialMethod={controls.payment.initialMethod}
             subtotal={subtotal}
             items={cart}
             onConfirm={handleFinalize}
@@ -317,6 +371,7 @@ export default function PDVPage() {
 
           <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
           <QuickProductDialog {...scan.quickDialogProps} />
+          {saleDialogs}
         </div>
       </ModuleGate>
     );
@@ -332,8 +387,8 @@ export default function PDVPage() {
         <CashBar cash={cash} onAction={setCashDialog} timeZone={storeTimeZone} className="mb-3" />
         <Tabs value={desktopTab} onValueChange={setDesktopTab} className="flex-1 flex flex-col min-h-0">
           <div className="flex items-center gap-4 mb-4">
-            {/* Barra de busca primeiro */}
-            <div className="relative w-64 lg:w-80">
+            {/* Barra de busca primeiro (Lista e Misto têm a busca dentro da tela de venda) */}
+            {layout === 'grid' && <div className="relative w-64 lg:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 data-barcode-search=""
@@ -343,7 +398,7 @@ export default function PDVPage() {
                 onChange={(e) => setPdvSearchTerm(e.target.value)}
                 className="pl-10 h-9"
               />
-            </div>
+            </div>}
             
             <TabsList className="w-fit">
               <TabsTrigger value="pdv" className="gap-2">
@@ -370,6 +425,8 @@ export default function PDVPage() {
             </TabsList>
             
             <div className="flex-1" />
+
+            <LayoutSwitcher controller={pdvLayout} />
             
             {/* Botão para alternar modo tela cheia - Desktop */}
             <Button
@@ -394,10 +451,13 @@ export default function PDVPage() {
           </div>
 
           <TabsContent value="pdv" className="flex-1 min-h-0 overflow-hidden mt-0">
+            {layout !== 'grid' ? (
+              <SaleLayout layout={layout} sale={sale} />
+            ) : (
             <div className="h-full flex gap-4">
               {/* Grid de produtos */}
               <div className="flex-1 min-h-0 overflow-auto">
-                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} />
+                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onWeighProduct={controls.startWeighing} />
               </div>
 
               {/* Carrinho lateral - altura fixa com scroll interno */}
@@ -408,13 +468,14 @@ export default function PDVPage() {
                   onUpdateQuantity={updateCartItemQuantity}
                   onRemoveItem={removeFromCart}
                   onClearCart={clearCart}
-                  onFinalize={() => setPaymentModalOpen(true)}
+                  onFinalize={openPayment}
                   isProcessing={isProcessing}
                   salesPaused={salesPaused}
                   blockedMessage={blockedMessage}
                 />
               </div>
             </div>
+            )}
           </TabsContent>
 
           <TabsContent value="comandas" className="flex-1 min-h-0 overflow-hidden mt-0">
@@ -447,14 +508,15 @@ export default function PDVPage() {
           </TabsContent>
 
           <TabsContent value="cash" className="flex-1 min-h-0 overflow-hidden mt-0">
-            <CashTab cash={cash} storeId={storeId} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} onAction={setCashDialog} />
+            <CashTab cash={cash} storeId={storeId} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} onAction={setCashDialog} extraSettings={layoutSetting} />
           </TabsContent>
         </Tabs>
 
         {/* Modal de pagamento PDV */}
         <PDVPaymentModal
-          open={paymentModalOpen}
-          onOpenChange={setPaymentModalOpen}
+          open={controls.payment.open}
+          onOpenChange={controls.payment.onOpenChange}
+          initialMethod={controls.payment.initialMethod}
           subtotal={subtotal}
           items={cart}
           onConfirm={handleFinalize}
@@ -475,6 +537,7 @@ export default function PDVPage() {
 
         <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
         <QuickProductDialog {...scan.quickDialogProps} />
+        {saleDialogs}
       </div>
     </ModuleGate>
   );

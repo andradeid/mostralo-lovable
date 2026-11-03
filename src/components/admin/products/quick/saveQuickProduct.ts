@@ -27,6 +27,7 @@ export async function saveQuickProduct(storeId: string, built: QuickProductBuilt
     stock_quantity: null,
     stock_alert_threshold: built.data.stock_alert_threshold ?? 5,
     is_available: built.data.is_available,
+    sold_by_weight: !!built.data.sold_by_weight,
   };
   const problems: string[] = [];
 

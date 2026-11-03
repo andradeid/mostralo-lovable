@@ -2,6 +2,7 @@
 // Produto primeiro; depois variações e adicionais juntos pela função save_product_children. Lança o erro para a tela.
 import { supabase } from '@/integrations/supabase/client';
 import { barcodeForSave } from '@/lib/pdv/barcode';
+import { productPdvFields } from '@/lib/pdv/weight';
 import {
   buildProductPayload,
   buildVariantPayload,
@@ -19,8 +20,13 @@ interface SaveProductParams {
 
 /** Grava e devolve o id do produto (novo ou editado). */
 export async function saveProduct({ productId, data, storeId, variants, selectedAddonCategories }: SaveProductParams): Promise<string | undefined> {
-  // barcode fora dos tipos gerados: string vazia vira null (índice único por loja ignora null)
-  const productData = { ...buildProductPayload(data, storeId), barcode: barcodeForSave(data.barcode) } as ReturnType<typeof buildProductPayload>;
+  // barcode e campos do PDV fora dos tipos gerados: string vazia vira null (índice único por loja ignora null);
+  // vendido por quilo desliga o controle de estoque (quantidade dos itens é inteira)
+  const productData = {
+    ...buildProductPayload(data, storeId),
+    barcode: barcodeForSave(data.barcode),
+    ...productPdvFields(data),
+  } as ReturnType<typeof buildProductPayload>;
   let finalProductId = productId;
   if (productId) {
     // Atualizar produto existente

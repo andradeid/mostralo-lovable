@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ScanBarcode } from 'lucide-react';
 import { buildQuickProduct } from '@/lib/products/quickProduct';
@@ -50,6 +51,7 @@ export function QuickProductDialog({ open, onOpenChange, storeId, barcode, askIn
   const [categoryId, setCategoryId] = useState('');
   const [cost, setCost] = useState<number | null>(null);
   const [initialStock, setInitialStock] = useState('');
+  const [soldByWeight, setSoldByWeight] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
@@ -61,6 +63,7 @@ export function QuickProductDialog({ open, onOpenChange, storeId, barcode, askIn
     setPrice(0);
     setCost(null);
     setInitialStock('');
+    setSoldByWeight(false);
     setError('');
     setTimeout(() => nameRef.current?.focus(), 50);
   }, [open, barcode]);
@@ -72,7 +75,7 @@ export function QuickProductDialog({ open, onOpenChange, storeId, barcode, askIn
 
   const submit = async () => {
     if (!storeId) return;
-    const built = buildQuickProduct({ name, price, categoryId, barcode, cost, initialStock: askInitialStock ? initialStock : '' });
+    const built = buildQuickProduct({ name, price, categoryId, barcode, cost, initialStock: askInitialStock ? initialStock : '', soldByWeight });
     if ('error' in built) {
       setError(built.error);
       return;
@@ -123,7 +126,7 @@ export function QuickProductDialog({ open, onOpenChange, storeId, barcode, askIn
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="quick-price">Preço de venda *</Label>
+              <Label htmlFor="quick-price">{soldByWeight ? 'Preço do kg *' : 'Preço de venda *'}</Label>
               <CurrencyInput id="quick-price" value={price} onChange={setPrice} />
             </div>
             <div className="space-y-2">
@@ -148,7 +151,7 @@ export function QuickProductDialog({ open, onOpenChange, storeId, barcode, askIn
               <Label htmlFor="quick-cost">Custo unitário</Label>
               <CurrencyInput id="quick-cost" value={cost ?? 0} onChange={(v) => setCost(v > 0 ? v : null)} />
             </div>
-            {askInitialStock && (
+            {askInitialStock && !soldByWeight && (
               <div className="space-y-2">
                 <Label htmlFor="quick-stock">Estoque inicial</Label>
                 <Input
@@ -163,6 +166,14 @@ export function QuickProductDialog({ open, onOpenChange, storeId, barcode, askIn
                 />
               </div>
             )}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="quick-weight">Vendido por quilo</Label>
+              <p className="text-xs text-muted-foreground">O preço é o do kg; no PDV, digita-se o peso.</p>
+            </div>
+            <Switch id="quick-weight" checked={soldByWeight} onCheckedChange={setSoldByWeight} />
           </div>
 
           {!loadingCategories && categories.length === 0 && (

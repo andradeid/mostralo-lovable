@@ -1,8 +1,10 @@
 // Código de barras (aceita leitor USB: o Enter do leitor não envia o formulário)
 // e, para dono/admin, preço de custo com a margem sobre o preço de venda.
+// Opções do PDV: vendido por quilo (preço = preço do kg) e atalho no modo Misto.
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { Switch } from '@/components/ui/switch';
 import { ScanBarcode } from 'lucide-react';
 import { barcodeKind, normalizeBarcode } from '@/lib/pdv/barcode';
 import { calculateMargin, effectiveSalePrice, formatMargin } from '@/lib/products/margin';
@@ -72,6 +74,37 @@ export function CodeAndCostSection({ form, cost }: { form: ProductFormApi; cost:
             </p>
           </div>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="sold_by_weight">Vendido por quilo (preço = preço por kg)</Label>
+            <p className="text-xs text-muted-foreground">No PDV, digita-se o peso. O estoque não é controlado.</p>
+          </div>
+          <Switch
+            id="sold_by_weight"
+            checked={!!form.watch('sold_by_weight')}
+            onCheckedChange={(checked) => {
+              form.setValue('sold_by_weight', checked, { shouldDirty: true });
+              if (checked) {
+                form.setValue('track_stock', false);
+                form.setValue('stock_quantity', null);
+              }
+            }}
+          />
+        </div>
+        <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="pdv_shortcut">Mostrar como atalho no PDV</Label>
+            <p className="text-xs text-muted-foreground">Botão grande no modo Misto (padaria).</p>
+          </div>
+          <Switch
+            id="pdv_shortcut"
+            checked={!!form.watch('pdv_shortcut')}
+            onCheckedChange={(checked) => form.setValue('pdv_shortcut', checked, { shouldDirty: true })}
+          />
+        </div>
       </div>
     </div>
   );

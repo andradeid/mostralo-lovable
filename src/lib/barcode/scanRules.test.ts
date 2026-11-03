@@ -70,6 +70,16 @@ test('cadastro rápido: custo e estoque inicial opcionais', () => {
   assert.ok(!('error' in zero) && zero.cost === null);
 });
 
+test('cadastro rápido: vendido por quilo grava a marca e ignora o estoque inicial', () => {
+  const r = buildQuickProduct({ ...form, initialStock: '10', soldByWeight: true });
+  assert.ok(!('error' in r));
+  if ('error' in r) return;
+  assert.equal(r.data.sold_by_weight, true);
+  assert.equal(r.initialStock, null);
+  const n = buildQuickProduct(form);
+  assert.ok(!('error' in n) && n.data.sold_by_weight === false);
+});
+
 test('cadastro rápido: erros em português', () => {
   assert.deepEqual(buildQuickProduct({ ...form, name: '  ' }), { error: 'Nome é obrigatório' });
   assert.deepEqual(buildQuickProduct({ ...form, price: 0 }), { error: 'Preço deve ser maior que zero' });

@@ -17,9 +17,11 @@ interface Props {
   storeName: string;
   timeZone?: string;
   onAction: (kind: Exclude<CashDialogKind, null>) => void;
+  /** Outras opções do PDV mostradas junto de "Exigir caixa aberto" (ex.: modo da tela). */
+  extraSettings?: React.ReactNode;
 }
 
-function CurrentCash({ cash, storeName, timeZone, onAction }: Omit<Props, 'storeId'>) {
+function CurrentCash({ cash, storeName, timeZone, onAction }: Omit<Props, 'storeId' | 'extraSettings'>) {
   const session = cash.openSession;
   const summary = useCashSummary(session?.id, true);
   const movements = useCashMovements(session?.id);
@@ -175,6 +177,7 @@ export function CashTab(props: Props) {
     <ScrollArea className="h-full">
       <div className="space-y-4 pb-4">
         <RequireOpenCashSetting cash={props.cash} />
+        {props.extraSettings}
         <div className="grid gap-4 lg:grid-cols-2">
           <CurrentCash cash={props.cash} storeName={props.storeName} timeZone={props.timeZone} onAction={props.onAction} />
           <CashHistory storeId={props.storeId} storeName={props.storeName} timeZone={props.timeZone} />

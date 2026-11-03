@@ -14,6 +14,8 @@ export interface PDVProduct {
   category_id: string | null;
   /** Código de barras (EAN/GTIN ou interno) — busca exata e leitor USB */
   barcode?: string | null;
+  /** Vendido por quilo: price = preço do kg (o PDV pede o peso). */
+  sold_by_weight?: boolean;
   categories?: {
     name: string;
   };
@@ -141,6 +143,7 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTe
           is_available,
           category_id,
           barcode,
+          sold_by_weight,
           categories (name)
         `)
         .eq('store_id', storeId)

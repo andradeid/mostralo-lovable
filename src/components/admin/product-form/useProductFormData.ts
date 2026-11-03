@@ -127,7 +127,13 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
         setUseRichEditor(true);
       }
 
-      form.reset({ ...values, barcode: (data as { barcode?: string | null }).barcode ?? '' });
+      const pdvRow = data as { barcode?: string | null; sold_by_weight?: boolean | null; pdv_shortcut?: boolean | null };
+      form.reset({
+        ...values,
+        barcode: pdvRow.barcode ?? '',
+        sold_by_weight: !!pdvRow.sold_by_weight,
+        pdv_shortcut: !!pdvRow.pdv_shortcut,
+      });
 
       // Garantir que a categoria seja setada após o reset
       setTimeout(() => {

@@ -15,6 +15,8 @@ export interface StockProduct {
   stock_quantity: number | null;
   stock_alert_threshold: number | null;
   is_available: boolean;
+  /** Vendido por quilo (o PDV pede o peso). */
+  sold_by_weight?: boolean | null;
 }
 
 export interface StockEntryRow {
@@ -32,7 +34,7 @@ export interface StockEntryRow {
 }
 
 export const STOCK_PRODUCT_COLUMNS =
-  'id, name, barcode, price, is_on_offer, offer_price, image_url, track_stock, stock_quantity, stock_alert_threshold, is_available';
+  'id, name, barcode, price, is_on_offer, offer_price, image_url, track_stock, stock_quantity, stock_alert_threshold, is_available, sold_by_weight';
 
 const db = () => supabase as any;
 

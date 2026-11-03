@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useComandas, CreateComandaInput, AddItemInput, CloseComandaInput, Comanda, ComandaItem } from './useComandas';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { mergeScannedItem } from '@/lib/pdv/cartScan';
+import { lastCartItem, mergeScannedItem } from '@/lib/pdv/cartScan';
 
 export interface CartItem {
   id: string;
@@ -14,6 +14,14 @@ export interface CartItem {
   total_price: number;
   addons?: Record<string, any>;
   notes?: string;
+  /** Código de barras do produto (só na tela: coluna Código do modo Lista). */
+  barcode?: string | null;
+  /** Produto vendido por quilo: peso em kg (só na tela; no banco vai no nome do item). */
+  weight_kg?: number;
+  /** Preço do kg usado no cálculo (só na tela). */
+  price_per_kg?: number;
+  /** Ordem do último toque: define o "último item" (modo Lista, F2, Delete). */
+  touched?: number;
 }
 
 export function usePDV() {
@@ -22,6 +30,8 @@ export function usePDV() {
   
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const touchRef = useRef(0);
+  const nextTouch = () => ++touchRef.current;
 
   // Adicionar item ao carrinho
   const addToCart = useCallback((item: Omit<CartItem, 'id' | 'total_price'>) => {
@@ -29,6 +39,7 @@ export function usePDV() {
       ...item,
       id: crypto.randomUUID(),
       total_price: item.unit_price * item.quantity,
+      touched: nextTouch(),
     };
 
     setCart(prev => [...prev, newItem]);
@@ -36,7 +47,16 @@ export function usePDV() {
 
   // Leitor de código de barras: o mesmo produto lido de novo soma na linha que já está no carrinho
   const addScannedToCart = useCallback((item: Omit<CartItem, 'id' | 'total_price'>) => {
-    setCart(prev => mergeScannedItem(prev, item, () => crypto.randomUUID()));
+    const stamp = nextTouch();
+    setCart(prev => mergeScannedItem(prev, item, () => crypto.randomUUID(), stamp));
+  }, []);
+
+  // Troca uma linha inteira (ex.: pesar de novo um item por quilo), mantendo a posição
+  const replaceCartItem = useCallback((itemId: string, item: Omit<CartItem, 'id' | 'total_price'>) => {
+    const stamp = nextTouch();
+    setCart(prev => prev.map(line => line.id === itemId
+      ? { ...item, id: itemId, total_price: item.unit_price * item.quantity, touched: stamp }
+      : line));
   }, []);
 
   // Atualizar quantidade de item no carrinho
@@ -46,12 +66,14 @@ export function usePDV() {
       return;
     }
 
+    const stamp = nextTouch();
     setCart(prev => prev.map(item => {
       if (item.id === itemId) {
         return {
           ...item,
           quantity,
           total_price: item.unit_price * quantity,
+          touched: stamp,
         };
       }
       return item;
@@ -68,8 +90,18 @@ export function usePDV() {
     setCart([]);
   }, []);
 
-  // Calcular subtotal
-  const subtotal = cart.reduce((acc, item) => acc + item.total_price, 0);
+  // Último item mexido (modo Lista em destaque, F2 e Delete)
+  const lastItem = useMemo(() => lastCartItem(cart), [cart]);
+
+  const removeLastItem = useCallback(() => {
+    setCart(prev => {
+      const last = lastCartItem(prev);
+      return last ? prev.filter(item => item.id !== last.id) : prev;
+    });
+  }, []);
+
+  // Calcular subtotal (em centavos para não acumular erro de ponto flutuante)
+  const subtotal = Math.round(cart.reduce((acc, item) => acc + item.total_price * 100, 0)) / 100;
 
   // Tipo de retorno para impressão
   interface FinalizeSaleResult {
@@ -180,8 +212,11 @@ export function usePDV() {
     cartItemsCount: cart.length,
     addToCart,
     addScannedToCart,
+    replaceCartItem,
     updateCartItemQuantity,
     removeFromCart,
+    lastItem,
+    removeLastItem,
     clearCart,
     finalizeSale,
     openTableComanda,

@@ -20,7 +20,10 @@ export const productSchema = z.object({
   stock_quantity: z.number().nullable().optional(),
   stock_alert_threshold: z.number().min(0).optional(),
   // Código de barras (EAN/GTIN ou interno); vazio = sem código
-  barcode: z.string().max(48, 'Código de barras muito longo').optional()
+  barcode: z.string().max(48, 'Código de barras muito longo').optional(),
+  // PDV: preço = preço do kg (pede o peso na venda) e atalho no modo Misto
+  sold_by_weight: z.boolean().optional(),
+  pdv_shortcut: z.boolean().optional()
 }).refine((data) => {
   if (data.is_on_offer) {
     return data.offer_price && data.offer_price < data.price;
@@ -49,5 +52,7 @@ export const productFormDefaults = () => ({
   track_stock: false,
   stock_quantity: null,
   stock_alert_threshold: 5,
-  barcode: ''
+  barcode: '',
+  sold_by_weight: false,
+  pdv_shortcut: false
 });

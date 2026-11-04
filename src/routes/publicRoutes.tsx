@@ -227,6 +227,10 @@ export const publicRoutes = (
     
     {/* Cadastros Públicos */}
     <Route path="/seja-vendedor" element={<LazyRoute><SejaVendedor /></LazyRoute>} />
+    {/* Endereços curtos do programa de parceiros: redirecionam (301 em public/_redirects) para /seja-vendedor */}
+    <Route path="/sejavendedor" element={<Navigate to="/seja-vendedor" replace />} />
+    <Route path="/vendas" element={<Navigate to="/seja-vendedor" replace />} />
+    <Route path="/afiliado" element={<Navigate to="/seja-vendedor" replace />} />
     <Route path="/parceiro/:codigo" element={<LazyRoute><ParceiroPage /></LazyRoute>} />
     <Route path="/cadastro-vendedor" element={<LazyRoute><CadastroVendedor /></LazyRoute>} />
     <Route path="/cadastro-vendedor/sucesso" element={<LazyRoute><CadastroVendedorSucesso /></LazyRoute>} />

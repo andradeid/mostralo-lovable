@@ -15,8 +15,8 @@ export default function CadastroVendedorSucesso() {
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-center text-muted-foreground">
-            Seu cadastro já está aprovado! Agora é só entrar no painel e aceitar o contrato
-            para liberar seu link de indicação.
+            Seu cadastro está ativo! Mandamos seu link de indicação no seu WhatsApp.
+            No painel você também escolhe um cupom com seu nome.
           </p>
 
           <div className="bg-muted p-6 rounded-lg space-y-4">
@@ -27,9 +27,6 @@ export default function CadastroVendedorSucesso() {
             <ol className="space-y-3 ml-6 list-decimal text-sm">
               <li>
                 <strong>Acesse sua conta</strong> – Faça login com o email e senha cadastrados
-              </li>
-              <li>
-                <strong>Aceite o contrato digital</strong> – No primeiro acesso, você verá o contrato para assinatura
               </li>
               <li>
                 <strong>Receba seu link de vendas</strong> – Use seu código único para indicar lojas

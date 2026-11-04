@@ -36,6 +36,10 @@ interface RegisterRequest {
   // PIX (ambos)
   pix_key?: string;
   pix_key_type?: string;
+
+  // Aceite dos termos no cadastro
+  accepted_terms?: boolean;
+  terms_text?: string | null;
 }
 
 Deno.serve(async (req) => {
@@ -75,6 +79,8 @@ Deno.serve(async (req) => {
       cpf,
       pix_key,
       pix_key_type,
+      accepted_terms,
+      terms_text,
     } = body;
 
     console.log(`Registrando vendedor tipo: ${salesperson_type}, IP: ${clientIP}`);
@@ -290,6 +296,65 @@ Deno.serve(async (req) => {
       },
     });
 
+    // 4b. Aceite dos termos feito no próprio cadastro (04/11/2026): grava o aceite e ativa o vendedor,
+    // sem precisar entrar no painel para aceitar de novo.
+    let activatedNow = false;
+    if (accepted_terms === true && typeof terms_text === 'string' && terms_text.trim().length > 200
+        && salesperson.status === 'pending_contract') {
+      try {
+        const { data: template } = await supabase
+          .from('salesperson_contract_templates')
+          .select('id, version')
+          .eq('is_active', true)
+          .maybeSingle();
+        const { data: cfg } = await supabase
+          .from('salesperson_commission_configs')
+          .select('commission_value, applies_to')
+          .eq('salesperson_id', salesperson.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const accepted_at = new Date().toISOString();
+        const user_agent = req.headers.get('user-agent') || 'unknown';
+        const version = template?.version || '1.0';
+        const hashBuf = await crypto.subtle.digest('SHA-256',
+          new TextEncoder().encode(`${salesperson.id}|${version}|${accepted_at}|${clientIP}|${userId}`));
+        const verification_hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+        const { error: contractError } = await supabase.from('salesperson_contracts').insert({
+          salesperson_id: salesperson.id,
+          version,
+          contract_text: terms_text.trim().slice(0, 100000),
+          commission_terms: {
+            percentage: Number(cfg?.commission_value ?? (salesperson.salesperson_type === 'affiliate' ? 7 : 10)),
+            applies_to: cfg?.applies_to ?? null,
+            accepted_on: 'cadastro',
+          },
+          bonus_terms: { eligible: salesperson.bonus_eligible || false },
+          accepted_at,
+          ip_address: clientIP,
+          user_agent,
+          verification_hash,
+          contract_template_id: template?.id || null,
+          salesperson_name: salesperson.full_name || null,
+          salesperson_cnpj: salesperson.cnpj || null,
+        });
+        if (contractError) throw contractError;
+
+        const { error: activateError } = await supabase
+          .from('salespeople')
+          .update({ status: 'active', contract_accepted_at: accepted_at })
+          .eq('id', salesperson.id);
+        if (activateError) throw activateError;
+        salesperson.status = 'active';
+        activatedNow = true;
+        console.log(`✅ Termos aceitos no cadastro, vendedor ativo: ${salesperson.id}`);
+      } catch (acceptError) {
+        // Se falhar, o vendedor continua em pending_contract e aceita pelo painel como antes
+        console.error('Erro ao gravar aceite no cadastro:', acceptError);
+      }
+    }
+
     // 5. Enviar notificação master de novo vendedor
     try {
       await fetch(`${supabaseUrl}/functions/v1/send-master-notification`, {
@@ -329,6 +394,7 @@ Deno.serve(async (req) => {
           extra_data: {
             salesperson_type: salesperson.salesperson_type,
             referral_code: salesperson.referral_code,
+            active: activatedNow,
           },
         }),
       });
@@ -338,9 +404,9 @@ Deno.serve(async (req) => {
     }
 
     // Mensagem de sucesso diferenciada por tipo
-    const successMessage = salesperson_type === 'affiliate'
-      ? 'Cadastro de Afiliado realizado com sucesso! Aguarde aprovação do administrador.'
-      : 'Cadastro de Parceiro PJ realizado com sucesso! Aguarde aprovação do administrador.';
+    const successMessage = activatedNow
+      ? 'Cadastro realizado e ativo! Seu link de indicação já está valendo.'
+      : 'Cadastro realizado! Entre no painel e aceite o contrato para liberar seu link.';
 
     return new Response(
       JSON.stringify({

@@ -76,6 +76,15 @@ Deno.serve(async (req) => {
       throw new Error('Vendedor não está aprovado para aceitar contratos');
     }
 
+    // Comissão configurada para este vendedor (vai registrada no aceite)
+    const { data: commissionCfg } = await supabase
+      .from('salesperson_commission_configs')
+      .select('commission_value, applies_to')
+      .eq('salesperson_id', salesperson.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     // Obter IP e user agent
     const ip_address = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     const user_agent = req.headers.get('user-agent') || 'unknown';
@@ -95,7 +104,10 @@ Deno.serve(async (req) => {
         salesperson_id: salesperson.id,
         version: template?.version || '1.0',
         contract_text: template?.contract_text || 'Termos de Indicação aceitos digitalmente',
-        commission_terms: { percentage: salesperson.salesperson_type === 'affiliate' ? 7 : 10 },
+        commission_terms: {
+          percentage: Number(commissionCfg?.commission_value ?? (salesperson.salesperson_type === 'affiliate' ? 7 : 10)),
+          applies_to: commissionCfg?.applies_to ?? null,
+        },
         bonus_terms: { eligible: salesperson.bonus_eligible || false },
         accepted_at,
         ip_address,

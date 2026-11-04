@@ -282,6 +282,9 @@ export default function CadastroVendedor() {
         qualification_level: formData.qualification_level,
         pix_key: formData.pix_key,
         pix_key_type: formData.pix_key_type,
+        // Aceite dos termos já no cadastro: grava o texto exato que a pessoa viu e ativa o vendedor
+        accepted_terms: formData.acceptedTerms,
+        terms_text: (document.getElementById('termos-aceitos')?.innerText || '').trim() || null,
       };
 
       if (formData.salesperson_type === 'partner') {
@@ -770,7 +773,7 @@ export default function CadastroVendedor() {
                   </div>
                   
                   <ScrollArea className="h-[350px]">
-                    <div className="p-4">
+                    <div className="p-4" id="termos-aceitos">
                       <AffiliateTerms
                         salespersonName={formData.full_name || undefined}
                         salespersonCpf={formData.cpf || undefined}
@@ -983,7 +986,7 @@ export default function CadastroVendedor() {
                   </div>
                 ) : contractTemplate ? (
                   <ScrollArea className="h-[400px]">
-                    <div className="p-4">
+                    <div className="p-4" id="termos-aceitos">
                       <ContractViewer
                         contractText={getFormattedContractText()}
                         companyName={contractTemplate.company_name || ''}

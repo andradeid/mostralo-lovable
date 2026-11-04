@@ -15,6 +15,7 @@ interface WelcomeRequest {
     salesperson_type?: string;
     referral_code?: string;
     access_link?: string;
+    active?: boolean;
   };
 }
 
@@ -119,7 +120,19 @@ Depois é só configurar sua loja com calma: horários, produtos e entrega.` : '
 Qualquer dúvida, estamos aqui! 💬`;
     } else if (type === 'salesperson') {
       const salespersonType = extra_data?.salesperson_type === 'affiliate' ? 'Afiliado' : 'Parceiro PJ';
-      message = `Olá ${firstName}! 💼
+      const code = (extra_data?.referral_code || '').toLowerCase();
+      message = extra_data?.active && code
+        ? `Olá ${firstName}! 💼
+
+Seu cadastro como *${salespersonType}* do *Mostralo* está ativo! 🚀
+
+👉 Seu link de indicação: mostralo.com.br/parceiro/${code}
+Toda loja que assinar por esse link fica ligada a você.
+
+Quer um cupom com seu nome (fácil de falar no balcão)? Escolha no painel: mostralo.com.br/vendedor/link
+
+`
+        : `Olá ${firstName}! 💼
 
 Seu cadastro como *${salespersonType}* do *Mostralo* foi aprovado! 🚀
 

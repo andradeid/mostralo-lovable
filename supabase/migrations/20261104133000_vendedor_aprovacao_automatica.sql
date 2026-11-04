@@ -50,3 +50,15 @@ BEGIN
     EXECUTE d;
   END IF;
 END $do$;
+
+-- /parceiro/<código>: código de indicação sem diferenciar maiúsculas (o site gera o link em minúsculas)
+CREATE OR REPLACE FUNCTION public._partner_by_code(p_code text)
+ RETURNS salespeople LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+  SELECT s.* FROM public.salespeople s
+  WHERE s.status = 'active' AND NOT coalesce(s.is_blocked, false)
+    AND nullif(trim(p_code), '') IS NOT NULL
+    AND (upper(s.coupon_code) = upper(trim(p_code)) OR upper(s.referral_code) = upper(trim(p_code)))
+  ORDER BY (upper(s.coupon_code) = upper(trim(p_code))) DESC NULLS LAST
+  LIMIT 1;
+$function$;

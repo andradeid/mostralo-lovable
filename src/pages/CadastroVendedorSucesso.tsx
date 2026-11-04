@@ -15,8 +15,8 @@ export default function CadastroVendedorSucesso() {
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-center text-muted-foreground">
-            Seu cadastro foi enviado para análise. Nossa equipe irá revisar suas informações
-            e você receberá um email com o resultado em até <strong>48 horas</strong>.
+            Seu cadastro já está aprovado! Agora é só entrar no painel e aceitar o contrato
+            para liberar seu link de indicação.
           </p>
 
           <div className="bg-muted p-6 rounded-lg space-y-4">
@@ -26,10 +26,7 @@ export default function CadastroVendedorSucesso() {
             </h3>
             <ol className="space-y-3 ml-6 list-decimal text-sm">
               <li>
-                <strong>Aguarde o email de aprovação</strong> – Analisaremos seu CNPJ e CNAEs
-              </li>
-              <li>
-                <strong>Acesse sua conta</strong> – Após aprovação, faça login com o email e senha cadastrados
+                <strong>Acesse sua conta</strong> – Faça login com o email e senha cadastrados
               </li>
               <li>
                 <strong>Aceite o contrato digital</strong> – No primeiro acesso, você verá o contrato para assinatura

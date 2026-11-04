@@ -121,14 +121,13 @@ Qualquer dúvida, estamos aqui! 💬`;
       const salespersonType = extra_data?.salesperson_type === 'affiliate' ? 'Afiliado' : 'Parceiro PJ';
       message = `Olá ${firstName}! 💼
 
-Recebemos seu cadastro como *${salespersonType}* do *Mostralo*! 🚀
+Seu cadastro como *${salespersonType}* do *Mostralo* foi aprovado! 🚀
 
-Próximos passos:
-1️⃣ Nossa equipe analisa e aprova seu cadastro.
-2️⃣ Você entra no painel (mostralo.com.br/vendedor) e aceita o contrato.
-3️⃣ Pronto: aí você escolhe seu cupom e recebe seu link de indicação para divulgar.
+Falta só um passo:
+1️⃣ Entre no painel: mostralo.com.br/vendedor (com o e-mail e a senha do cadastro)
+2️⃣ Leia e aceite o contrato.
 
-Seu link só passa a contar indicações depois desses passos.
+Pronto: aí você escolhe seu cupom e recebe seu link de indicação para divulgar. O link só passa a contar indicações depois que o contrato for aceito.
 
 Qualquer dúvida, estamos aqui! 💬`;
     }

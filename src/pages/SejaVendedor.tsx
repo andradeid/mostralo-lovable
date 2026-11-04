@@ -28,9 +28,14 @@ const NICHES = [
   { img: "/parceiro/barbeiro-mob.webp", label: "Barbearias" },
   { img: "/parceiro/nail-mob.webp", label: "Salões e unhas" },
   { img: "/parceiro/estetica-mob.webp", label: "Estética" },
-  { img: "/vendedor/nicho-delivery.webp", label: "Delivery e lanchonetes" },
+  { img: "/vendedor/nicho-arena.webp", label: "Arenas e quadras" },
+  { img: "/vendedor/nicho-petshop.webp", label: "Pet shops" },
+  { img: "/vendedor/nicho-delivery.webp", label: "Lanchonetes e delivery" },
+  { img: "/vendedor/nicho-pizzaria.webp", label: "Pizzarias e açaí" },
   { img: "/vendedor/nicho-confeitaria.webp", label: "Confeitaria e encomendas" },
 ];
+
+const MORE = ["Estúdios de tatuagem e pilates", "Consultórios e clínicas", "Hamburguerias", "Restaurantes", "Sorveterias", "Mercadinhos e lojas"];
 
 const GIVES = ["Seu link e seu cupom", "Painel com suas vendas e comissões", "Mensagens prontas para o WhatsApp", "Suporte da equipe Mostralo"];
 
@@ -102,7 +107,7 @@ export default function SejaVendedor() {
 
       {/* Vídeo */}
       <section id="video" className="mx-auto max-w-4xl scroll-mt-20 px-4 py-8 md:px-6 md:py-12">
-        <SectionTitle kicker="Em pouco mais de 1 minuto" title="Veja como funciona" />
+        <SectionTitle kicker="Em menos de 2 minutos" title="Veja como funciona" />
         <video
           className="aspect-video w-full rounded-2xl bg-black shadow-xl"
           src="/vendedor/video-programa.mp4"
@@ -135,7 +140,7 @@ export default function SejaVendedor() {
       {/* Para quem indicar */}
       <section className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-16">
         <SectionTitle kicker="Cliente não falta" title="Para quem indicar" />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {NICHES.map((n) => (
             <div key={n.label} className="relative overflow-hidden rounded-2xl shadow-sm">
               <img src={n.img} alt={n.label} className="aspect-[3/4] w-full object-cover" loading="lazy" />
@@ -145,6 +150,12 @@ export default function SejaVendedor() {
             </div>
           ))}
         </div>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {MORE.map((m) => (
+            <span key={m} className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium">{m}</span>
+          ))}
+        </div>
+        <p className="mt-4 text-center font-semibold">Se agenda horário ou vende, pode usar o Mostralo.</p>
       </section>
 
       {/* Duas formas */}

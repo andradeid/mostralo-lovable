@@ -119,22 +119,16 @@ Depois é só configurar sua loja com calma: horários, produtos e entrega.` : '
 Qualquer dúvida, estamos aqui! 💬`;
     } else if (type === 'salesperson') {
       const salespersonType = extra_data?.salesperson_type === 'affiliate' ? 'Afiliado' : 'Parceiro PJ';
-      const referralCode = extra_data?.referral_code || '';
-      
       message = `Olá ${firstName}! 💼
 
-Bem-vindo à equipe *Mostralo*! 🚀
+Recebemos seu cadastro como *${salespersonType}* do *Mostralo*! 🚀
 
-Seu cadastro como *${salespersonType}* foi recebido com sucesso!
+Próximos passos:
+1️⃣ Nossa equipe analisa e aprova seu cadastro.
+2️⃣ Você entra no painel (mostralo.com.br/vendedor) e aceita o contrato.
+3️⃣ Pronto: aí você escolhe seu cupom e recebe seu link de indicação para divulgar.
 
-🔗 *Seu código de indicação:* ${referralCode}
-
-📌 *Seus links para divulgar:*
-
-🌐 Site: mostralo.com.br/?ref=${referralCode}
-📝 Cadastro: mostralo.com.br/signup?ref=${referralCode}
-
-Aguarde a aprovação do seu cadastro para começar a indicar clientes e ganhar comissões!
+Seu link só passa a contar indicações depois desses passos.
 
 Qualquer dúvida, estamos aqui! 💬`;
     }

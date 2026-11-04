@@ -10,7 +10,8 @@
     "/api/sb/*",
     "/robots.txt",
     "/sitemaps/*",
-    "/feed.xml"
+    "/feed.xml",
+    "/seja-vendedor"
   ],
   "exclude": []
 }

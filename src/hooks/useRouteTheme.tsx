@@ -9,7 +9,7 @@ const USER_THEME_KEY = 'mostralo-user-theme';
 
 // Rotas que forçam tema escuro
 const DARK_ROUTES = [
-  '/', '/sobre', '/seja-vendedor', '/cadastro-vendedor',
+  '/', '/sobre', '/cadastro-vendedor',
   '/cadastro-vendedor-sucesso', '/para-lojistas', '/para-feirantes',
   '/para-farmacias', '/proposta-biomundo', '/para-supermercados',
   '/para-acougues', '/diagnostico', '/diagnostico-delivery',

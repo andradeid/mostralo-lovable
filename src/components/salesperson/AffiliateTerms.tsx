@@ -19,7 +19,7 @@ export function AffiliateTerms({
       <div className="text-center border-b pb-4">
         <h2 className="text-xl font-bold">TERMOS DE INDICAÇÃO</h2>
         <h3 className="text-lg font-semibold text-primary">PROGRAMA DE AFILIADOS MOSTRALO</h3>
-        <p className="text-muted-foreground mt-2">Versão 1.0 - {new Date().toLocaleDateString('pt-BR')}</p>
+        <p className="text-muted-foreground mt-2">Versão 1.1 - 04/11/2026</p>
       </div>
 
       <Alert className="bg-amber-500/10 border-amber-500/30">
@@ -73,11 +73,17 @@ export function AffiliateTerms({
         <div className="space-y-2 text-muted-foreground">
           <p>
             2.1. O AFILIADO receberá comissão de <strong>{commissionPercentage}%</strong> sobre 
-            o valor do primeiro pagamento de cada cliente indicado que efetuar a assinatura.
+            cada mensalidade paga pelos clientes que assinarem pelo seu link ou cupom de indicação, 
+            todo mês, enquanto o cliente mantiver a assinatura ativa e paga.
           </p>
           <p>
-            2.2. Os pagamentos serão realizados via <strong>PIX</strong> até o dia 5 do mês 
-            subsequente à aprovação da venda.
+            2.2. A comissão do que for recebido em um mês é paga via <strong>PIX</strong> no 
+            dia 15 do mês seguinte, na chave cadastrada pelo AFILIADO.
+          </p>
+          <p>
+            2.2.1. Não gera comissão: a assinatura de loja do próprio AFILIADO (autoindicação), 
+            pagamentos estornados, cancelados ou não compensados, e indicações feitas por meio 
+            de informação falsa ou enganosa.
           </p>
           <p>
             2.3. O AFILIADO reconhece que os valores recebidos são de natureza eventual e 

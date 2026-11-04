@@ -140,6 +140,7 @@ export default function CadastroVendedor() {
     
     text = text.replace(/{empresa}/g, contractTemplate.company_name || '');
     text = text.replace(/{cnpj}/g, contractTemplate.company_cnpj || '');
+    text = text.replace(/{endereco}/g, contractTemplate.company_address || '');
     text = text.replace(/{cidade}/g, contractTemplate.company_city || '');
     text = text.replace(/{estado}/g, contractTemplate.company_state || '');
     text = text.replace(/{vendedor_nome}/g, formData.full_name || '[Seu Nome]');

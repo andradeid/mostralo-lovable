@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { ContractViewer } from "@/components/contract/ContractViewer";
+import { AffiliateTerms } from "@/components/salesperson/AffiliateTerms";
 
 export default function SalespersonContract() {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export default function SalespersonContract() {
   const [salesperson, setSalesperson] = useState<any>(null);
   const [template, setTemplate] = useState<any>(null);
   const [agreed, setAgreed] = useState(false);
+  const [commissionValue, setCommissionValue] = useState<number | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -48,6 +50,16 @@ export default function SalespersonContract() {
 
       setSalesperson(salespersonResult.data);
       setTemplate(templateResult.data);
+
+      // Comissão configurada para este vendedor (aparece no contrato/termos)
+      const { data: cfg } = await supabase
+        .from('salesperson_commission_configs')
+        .select('commission_value')
+        .eq('salesperson_id', salespersonResult.data.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cfg?.commission_value != null) setCommissionValue(Number(cfg.commission_value));
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast.error('Erro ao carregar dados do vendedor');
@@ -64,6 +76,7 @@ export default function SalespersonContract() {
     // Substituir placeholders da empresa (template)
     text = text.replace(/{empresa}/g, template.company_name || '');
     text = text.replace(/{cnpj}/g, template.company_cnpj || '');
+    text = text.replace(/{endereco}/g, template.company_address || '');
     text = text.replace(/{cidade}/g, template.company_city || '');
     text = text.replace(/{estado}/g, template.company_state || '');
     
@@ -72,7 +85,7 @@ export default function SalespersonContract() {
       text = text.replace(/{vendedor_nome}/g, salesperson.full_name || '');
       text = text.replace(/{vendedor_cnpj}/g, salesperson.cnpj || '');
       text = text.replace(/{vendedor_empresa}/g, salesperson.company_name || '');
-      text = text.replace(/{comissao_percentual}/g, '10'); // Comissão padrão
+      text = text.replace(/{comissao_percentual}/g, String(commissionValue ?? 10));
     }
     
     return text;
@@ -86,7 +99,11 @@ export default function SalespersonContract() {
 
     setAccepting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('accept-salesperson-contract');
+      // Grava o texto exato que a pessoa leu (afiliado vê os Termos de Indicação, PJ vê o contrato)
+      const terms_text = (document.getElementById('termos-aceitos')?.innerText || '').trim() || null;
+      const { data, error } = await supabase.functions.invoke('accept-salesperson-contract', {
+        body: { terms_text },
+      });
 
       if (error) throw error;
 
@@ -114,11 +131,12 @@ export default function SalespersonContract() {
 
   const isContractPending = salesperson?.status === 'pending_contract';
   const isContractAccepted = salesperson?.status === 'active' && salesperson?.contract_accepted_at;
+  const isAffiliate = salesperson?.salesperson_type === 'affiliate';
 
   return (
     <div className="space-y-6 max-w-4xl">
         <div>
-          <h1 className="text-3xl font-bold">Contrato de Prestação de Serviços</h1>
+          <h1 className="text-3xl font-bold">{isAffiliate ? 'Termos de Indicação' : 'Contrato de Prestação de Serviços'}</h1>
           <p className="text-muted-foreground">
             {isContractAccepted ? 'Contrato aceito' : 'Leia atentamente antes de aceitar'}
           </p>
@@ -142,7 +160,7 @@ export default function SalespersonContract() {
           </Alert>
         )}
 
-        {!template ? (
+        {!template && !isAffiliate ? (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -152,20 +170,30 @@ export default function SalespersonContract() {
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Termos do Contrato - Versão {template.version || '1.0'}</CardTitle>
+              <CardTitle>{isAffiliate ? 'Termos de Indicação - Afiliado' : `Termos do Contrato - Versão ${template?.version || '1.0'}`}</CardTitle>
             </CardHeader>
             <CardContent>
+              <div id="termos-aceitos">
+              {isAffiliate ? (
+                <AffiliateTerms
+                  salespersonName={salesperson?.full_name || undefined}
+                  salespersonCpf={salesperson?.cpf || undefined}
+                  commissionPercentage={commissionValue ?? 7}
+                />
+              ) : (
               <ContractViewer
                 contractText={getFormattedContractText()}
-                companyName={template.company_name || ''}
-                companyCnpj={template.company_cnpj || ''}
-                companyCity={template.company_city || ''}
-                companyState={template.company_state || ''}
-                version={template.version || '1.0'}
+                companyName={template?.company_name || ''}
+                companyCnpj={template?.company_cnpj || ''}
+                companyCity={template?.company_city || ''}
+                companyState={template?.company_state || ''}
+                version={template?.version || '1.0'}
                 salespersonName={salesperson?.full_name}
                 salespersonCnpj={salesperson?.cnpj}
                 acceptedAt={isContractAccepted ? salesperson.contract_accepted_at : undefined}
               />
+              )}
+              </div>
 
               {isContractPending && (
                 <div className="mt-6 space-y-4 border-t pt-6">

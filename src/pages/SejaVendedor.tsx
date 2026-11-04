@@ -42,7 +42,7 @@ const GIVES = ["Seu link e seu cupom", "Painel com suas vendas e comissões", "M
 const FAQ = [
   { q: "Preciso ter CNPJ?", a: "Não. Com CPF você entra como afiliado (5 a 7%, até R$ 1.900 por mês). Com MEI ou CNPJ você entra como parceiro (10%, sem limite)." },
   { q: "Preciso entender de sistema?", a: "Não. Seu trabalho é apresentar. A instalação, a configuração e o treinamento do cliente são por nossa conta." },
-  { q: "Quando eu recebo?", a: "Você pede o pagamento no seu painel a partir do dia 1º e recebe por Pix. Parceiro PJ envia a nota fiscal." },
+  { q: "Quando eu recebo?", a: "O que entra no mês cai no seu Pix no dia 15 do mês seguinte. Parceiro PJ envia a nota fiscal." },
   { q: "Para quem posso indicar?", a: "Para qualquer negócio que agenda horário ou vende: barbearia, salão, estética, delivery, lanchonete, confeitaria e lojas." },
 ];
 

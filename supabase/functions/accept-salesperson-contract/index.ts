@@ -85,6 +85,15 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
+    // Texto exato que a pessoa leu na tela (afiliado: Termos de Indicação; PJ: contrato)
+    let termsText: string | null = null;
+    try {
+      const body = await req.json();
+      if (typeof body?.terms_text === 'string' && body.terms_text.trim().length > 200) {
+        termsText = body.terms_text.trim().slice(0, 100000);
+      }
+    } catch (_) { /* sem corpo */ }
+
     // Obter IP e user agent
     const ip_address = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     const user_agent = req.headers.get('user-agent') || 'unknown';
@@ -103,7 +112,7 @@ Deno.serve(async (req) => {
       .insert({
         salesperson_id: salesperson.id,
         version: template?.version || '1.0',
-        contract_text: template?.contract_text || 'Termos de Indicação aceitos digitalmente',
+        contract_text: termsText || template?.contract_text || 'Termos de Indicação aceitos digitalmente',
         commission_terms: {
           percentage: Number(commissionCfg?.commission_value ?? (salesperson.salesperson_type === 'affiliate' ? 7 : 10)),
           applies_to: commissionCfg?.applies_to ?? null,

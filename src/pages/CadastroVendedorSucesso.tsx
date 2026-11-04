@@ -42,11 +42,11 @@ export default function CadastroVendedorSucesso() {
               <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                  Lembre-se: É necessário emitir Nota Fiscal
+                  Parceiro PJ: é necessário emitir Nota Fiscal
                 </p>
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  Para receber seus pagamentos, você precisará emitir Nota Fiscal de Serviços
-                  mensalmente com o valor das comissões + bônus (se houver).
+                  Para receber, o Parceiro PJ emite Nota Fiscal de Serviços todo mês com o valor
+                  das comissões. Afiliado (CPF) não precisa emitir nota.
                 </p>
               </div>
             </div>

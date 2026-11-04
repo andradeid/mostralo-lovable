@@ -62,3 +62,21 @@ AS $function$
   ORDER BY (upper(s.coupon_code) = upper(trim(p_code))) DESC NULLS LAST
   LIMIT 1;
 $function$;
+
+-- Teto mensal do afiliado (monthly_earnings_limit, R$ 1.900): o que passar não é pago nem acumulado (Termos 3.2)
+DO $do$
+DECLARE d text := pg_get_functiondef('public._partner_register_commission(uuid,uuid,uuid,numeric,timestamptz,uuid,uuid)'::regprocedure);
+BEGIN
+  IF position('_teto_mensal_' in d) = 0 THEN
+    d := replace(d,
+      '  INSERT INTO salesperson_commissions (',
+      '  -- _teto_mensal_: afiliado (CPF) tem teto mensal (monthly_earnings_limit); o que passar não é pago nem acumulado
+  IF v_sp.monthly_earnings_limit IS NOT NULL THEN
+    v_commission := least(v_commission, greatest(v_sp.monthly_earnings_limit - coalesce(v_payout.commission_total, 0), 0));
+    IF v_commission <= 0 THEN RETURN NULL; END IF;
+  END IF;
+
+  INSERT INTO salesperson_commissions (');
+    EXECUTE d;
+  END IF;
+END $do$;

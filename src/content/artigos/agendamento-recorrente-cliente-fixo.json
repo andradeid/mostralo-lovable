@@ -1,0 +1,337 @@
+{
+  "slug": "agendamento-recorrente-cliente-fixo",
+  "title": "Agendamento recorrente: horário fixo para cliente fixo",
+  "h1": "Agendamento recorrente: como garantir o horário do cliente fixo toda semana sem bagunçar a agenda",
+  "description": "Agendamento recorrente para barbearia, salão e estética: marque o cliente fixo toda semana de uma vez, veja as datas ocupadas e cancele a série num clique.",
+  "excerpt": "O cliente vem toda terça às 19h, mas o horário dele vive anotado só na sua cabeça. Veja como marcar a série de uma vez, quanto da agenda reservar para fixos e como encerrar quando ele parar.",
+  "date": "2026-11-10",
+  "readMinutes": 7,
+  "category": "Agendamento",
+  "keywords": [
+    "agendamento recorrente",
+    "horário fixo cliente fixo",
+    "agendar toda semana mesmo horário",
+    "agenda para cliente fixo barbearia",
+    "cancelar agendamentos recorrentes",
+    "sistema de agendamento com recorrência"
+  ],
+  "image": "/images/guias/agendamento-recorrente-cliente-fixo.jpg",
+  "imageAlt": "Barbeiro conferindo no celular o agendamento recorrente do cliente fixo que está na cadeira da barbearia",
+  "audio": {
+    "src": "/audio/guias/agendamento-recorrente-cliente-fixo.mp3",
+    "duration": 487.7,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 33.59,
+        "target": "s1"
+      },
+      {
+        "t": 88.74,
+        "target": "s2"
+      },
+      {
+        "t": 135.09,
+        "target": "s3"
+      },
+      {
+        "t": 192.16,
+        "target": "s4"
+      },
+      {
+        "t": 250.71,
+        "target": "s5"
+      },
+      {
+        "t": 339.98,
+        "target": "s6"
+      },
+      {
+        "t": 393.45,
+        "target": "s7"
+      },
+      {
+        "t": 437.28,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Agendamento recorrente é marcar o mesmo cliente, no mesmo dia da semana e no mesmo horário, várias semanas de uma vez. Para quem tem cliente fixo, isso garante a vaga dele, evita marcar outra pessoa por cima e mostra com antecedência quanto da semana já está vendido.",
+    "Neste guia você vê quem merece horário fixo, quanto da agenda reservar para essas pessoas, o que combinar sobre falta e feriado, e o passo a passo para marcar e encerrar uma série inteira sem apagar reserva por reserva."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o horário do cliente fixo some da agenda",
+      "blocks": [
+        {
+          "p": "Toda barbearia, salão ou estúdio tem aquele cliente que vem toda semana, no mesmo dia e na mesma hora. O problema é que esse combinado quase nunca está escrito em lugar nenhum. Ele mora na memória do profissional ou numa conversa antiga do WhatsApp."
+        },
+        {
+          "ul": [
+            "**Vaga dada para outro:** a recepção vê o horário livre no sistema e marca um cliente novo justo na terça do fixo.",
+            "**Fixo que some sem avisar:** como ninguém confirmou, ele não sabe se o horário ainda é dele e deixa de vir.",
+            "**Semana sem previsão:** você não sabe quanto da semana já está garantido antes de abrir a porta.",
+            "**Fim do combinado sem registro:** o cliente parou de vir há um mês e o horário continua bloqueado por costume."
+          ]
+        },
+        {
+          "p": "A saída é tratar o cliente fixo como uma série de reservas de verdade, visível para toda a equipe, e não como um acordo de boca."
+        }
+      ]
+    },
+    {
+      "h2": "Quem merece horário fixo (e quem não)",
+      "blocks": [
+        {
+          "p": "Nem todo cliente frequente deve ganhar horário fixo. Reserve a vaga para quem já provou que vem. Uma regra simples:"
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "Horário fixo?",
+              "Por quê"
+            ],
+            "rows": [
+              [
+                "Veio no mesmo dia da semana nas últimas 4 semanas",
+                "Sim",
+                "Já tem a rotina; a série só formaliza"
+              ],
+              [
+                "Faz barba ou escova toda semana",
+                "Sim",
+                "Serviço curto e frequente, ocupa pouco e enche a semana"
+              ],
+              [
+                "Vem a cada 15 ou 30 dias",
+                "Não",
+                "Melhor marcar a próxima vez no fim de cada atendimento"
+              ],
+              [
+                "Faltou 2 vezes sem avisar no último mês",
+                "Não",
+                "Horário fixo para quem falta é vaga perdida garantida"
+              ],
+              [
+                "Cliente novo que gostou do serviço",
+                "Ainda não",
+                "Espere algumas visitas antes de oferecer"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Quem vem a cada duas semanas ou uma vez por mês funciona melhor com a próxima visita marcada na saída, como mostramos no guia de [agenda para nail designer](/guia/agenda-para-nail-designer)."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto da agenda reservar para clientes fixos",
+      "blocks": [
+        {
+          "p": "Cliente fixo dá previsão, mas agenda cheia só de fixos não deixa espaço para cliente novo, que é quem faz o negócio crescer. Faça a conta da sua semana antes de sair oferecendo horário."
+        },
+        {
+          "p": "Exemplo: um barbeiro que atende 8 horários de 1 hora por dia, 6 dias por semana, tem 48 horários na semana. Com 12 clientes fixos, um quarto da semana já está vendido antes de a semana começar."
+        },
+        {
+          "table": {
+            "head": [
+              "Item",
+              "Conta",
+              "Resultado"
+            ],
+            "rows": [
+              [
+                "Horários por semana",
+                "8 por dia x 6 dias",
+                "48 horários"
+              ],
+              [
+                "Clientes fixos",
+                "12 por semana",
+                "25% da semana"
+              ],
+              [
+                "Valor de exemplo por atendimento",
+                "R$ 50",
+                "nenhum"
+              ],
+              [
+                "Faturamento garantido por semana",
+                "12 x R$ 50",
+                "R$ 600"
+              ],
+              [
+                "Em 4 semanas",
+                "R$ 600 x 4",
+                "R$ 2.400"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Uma boa prática é não passar de metade da agenda com fixos e espalhá-los pela semana. Fixos concentrados no sábado tiram justamente o horário que o cliente novo mais procura."
+        }
+      ]
+    },
+    {
+      "h2": "Falta, atraso e feriado: o que combinar antes",
+      "blocks": [
+        {
+          "p": "Horário fixo é um benefício, e benefício tem regra. Combine por escrito, pelo WhatsApp mesmo, no dia em que oferecer a série:"
+        },
+        {
+          "ol": [
+            "**Aviso de falta:** se não puder vir, avisa com pelo menos 24 horas de antecedência para a vaga ir para outro cliente.",
+            "**Faltas seguidas:** duas faltas sem aviso encerram o horário fixo.",
+            "**Atraso:** passou de 15 minutos, o atendimento é encurtado ou remarcado.",
+            "**Feriado e folga:** quando o negócio fechar, aquela semana não acontece e o resto da série continua."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Oferta de horário fixo",
+              "text": "Oi, [nome]! Você tem vindo toda [dia da semana] às [horário]. Quer que eu deixe esse horário fixo para você nas próximas [número] semanas? Assim ninguém pega a sua vaga. Só peço que, se não puder vir, me avise com um dia de antecedência. Duas faltas sem aviso liberam o horário. Posso marcar?"
+            },
+            {
+              "title": "Renovação da série",
+              "text": "Oi, [nome]! Sua sequência de horários fixos de [dia da semana] às [horário] termina em [data]. Quer que eu renove por mais [número] semanas no mesmo horário?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Passo a passo: marcar o agendamento recorrente no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a série é feita pelo painel, na mesma tela da reserva comum. Cada data vira uma reserva normal, com lembrete próprio."
+        },
+        {
+          "ol": [
+            "Abra a agenda e clique em **Novo agendamento**.",
+            "Escolha o serviço, o profissional, o cliente, a primeira data e o horário.",
+            "Ligue a chave **Repetir toda semana**.",
+            "Escolha **Quantas semanas** (de 2 a 12) ou preencha **Até a data**, se o combinado tem dia para acabar.",
+            "Confira a lista de datas: cada uma aparece como livre, ocupado, fora do expediente, bloqueado ou horário já passou.",
+            "Salve. O sistema cria as reservas das datas livres e pula as outras, mostrando um resumo como 3 reservas criadas e 1 data pulada."
+          ]
+        },
+        {
+          "img": "/images/guias/agendamento-recorrente-cliente-fixo-2.jpg",
+          "alt": "Diagrama do agendamento recorrente no Mostralo: escolher dia e horário, repetir toda semana, conferir datas livres e ocupadas e salvar a série",
+          "caption": "Agendamento recorrente: o sistema confere cada semana antes de criar a série e pula o que já está ocupado."
+        },
+        {
+          "p": "Como o sistema confere a agenda do profissional semana a semana, um feriado já bloqueado ou um horário que outro cliente pegou não vira reserva dupla. A data é pulada e você resolve só aquela semana com o cliente."
+        },
+        {
+          "tip": "A série não manda confirmação automática pelo WhatsApp, igual à reserva feita pelo painel. Mande a confirmação pelo detalhe da reserva ou use a mensagem de oferta acima. O lembrete antes do horário sai em cada semana normalmente."
+        }
+      ]
+    },
+    {
+      "h2": "Quando o cliente fixo para: cancelar esta e as próximas",
+      "blocks": [
+        {
+          "p": "O cliente mudou de emprego, de bairro ou só quer dar um tempo. Sem um jeito de encerrar a série, você teria de apagar as reservas uma por uma, e sempre sobra alguma bloqueando a agenda."
+        },
+        {
+          "ol": [
+            "Abra qualquer reserva da série a partir da qual ele não vem mais.",
+            "Clique em **Cancelar esta e as próximas da série**.",
+            "Escreva o motivo, se quiser, como cliente encerrou o horário fixo.",
+            "Deixe marcado **Avisar o cliente pelo WhatsApp** para ele receber uma mensagem só, citando todas as datas canceladas.",
+            "Confirme. As reservas anteriores continuam no histórico, sem mudança."
+          ]
+        },
+        {
+          "p": "Se a pausa for de uma semana só, cancele apenas aquela reserva e a série segue. É o mesmo cuidado que os donos de quadra têm com o [mensalista de quadra society](/guia/mensalista-de-quadra-society)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns com cliente fixo",
+      "blocks": [
+        {
+          "ul": [
+            "**Série sem fim:** marque no máximo 12 semanas e renove. A renovação é a hora de conversar se o horário ainda serve.",
+            "**Fixo de um profissional só na cabeça de outro:** cada série fica na agenda do profissional certo, visível para quem faz a recepção.",
+            "**Não cobrar falta:** sem regra combinada, o fixo vira o cliente que mais falta.",
+            "**Esquecer o pós-atendimento:** cliente fixo é quem mais tende a avaliar bem. Veja [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google) com a mensagem automática depois do horário."
+          ]
+        },
+        {
+          "p": "Para ver como montar o resto da agenda da barbearia, leia o guia de [agenda online para barbearia](/guia/agenda-online-para-barbearia) ou veja todos os artigos de [agendamento](/conteudos/categoria/agendamento)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cliente fixo garantido na agenda certa",
+    "p": [
+      "No Mostralo, você marca o cliente fixo uma vez e a série inteira aparece na agenda do profissional, com as datas ocupadas puladas e lembrete no WhatsApp antes de cada horário. Quando ele parar, um clique encerra esta e as próximas. Os outros clientes continuam agendando sozinhos pela sua página. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou conheça a página para [barbearias](/nicho-barbearias)."
+    ],
+    "bullets": [
+      "Repetir toda semana, de 2 a 12 semanas ou até uma data",
+      "Conferência de cada data antes de salvar: ocupado, bloqueado ou fora do expediente",
+      "Lembrete no WhatsApp antes de cada horário da série",
+      "Cancelar esta e as próximas com um aviso só para o cliente"
+    ]
+  },
+  "faq": [
+    [
+      "O que é agendamento recorrente?",
+      "É marcar o mesmo cliente no mesmo dia da semana e no mesmo horário por várias semanas de uma vez, criando uma série de reservas."
+    ],
+    [
+      "Por quantas semanas dá para repetir no Mostralo?",
+      "De 2 a 12 semanas, ou até uma data que você escolhe. Quando a série estiver acabando, é só criar outra."
+    ],
+    [
+      "E se uma das semanas já estiver ocupada?",
+      "O sistema mostra antes de salvar e pula essa data. As outras semanas são criadas normalmente."
+    ],
+    [
+      "Dá para repetir a cada 15 dias?",
+      "A repetição é semanal. Para quem vem a cada 15 dias ou uma vez por mês, o melhor é marcar a próxima visita no fim de cada atendimento."
+    ],
+    [
+      "Como cancelar só a partir de uma data?",
+      "Abra a reserva daquela data e use Cancelar esta e as próximas da série. As anteriores ficam no histórico."
+    ],
+    [
+      "O cliente é avisado do cancelamento?",
+      "Se a opção de avisar estiver marcada, ele recebe uma mensagem só no WhatsApp com todas as datas canceladas."
+    ]
+  ],
+  "sources": [
+    [
+      "Rework — Estratégias de reagendamento para salões",
+      "https://resources.rework.com/pt/libraries/beauty-center-growth/rebooking-strategies-salons"
+    ],
+    [
+      "Blog Cielo — No-show: como evitar que clientes faltem aos agendamentos (02/06/2026)",
+      "https://blog.cielo.com.br/produtos-e-servicos/no-show-como-evitar-que-clientes-faltem-agendamentos/"
+    ],
+    [
+      "Central de Ajuda Wix — Criar agendamentos recorrentes",
+      "https://support.wix.com/pt/article/wix-bookings-criar-agendamentos-recorrentes"
+    ]
+  ],
+  "related": [
+    "agenda-online-para-barbearia",
+    "agenda-para-salao-de-beleza",
+    "agenda-para-nail-designer",
+    "mensalista-de-quadra-society",
+    "como-conseguir-avaliacoes-no-google"
+  ]
+}

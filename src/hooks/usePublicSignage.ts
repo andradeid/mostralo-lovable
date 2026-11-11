@@ -62,7 +62,7 @@ export function usePublicSignage(slug: string | undefined) {
         
         // Buscar loja pelo slug
         const { data: storeData, error: storeError } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('id, name, slug, logo_url')
           .eq('slug', slug)
           .eq('status', 'active')

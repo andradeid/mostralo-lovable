@@ -17,6 +17,49 @@
   ],
   "image": "/images/guias/cardapio-de-sorveteria.jpg",
   "imageAlt": "Atendente no balcão de uma sorveteria servindo uma bola de sorvete no copo em frente à vitrine de sabores, ao lado do cardápio de sorveteria",
+  "audio": {
+    "src": "/audio/guias/cardapio-de-sorveteria.mp3",
+    "duration": 625,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0,
+        "target": "intro"
+      },
+      {
+        "t": 52.9,
+        "target": "s1"
+      },
+      {
+        "t": 109.4,
+        "target": "s2"
+      },
+      {
+        "t": 175.9,
+        "target": "s3"
+      },
+      {
+        "t": 286.8,
+        "target": "s4"
+      },
+      {
+        "t": 348.7,
+        "target": "s5"
+      },
+      {
+        "t": 425.7,
+        "target": "s6"
+      },
+      {
+        "t": 514.2,
+        "target": "s7"
+      },
+      {
+        "t": 565.9,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Um cardápio de sorveteria que vende e não dá prejuízo tem quatro blocos, nesta ordem: tamanhos com preço fechado, sabores com um limite claro para cada tamanho, coberturas e adicionais sempre cobrados e alguns especiais de valor mais alto, como milkshake e sundae. Quando cada regra está escrita no cardápio, o cliente escolhe rápido e a equipe não precisa negociar no balcão.",
     "Neste guia você vai ver quais tamanhos oferecer, quantos sabores liberar em cada um, o que cobrar à parte, como cuidar dos sabores do dia e do sabor esgotado e como manter o mesmo cardápio na loja online, no totem e na TV."

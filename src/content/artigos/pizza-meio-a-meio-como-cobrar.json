@@ -1,0 +1,242 @@
+{
+  "slug": "pizza-meio-a-meio-como-cobrar",
+  "title": "Pizza meio a meio: como cobrar certo no cardápio",
+  "h1": "Pizza meio a meio: como cobrar certo, sem perder margem e sem briga com o cliente",
+  "description": "Pizza meio a meio: como cobrar pela média, pelo proporcional ou pelo sabor mais caro, o que diz o Procon, a conta da margem e o cardápio que calcula sozinho.",
+  "excerpt": "Média, proporcional ou sabor mais caro? Veja como cobrar a pizza meio a meio, o que os Procons dizem, a conta que mostra a margem e como o cardápio digital acerta o preço sozinho.",
+  "date": "2026-11-11",
+  "readMinutes": 7,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "pizza meio a meio como cobrar",
+    "preço pizza meio a meio",
+    "pizza dois sabores cobrar média",
+    "pizza meio a meio sabor mais caro procon",
+    "cardápio digital pizza meio a meio",
+    "pizza três sabores preço"
+  ],
+  "image": "/images/guias/pizza-meio-a-meio-como-cobrar.jpg",
+  "imageAlt": "Ilustração de pizza meio a meio com calabresa de um lado e camarão do outro e o cálculo do preço pela média dos dois sabores",
+  "intro": [
+    "Na pizza meio a meio, o jeito mais seguro de cobrar é a **média dos sabores**: some o preço de cada sabor no mesmo tamanho e divida pela quantidade de sabores. Cobrar a pizza inteira pelo sabor mais caro é comum, mas vários Procons consideram essa prática abusiva.",
+    "E não é detalhe: em levantamento da VR divulgado em julho de 2026, 92% dos consumidores disseram preferir pedir pizza meio a meio. Neste guia você vê as três regras de cobrança, o que dizem os órgãos de defesa do consumidor, a conta que mostra que a média não derruba a sua margem, como tratar três e quatro sabores, borda e adicionais, e como deixar o cardápio fazer a conta sozinho."
+  ],
+  "sections": [
+    {
+      "h2": "Pizza meio a meio: como cobrar? As três regras lado a lado",
+      "blocks": [
+        {
+          "p": "Exemplo de cardápio de uma pizzaria, tamanho grande: calabresa R$ 50, frango com catupiry R$ 55, portuguesa R$ 60 e camarão R$ 70. O cliente pede meio calabresa e meio camarão."
+        },
+        {
+          "table": {
+            "head": ["Regra", "Como calcula", "Meio calabresa e meio camarão"],
+            "rows": [
+              ["Média dos sabores", "Soma os preços e divide pela quantidade de sabores", "(50 + 70) ÷ 2 = R$ 60"],
+              ["Proporcional", "Cobra a fração de cada sabor: metade de um mais metade do outro", "25 + 35 = R$ 60"],
+              ["Sabor mais caro", "Cobra a pizza inteira pelo maior preço", "R$ 70"]
+            ]
+          }
+        },
+        {
+          "p": "Repare que, com fatias iguais, **média e proporcional dão o mesmo valor**. Metade de cada sabor é exatamente a média dos dois. Na prática, sobram só duas escolhas: média ou sabor mais caro."
+        },
+        {
+          "img": "/images/guias/pizza-meio-a-meio-como-cobrar-2.jpg",
+          "alt": "Diagrama de pizza meio a meio: como cobrar pela média, pelo proporcional ou pelo sabor mais caro, com calabresa a R$ 50 e camarão a R$ 70",
+          "caption": "Pizza meio a meio: como cobrar. Média e proporcional dão R$ 60; o sabor mais caro dá R$ 70."
+        }
+      ]
+    },
+    {
+      "h2": "O que o Procon diz sobre cobrar pelo sabor mais caro",
+      "blocks": [
+        {
+          "p": "Não existe uma lei federal só sobre pizza de dois sabores. O que os Procons usam é o Código de Defesa do Consumidor. Alguns exemplos públicos:"
+        },
+        {
+          "ul": [
+            "O Procon do Amazonas orienta cobrar a média dos sabores ou, no máximo, o proporcional, e considera abusivo cobrar pelo mais caro, com base no artigo 39, incisos V e X, do CDC (vantagem manifestamente excessiva e aumento de preço sem justa causa).",
+            "O Procon de Campo Grande (MS) abriu processo e fiscalizou pizzarias em 2019 por cobrarem o preço cheio do sabor mais caro, com levantamento feito também nos apps de delivery.",
+            "Em Uberaba (MG), o Procon multou pizzaria em 2023 e notificou 20 estabelecimentos entre 2021 e 2022 pela mesma prática."
+          ]
+        },
+        {
+          "p": "Há quem defenda que a pizzaria é livre para formar o preço, desde que avise antes. O ponto em que todos concordam: a regra precisa estar escrita no cardápio e o cliente precisa ver o valor final antes de fechar o pedido. Se você escolher cobrar pelo mais caro, confira antes a orientação do Procon da sua cidade."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade. Algumas cidades e estados têm entendimento próprio sobre o tema."
+        }
+      ]
+    },
+    {
+      "h2": "A conta da margem: a média não faz você perder dinheiro",
+      "blocks": [
+        {
+          "p": "O medo de quem cobra pelo mais caro é perder margem com o sabor caro. Veja a conta com um custo de ingredientes de exemplo: calabresa grande custa R$ 15 para fazer, camarão grande custa R$ 30. Na meio a meio, o custo também fica na metade de cada: R$ 7,50 mais R$ 15, total de R$ 22,50."
+        },
+        {
+          "table": {
+            "head": ["Pizza grande", "Preço", "Custo dos ingredientes", "Sobra bruta", "Margem bruta"],
+            "rows": [
+              ["Calabresa inteira", "R$ 50", "R$ 15", "R$ 35", "70%"],
+              ["Camarão inteira", "R$ 70", "R$ 30", "R$ 40", "57,1%"],
+              ["Meio a meio pela média", "R$ 60", "R$ 22,50", "R$ 37,50", "62,5%"],
+              ["Meio a meio pelo mais caro", "R$ 70", "R$ 22,50", "R$ 47,50", "67,9%"]
+            ]
+          }
+        },
+        {
+          "p": "Pela média, a meio a meio fica com margem entre a dos dois sabores, porque o custo também é dividido. Ela não dá prejuízo. Os R$ 10 a mais da cobrança pelo mais caro são justamente a diferença que os Procons chamam de vantagem excessiva."
+        },
+        {
+          "p": "Se o camarão está com margem baixa, o problema é o preço do camarão, não a meio a meio. Ajuste o preço do sabor inteiro. Para fazer essa conta com os seus números, veja o guia de [como calcular a margem de lucro](/guia/como-calcular-margem-de-lucro)."
+        }
+      ]
+    },
+    {
+      "h2": "Três e quatro sabores: limite por tamanho",
+      "blocks": [
+        {
+          "p": "A mesma regra vale para mais sabores: soma e divide. Com o cardápio do exemplo:"
+        },
+        {
+          "ul": [
+            "Três sabores (calabresa, portuguesa e camarão): (50 + 60 + 70) ÷ 3 = R$ 60.",
+            "Quatro sabores (calabresa, frango com catupiry, portuguesa e camarão): (50 + 55 + 60 + 70) ÷ 4 = R$ 58,75."
+          ]
+        },
+        {
+          "p": "O que muda é quantos sabores cabem em cada tamanho. Fatia demais em pizza pequena vira bagunça no forno. Um limite comum:"
+        },
+        {
+          "table": {
+            "head": ["Tamanho", "Até quantos sabores"],
+            "rows": [
+              ["Broto", "1 (não mistura)"],
+              ["Média", "2"],
+              ["Grande", "3"],
+              ["Gigante", "4"]
+            ]
+          }
+        },
+        {
+          "tip": "Escreva o limite no cardápio, perto do tamanho. Assim o cliente não pede quatro sabores na broto e a cozinha não precisa ligar para corrigir."
+        }
+      ]
+    },
+    {
+      "h2": "Borda e adicionais: cobre uma vez, pela pizza inteira",
+      "blocks": [
+        {
+          "p": "Borda recheada, queijo extra e massa fina valem para a pizza toda, não para cada metade. O justo e mais simples é cobrar a borda uma vez só, somada ao preço dos sabores."
+        },
+        {
+          "ul": [
+            "Exemplo: meio calabresa e meio camarão pela média (R$ 60) com borda de catupiry (R$ 12) fica R$ 72.",
+            "Não cobre borda em dobro porque são dois sabores: é a reclamação mais fácil de evitar.",
+            "Deixe o mesmo grupo de bordas e adicionais em todos os sabores da categoria, com os mesmos preços."
+          ]
+        },
+        {
+          "p": "Borda e combo também são onde a pizzaria aumenta o ticket sem mexer no preço da pizza. O guia de [cardápio digital para pizzaria](/guia/cardapio-digital-para-pizzaria) mostra como montar categorias, tamanhos, bordas e combos."
+        }
+      ]
+    },
+    {
+      "h2": "Como escrever a regra no cardápio (modelos para copiar)",
+      "blocks": [
+        {
+          "p": "Um aviso curto, perto dos tamanhos ou no topo da categoria de pizzas, resolve a maior parte das dúvidas. Troque os campos entre colchetes."
+        },
+        {
+          "templates": [
+            {
+              "title": "Aviso no cardápio (média)",
+              "text": "Pizza com mais de um sabor: cobramos a média dos sabores escolhidos. Exemplo: [sabor 1] R$ [preço 1] + [sabor 2] R$ [preço 2] = R$ [média]. Até [2] sabores na média, [3] na grande e [4] na gigante. A borda é cobrada uma vez para a pizza inteira."
+            },
+            {
+              "title": "Resposta para o cliente no WhatsApp",
+              "text": "Oi, [nome]! Na meio a meio a gente cobra a média dos dois sabores. Meio [sabor 1] e meio [sabor 2] na grande fica R$ [valor]. Com borda de [borda], R$ [valor com borda]. Quer que eu mande o link do cardápio para você montar e ver o valor na hora?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como o cardápio digital calcula a meio a meio sozinho",
+      "blocks": [
+        {
+          "p": "Anotar meio a meio no WhatsApp é onde mais acontece erro: sabor trocado, preço calculado de cabeça e cliente que discorda na entrega. Num cardápio digital com montagem de sabores, o cliente escolhe o tamanho, marca os sabores e vê o preço final antes de pedir."
+        },
+        {
+          "p": "No Mostralo, a regra fica na categoria das pizzas. O passo a passo:"
+        },
+        {
+          "ol": [
+            "Cadastre cada sabor como produto e os tamanhos como variações, com o mesmo nome em todos os sabores (Broto, Média, Grande, Gigante).",
+            "Abra a categoria das pizzas e ligue Pizza com mais de um sabor (meio a meio).",
+            "Escolha até quantos sabores em cada tamanho, de 1 a 4.",
+            "Escolha como cobrar: média dos sabores (recomendado) ou sabor mais caro. A própria tela lembra que alguns Procons consideram a segunda opção abusiva.",
+            "Pronto: na loja, o cliente monta a pizza na página do produto e o carrinho já mostra o nome, como 1/2 Calabresa + 1/2 Camarão, e o preço certo."
+          ]
+        },
+        {
+          "p": "O servidor do pedido refaz a mesma conta antes de gravar, então ninguém consegue mudar o preço pelo navegador. O pedido chega no painel e na impressora térmica com as frações e os sabores escritos, do jeito que a cozinha precisa. Veja todos os recursos para o seu tipo de negócio na página para [pizzarias](/nicho-pizzarias) e outros guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a meio a meio com preço certo em todo pedido",
+    "p": [
+      "No Mostralo, você define uma vez como cobrar a pizza de mais de um sabor e o cardápio digital faz a conta em todo pedido, com o limite de sabores por tamanho e a borda cobrada uma vez. O cliente vê o valor antes de fechar, a cozinha recebe as frações escritas e você vende pelo seu link, sem comissão por pedido (só existe taxa se você escolher receber pelo pagamento online do Mostralo). A gente deixa tudo pronto para você. [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Pizza de até 4 sabores, com limite diferente por tamanho",
+      "Cobrança pela média dos sabores ou pelo sabor mais caro, escolhida por categoria",
+      "Preço conferido no servidor antes de gravar o pedido",
+      "Pedido com as frações escritas no painel e na impressora térmica"
+    ]
+  },
+  "faq": [
+    [
+      "Como cobrar pizza meio a meio?",
+      "O jeito mais aceito é a média dos sabores: some o preço de cada sabor no mesmo tamanho e divida pela quantidade de sabores. Meio calabresa a R$ 50 e meio camarão a R$ 70 fica R$ 60."
+    ],
+    [
+      "Cobrar pizza meio a meio pelo sabor mais caro é proibido?",
+      "Não há lei federal específica, mas Procons como o do Amazonas, o de Campo Grande e o de Uberaba consideram a prática abusiva com base no artigo 39 do Código de Defesa do Consumidor. Confira a orientação da sua cidade."
+    ],
+    [
+      "Média e proporcional são a mesma coisa?",
+      "Com fatias iguais, sim. Metade do preço de cada sabor somadas dá exatamente a média dos dois. Com três sabores, um terço de cada também é a média."
+    ],
+    [
+      "Cobrar pela média dá prejuízo?",
+      "Não, porque o custo dos ingredientes também é dividido. A meio a meio fica com margem entre a dos dois sabores. Se um sabor tem margem baixa, ajuste o preço desse sabor."
+    ],
+    [
+      "A borda é cobrada em cada metade?",
+      "Não deveria. A borda vale para a pizza inteira e é cobrada uma vez, somada ao preço dos sabores."
+    ],
+    [
+      "Quantos sabores o Mostralo aceita numa pizza?",
+      "De 1 a 4, com limite diferente por tamanho. Por exemplo: broto só um sabor, média dois, grande três e gigante quatro."
+    ]
+  ],
+  "sources": [
+    ["Rede Onda Digital — Procon-AM alerta para regras de cobrança da pizza de dois sabores", "https://redeondadigital.com.br/amazonas/procon-am-alerta-para-regras-de-cobranca-da-pizza-de-dois-sabores"],
+    ["Campo Grande News — Procon flagra preço abusivo até na venda de pizzas e inicia fiscalização (18/01/2019)", "https://www.campograndenews.com.br/cidades/capital/procon-flagra-preco-abusivo-ate-na-venda-de-pizzas-e-inicia-fiscalizacao"],
+    ["Correio Braziliense — Cobrança maior em pizza de dois sabores é proibida em cidade mineira (17/03/2023)", "https://www.correiobraziliense.com.br/brasil/2023/03/5080999-cobranca-maior-em-pizza-de-dois-sabores-e-proibida-em-cidade-mineira.html"],
+    ["InfoMoney — No país da pizza meio a meio, o preço começa a pesar mais (10/07/2026)", "https://www.infomoney.com.br/?p=3405297"]
+  ],
+  "related": [
+    "cardapio-digital-para-pizzaria",
+    "como-calcular-margem-de-lucro",
+    "delivery-proprio-sem-comissao",
+    "combo-para-hamburgueria",
+    "impressora-termica-para-pedidos",
+    "como-calcular-taxa-de-entrega"
+  ]
+}

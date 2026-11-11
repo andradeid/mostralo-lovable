@@ -1,0 +1,253 @@
+{
+  "slug": "totem-para-sorveteria",
+  "title": "Totem de autoatendimento para sorveteria e açaiteria",
+  "h1": "Totem de autoatendimento para sorveteria: o cliente monta o copo sem segurar a fila",
+  "description": "Totem de autoatendimento para sorveteria e açaiteria: onde colocar, totem de balcão ou de chão, Pix na tela e como montar o cardápio de sabores e coberturas.",
+  "excerpt": "Na sorveteria, quem segura a fila é o cliente escolhendo sabor na frente do caixa. Veja como o totem deixa ele montar o copo com calma, onde colocar e qual modelo vale para a sua loja.",
+  "date": "2026-11-11",
+  "readMinutes": 7,
+  "category": "Por segmento",
+  "keywords": [
+    "totem de autoatendimento para sorveteria",
+    "totem para açaiteria",
+    "autoatendimento sorveteria",
+    "totem gelateria",
+    "fila na sorveteria"
+  ],
+  "image": "/images/guias/totem-para-sorveteria.jpg",
+  "imageAlt": "Atendente no balcão de uma sorveteria com vitrine de sabores ao lado do totem de autoatendimento para sorveteria",
+  "intro": [
+    "Um totem de autoatendimento para sorveteria deixa o cliente escolher o tamanho, os sabores e as coberturas numa tela, pagar no Pix e esperar a senha, enquanto o caixa atende outra pessoa. Ele vale a pena quando a fila nasce da indecisão na frente da vitrine, que é o que acontece em todo fim de tarde quente.",
+    "Este guia é só sobre sorveteria, gelateria e açaiteria: por que o copo montado trava o caixa, onde colocar o totem na loja, quando usar um tablet no balcão ou um totem de chão, como fica o pagamento e como deixar o cardápio pronto para a tela. A parte geral sobre totem está no guia de [totem de autoatendimento](/guia/totem-de-autoatendimento)."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a fila na sorveteria é diferente da fila da lanchonete",
+      "blocks": [
+        {
+          "p": "Na lanchonete, o cliente chega sabendo o que quer. Na sorveteria, ele decide na hora: olha a vitrine, pede para provar, troca de ideia. No caixa, cada copo com tamanho, sabores e coberturas vira uma conversa longa."
+        },
+        {
+          "ul": [
+            "**A indecisão sai do caixa.** O cliente escolhe olhando a tela e a vitrine, no tempo dele.",
+            "**O limite de sabores fica claro.** Se o copo pequeno leva até dois sabores, a tela não deixa marcar o terceiro.",
+            "**A cobertura paga aparece com preço.** Ninguém esquece de cobrar a calda extra.",
+            "**O pedido chega escrito.** Quem monta lê exatamente o que foi marcado, sem pedir para repetir."
+          ]
+        },
+        {
+          "p": "O totem não deixa a montagem mais rápida. Se o gargalo é quem serve, ponha mais uma pessoa no balcão de montagem no horário de pico."
+        }
+      ]
+    },
+    {
+      "h2": "O pico de calor: quando o totem de autoatendimento para sorveteria compensa",
+      "blocks": [
+        {
+          "p": "Sorveteria vende em ondas: dia quente, fim de tarde, fim de semana, férias de janeiro. Marque o que vale para a sua loja:"
+        },
+        {
+          "ul": [
+            "Nos dias quentes, a fila passa da porta em algum horário.",
+            "A mesma pessoa cobra e ajuda a montar.",
+            "A maior parte das vendas é copo ou casquinha montada, não sorvete por quilo.",
+            "Já teve copo montado com sabor errado ou cobertura esquecida.",
+            "Muita gente já paga no Pix."
+          ]
+        },
+        {
+          "p": "Três ou mais marcados, vale testar antes do verão. Para preparar o resto da loja para a alta estação, veja o guia de [açaiteria e sorveteria no verão](/guia/acaiteria-e-sorveteria-no-verao)."
+        },
+        {
+          "tip": "Sorvete por quilo no self-service não passa pelo totem: o cliente serve, pesa e paga no caixa. Nesse caso, o atendente digita no [PDV](/guia/pdv-para-pequeno-negocio) o peso que a balança mostra. O totem fica para copos, casquinhas, milk-shakes e açaí montado."
+        }
+      ]
+    },
+    {
+      "h2": "Onde colocar o totem na sorveteria",
+      "blocks": [
+        {
+          "p": "O lugar certo é perto da vitrine de sabores, antes do caixa, no caminho de quem entra. O cliente olha os sabores de verdade e marca na tela ao lado. Longe da vitrine, ele vai até lá, volta e o totem fica ocupado mais tempo. Loja ainda no projeto? Veja [como montar uma sorveteria](/guia/como-montar-uma-sorveteria)."
+        },
+        {
+          "ol": [
+            "**Pede** no totem, ao lado da vitrine.",
+            "**Paga** no Pix, lendo o QR Code da tela.",
+            "**Recebe a senha** na tela.",
+            "**Espera** longe do caixa, de preferência vendo a TV de chamada.",
+            "**Retira** no balcão de montagem, onde o copo é feito."
+          ]
+        },
+        {
+          "img": "/images/guias/totem-para-sorveteria-2.jpg",
+          "alt": "Caminho do cliente no totem de autoatendimento para sorveteria: escolhe o tamanho, os sabores e as coberturas, paga no Pix, recebe a senha e retira no balcão de montagem",
+          "caption": "O caminho do cliente no totem de autoatendimento para sorveteria, da escolha do tamanho à retirada no balcão de montagem."
+        },
+        {
+          "p": "Separe o lugar de esperar do lugar de pagar. Se quem espera a senha fica parado na frente do caixa, a fila volta. A senha chamada na TV ajuda; veja como no guia de [cardápio digital na TV](/guia/cardapio-digital-na-tv)."
+        }
+      ]
+    },
+    {
+      "h2": "Totem de balcão ou totem de chão: qual vale para a sua loja",
+      "blocks": [
+        {
+          "p": "Para loja pequena, o comum é um tablet num suporte com trava em cima do balcão. Loja grande ou de shopping costuma usar um totem de chão vertical, mais visível. Preços consultados em 11/11/2026 em lojas online grandes, que mudam toda semana:"
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Totem de balcão (tablet com suporte antifurto)",
+              "Totem de chão vertical"
+            ],
+            "rows": [
+              [
+                "Preço de referência",
+                "suporte com trava de cerca de R$ 200 a R$ 590, mais o tablet",
+                "modelos de 21 polegadas de cerca de R$ 7.900 a R$ 10.000"
+              ],
+              [
+                "Espaço",
+                "ocupa um canto do balcão",
+                "precisa de área livre no piso, perto de tomada"
+              ],
+              [
+                "Visibilidade",
+                "boa para quem já está na fila",
+                "chama quem entra pela porta"
+              ],
+              [
+                "Público baixinho e cadeirante",
+                "dá para regular a altura e o ângulo",
+                "depende do modelo"
+              ],
+              [
+                "Quando vale",
+                "para testar e para loja de até um ou dois atendentes",
+                "fila diária grande, quiosque de shopping, mais de um totem"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo: uma açaiteria de bairro põe um tablet que já tinha num suporte com trava no fim do balcão e testa no primeiro mês de calor. Se o público usar, pensa num totem de chão."
+        },
+        {
+          "tip": "Os valores são referências de anúncios e variam por loja e modelo. Peça orçamento e confira garantia e assistência na sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "Pagamento: Pix na tela, cartão no caixa",
+      "blocks": [
+        {
+          "p": "No totem do Mostralo, o cliente paga no Pix pelo QR Code que aparece na tela. Quem quer cartão ou dinheiro faz o pedido no caixa, que continua aberto. Deixe isso escrito ao lado do totem."
+        },
+        {
+          "templates": [
+            {
+              "title": "Placa ao lado do totem",
+              "text": "Monte o seu copo aqui sem fila. Escolha o tamanho, os sabores e as coberturas, pague no Pix e aguarde a sua senha. Vai pagar no cartão ou em dinheiro? É só pedir no caixa."
+            }
+          ]
+        },
+        {
+          "p": "Se você usa o Pix online pelo Mostralo, há a taxa da transação. Sobre nota fiscal do pedido, a emissão da NFC-e fica no seu emissor fiscal ou com o contador."
+        },
+        {
+          "tip": "Confirme com o seu contador como emitir a NFC-e das vendas feitas no totem."
+        }
+      ]
+    },
+    {
+      "h2": "Como configurar o cardápio de sorvete e açaí para o totem",
+      "blocks": [
+        {
+          "p": "No totem, o cardápio precisa ser lido em segundos, em pé. O que funciona:"
+        },
+        {
+          "ul": [
+            "**Um produto por tamanho:** Copo 300 ml, Copo 500 ml, Casquinha. O preço já aparece no card.",
+            "**Fotos reais e claras** de cada tamanho, de cima, com fundo limpo.",
+            "**Nomes curtos:** \"Ninho com morango\" cabe no card; descrição longa ninguém lê no totem.",
+            "**Sabores como grupo obrigatório,** com mínimo e máximo por tamanho: o copo de 300 ml pede de 1 a 2 sabores, o de 500 ml de 1 a 3.",
+            "**Coberturas e adicionais com preço** num grupo opcional, e o que é grátis num grupo separado.",
+            "**Poucas categorias,** na ordem: copos, casquinhas, açaí, milk-shakes, bebidas."
+          ]
+        },
+        {
+          "p": "No Mostralo, o montador de copos usa os grupos de adicionais do produto. Com o grupo de sabores obrigatório, o botão de adicionar fica travado até o cliente escolher o mínimo, no totem e na loja online. Para definir o que cobrar e o que deixar grátis, veja o [cardápio de açaí com adicionais](/guia/cardapio-de-acai-com-adicionais)."
+        },
+        {
+          "ol": [
+            "Cadastre cada tamanho como produto, com foto e preço.",
+            "Crie o grupo Sabores, marque como obrigatório e defina o mínimo e o máximo de cada tamanho.",
+            "Crie o grupo Coberturas com o preço de cada uma.",
+            "No menu do totem, ligue o totem, copie o link e abra no navegador do tablet em tela cheia.",
+            "Faça um pedido de teste com o Pix e confira se ele entra no painel de pedidos."
+          ]
+        },
+        {
+          "p": "Produto que acabou, marque como indisponível no painel para ele sair do totem. Se um sabor acabou, tire-o do grupo de sabores enquanto a vitrine não for reposta. Para ver o totem junto com o PDV, a loja online e o estoque, leia o guia de [sistema para sorveteria](/guia/sistema-para-sorveteria) e a página para [sorveterias](/nicho-sorveterias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cliente monta o copo no totem e o pedido chega pago no painel",
+    "p": [
+      "No Mostralo, o totem usa o mesmo cardápio da loja online e do PDV, com o montador de copos que respeita o limite de sabores. O cliente paga no Pix na tela, recebe a senha e o pedido entra no painel. Cartão e quilo continuam no caixa. A gente deixa tudo pronto para você: cardápio, loja, totem e TV com a sua marca. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Totem com link próprio, para abrir em tablet ou tela de toque",
+      "Montador de copos com sabores obrigatórios, mínimo e máximo, e coberturas com preço",
+      "Pix por QR Code na tela, senha de retirada e chamada de senhas na TV",
+      "PDV para cartão, dinheiro e sorvete por quilo, com abertura e fechamento de caixa"
+    ]
+  },
+  "faq": [
+    [
+      "Totem de autoatendimento vale a pena para sorveteria pequena?",
+      "Vale quando há fila nos dias quentes e a maior parte das vendas é copo ou casquinha montada. Comece com um tablet num suporte com trava no balcão."
+    ],
+    [
+      "Onde colocar o totem na sorveteria?",
+      "Perto da vitrine de sabores, antes do caixa. O cliente olha os sabores, marca na tela, paga no Pix e retira no balcão de montagem quando a senha for chamada."
+    ],
+    [
+      "Quanto custa um totem para sorveteria?",
+      "Em 11/11/2026, suportes antifurto para tablet de balcão apareciam por cerca de R$ 200 a R$ 590 em lojas online, e totens de chão de 21 polegadas por cerca de R$ 7.900 a R$ 10.000. Os preços variam; peça orçamento."
+    ],
+    [
+      "O totem do Mostralo aceita cartão?",
+      "Hoje o totem do Mostralo recebe por Pix com QR Code. Quem quiser pagar no cartão ou em dinheiro faz o pedido no caixa."
+    ],
+    [
+      "Dá para vender sorvete por quilo no totem?",
+      "Não é o ideal. No self-service, o cliente pesa e paga no caixa, e o atendente digita no PDV o peso que a balança mostra. O totem fica para copos e casquinhas montados."
+    ]
+  ],
+  "sources": [
+    [
+      "Magazine Luiza: busca por suporte de tablet com trava antifurto (consultado em 11/11/2026)",
+      "https://www.magazineluiza.com.br/busca/suporte+de+parede+compativel+com+tablet+trava++/"
+    ],
+    [
+      "Magazine Luiza: busca por totem 21 polegadas vertical touchscreen (consultado em 11/11/2026)",
+      "https://m.magazineluiza.com.br/busca/totem+21+polegadas+vertical/"
+    ],
+    [
+      "KaBuM: terminal de atendimento Elgin MK 21,5 polegadas (consultado em 11/11/2026)",
+      "https://www.kabum.com.br/produto/1064372/terminal-de-atendimento-elgin-mk-21-5-windows-21-5-46tkw2100200"
+    ]
+  ],
+  "related": [
+    "totem-de-autoatendimento",
+    "sistema-para-sorveteria",
+    "como-montar-uma-sorveteria",
+    "acaiteria-e-sorveteria-no-verao",
+    "cardapio-de-acai-com-adicionais",
+    "cardapio-digital-na-tv"
+  ]
+}

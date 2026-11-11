@@ -1,0 +1,225 @@
+{
+  "slug": "sistema-para-sorveteria",
+  "title": "Sistema para sorveteria: o que precisa ter e como escolher",
+  "h1": "Sistema para sorveteria: os 6 recursos que fazem diferença e as perguntas para fazer ao fornecedor",
+  "description": "Sistema para sorveteria e gelateria: montador de copo com limite de sabores, quilo no caixa, totem, TV de cardápio, delivery próprio e as perguntas certas.",
+  "excerpt": "Sorveteria não é lanchonete: tem copo com sabores, sorvete por quilo, fila no verão e movimento fraco no inverno. Veja o que um sistema para sorveteria precisa ter e o que perguntar antes de assinar.",
+  "date": "2026-11-11",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "sistema para sorveteria",
+    "sistema para gelateria",
+    "pdv para sorveteria",
+    "programa para sorveteria",
+    "sistema para açaiteria",
+    "sorvete por quilo no caixa"
+  ],
+  "image": "/images/guias/sistema-para-sorveteria.jpg",
+  "imageAlt": "Atendente no balcão de uma sorveteria servindo um copo de sorvete ao lado da tela do sistema para sorveteria",
+  "intro": [
+    "Um sistema para sorveteria precisa fazer seis coisas bem: montar o copo com sabores e limites, vender sorvete por quilo no caixa, aguentar a fila do verão com um totem, mostrar o cardápio na TV, receber pedidos de delivery sem comissão e fechar o caixa com relatório. Se o sistema faz só o caixa, o resto vira papel e pedido errado.",
+    "Neste guia você vê cada um desses seis recursos com exemplos de sorveteria e gelateria, o que muda no verão e no inverno, e uma lista de perguntas para fazer ao fornecedor antes de assinar. Serve também para açaiteria, que tem a mesma lógica de copo e adicionais."
+  ],
+  "sections": [
+    {
+      "h2": "O que um sistema para sorveteria precisa ter",
+      "blocks": [
+        {
+          "p": "Sorveteria tem uma rotina que sistema genérico não cobre bem: sabores dentro de um limite, venda por peso e movimento que muda muito entre janeiro e julho."
+        },
+        {
+          "img": "/images/guias/sistema-para-sorveteria-2.jpg",
+          "alt": "Diagrama do sistema para sorveteria com 6 recursos: copo e sabores, quilo no caixa, totem, TV de cardápio, delivery próprio e caixa com relatório",
+          "caption": "Sistema para sorveteria: os 6 recursos para conferir antes de escolher."
+        },
+        {
+          "table": {
+            "head": ["Recurso", "Por que importa na sorveteria"],
+            "rows": [
+              ["Montador de copo", "Sabores com mínimo e máximo e cobertura paga, sem erro de anotação"],
+              ["Quilo no caixa", "Self-service e pote vendidos pelo peso, com o valor calculado"],
+              ["Totem", "Tira a fila do caixa nos fins de semana de calor"],
+              ["TV de cardápio", "Mostra sabores, tamanhos e a promoção do dia sem reimprimir banner"],
+              ["Delivery próprio", "Pote e açaí em casa à noite, sem comissão por pedido"],
+              ["Caixa e relatório", "Abertura, sangria, fechamento e o que vendeu no período"]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Montador de copo: sabores com mínimo, máximo e adicional pago",
+      "blocks": [
+        {
+          "p": "O copo é o produto principal da sorveteria e da gelateria, e é onde mais se perde dinheiro: cliente que pede três sabores num copo de dois, cobertura que sai de graça porque ninguém anotou. No sistema, o copo vira um produto com **grupos de adicionais**, cada grupo com a sua regra."
+        },
+        {
+          "table": {
+            "head": ["Grupo", "Regra", "Preço"],
+            "rows": [
+              ["Sabores (copo de 2 bolas)", "Mínimo 1, máximo 2", "Incluso no copo"],
+              ["Coberturas", "Mínimo 0, máximo 2", "R$ 2,00 cada"],
+              ["Extras (granulado, castanha)", "Mínimo 0, máximo 3", "R$ 1,50 a R$ 3,00"]
+            ]
+          }
+        },
+        {
+          "p": "No Mostralo, o grupo de sabores com mínimo obrigatório trava o botão de adicionar no totem e na loja online até o cliente escolher. O pedido chega com os sabores escritos no item, igual para quem prepara e para o cupom impresso. Para montar os grupos e decidir o que cobrar, veja o guia de [cardápio de açaí com adicionais](/guia/cardapio-de-acai-com-adicionais)."
+        }
+      ]
+    },
+    {
+      "h2": "Sorvete por quilo no caixa: peso, tara e valor",
+      "blocks": [
+        {
+          "p": "No self-service, o cliente serve, a balança pesa e o caixa cobra. A cartilha do Ibametro (órgão de metrologia da Bahia) lembra que o produto deve ser pesado sem embalagem ou com o peso dela descontado, que a balança deve marcar zero antes da pesagem e que o mostrador precisa ficar à vista do cliente. Na prática, o pote vazio é descontado na própria balança, no botão de tara."
+        },
+        {
+          "p": "No PDV do Mostralo, o sorvete do self-service é cadastrado como **Vendido por quilo**, com o preço do kg. O atendente digita o peso que a balança mostrou e o sistema calcula. Exemplo: uma sorveteria cobra R$ 69,90 o quilo."
+        },
+        {
+          "table": {
+            "head": ["Peso na balança", "Conta", "Valor no caixa"],
+            "rows": [
+              ["0,280 kg", "0,280 × R$ 69,90 = R$ 19,572", "R$ 19,57"],
+              ["0,410 kg", "0,410 × R$ 69,90 = R$ 28,659", "R$ 28,66"],
+              ["0,620 kg", "0,620 × R$ 69,90 = R$ 43,338", "R$ 43,34"]
+            ]
+          }
+        },
+        {
+          "p": "A balança não é ligada ao Mostralo: o peso é sempre digitado. Produto por quilo também não controla estoque por unidade; o pote fechado e o picolé com código de barras, sim. O passo a passo do caixa está no guia de [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio)."
+        },
+        {
+          "tip": "Este guia é informativo. A fiscalização das balanças é feita pelo órgão de metrologia do seu estado (Ipem); confirme lá as regras de pesagem e de verificação da sua balança."
+        }
+      ]
+    },
+    {
+      "h2": "Totem e TV de cardápio para o pico do verão",
+      "blocks": [
+        {
+          "p": "Domingo à tarde, 35 graus, fila na porta: é aí que a sorveteria fatura e é aí que mais cliente desiste. O totem deixa quem já sabe o que quer montar o copo sozinho, enquanto o caixa atende quem vai pesar."
+        },
+        {
+          "ul": [
+            "**Totem do Mostralo:** um link que abre em tablet ou tela touch. O cliente monta o copo, paga no Pix pelo QR Code na tela e recebe uma senha; o pedido entra no painel já pago. Cartão e dinheiro continuam no caixa.",
+            "**TV de cardápio:** telas com sabores, tamanhos e a promoção do dia passando em rodízio, trocadas pelo painel.",
+            "**Chamada de senha:** a senha do totem aparece na tela quando o copo fica pronto, sem ninguém gritar nome no balcão."
+          ]
+        },
+        {
+          "p": "Veja quando o totem compensa no guia de [totem para sorveteria](/guia/totem-para-sorveteria) e como montar as telas no guia de [cardápio digital na TV](/guia/cardapio-digital-na-tv)."
+        }
+      ]
+    },
+    {
+      "h2": "Delivery próprio e WhatsApp para o inverno",
+      "blocks": [
+        {
+          "p": "Pote de 1,5 litro, açaí e milk-shake vendem bem à noite e em casa. Com loja online própria, com o seu domínio, o pedido chega sem comissão por pedido para aplicativo. A ressalva: se você escolher receber o pagamento online pelo EFI do Mostralo, existe a taxa dessa forma de pagamento. Pix na entrega, cartão na maquininha e dinheiro não passam por ela."
+        },
+        {
+          "p": "No inverno o balcão esvazia, e a lista de clientes vira o seu caixa. As campanhas de WhatsApp do Mostralo filtram quem não pede há um tempo, quem já pediu várias vezes e quem gastou mais, para mandar a oferta do pote ou do combo certo. Mais ideias no guia de [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao) e no de [açaiteria e sorveteria no verão](/guia/acaiteria-e-sorveteria-no-verao)."
+        }
+      ]
+    },
+    {
+      "h2": "Caixa, estoque e relatório no fim do dia",
+      "blocks": [
+        {
+          "ul": [
+            "**Caixa:** abra com o troco contado, faça sangria quando a gaveta encher e feche conferindo dinheiro, Pix e cartão. Veja o guia de [abertura e fechamento de caixa](/guia/abertura-e-fechamento-de-caixa).",
+            "**Estoque:** picolé, pote fechado e bebida baixam do estoque a cada venda.",
+            "**Relatórios:** as vendas do período mostram o que saiu no verão e o que vale manter no inverno.",
+            "**Impressão:** cupom do pedido na térmica de 58 ou 80 mm, e o app Mostralo Pedidos (Android) imprime ao aceitar o pedido do delivery."
+          ]
+        },
+        {
+          "p": "Nota fiscal: a emissão da NFC-e fica no seu emissor fiscal ou com o seu contador. O comprovante do caixa não tem valor fiscal."
+        },
+        {
+          "tip": "Confirme com o seu contador como emitir a NFC-e das vendas do balcão e do delivery antes de trocar de sistema."
+        }
+      ]
+    },
+    {
+      "h2": "Como escolher: perguntas para fazer ao fornecedor do sistema",
+      "blocks": [
+        {
+          "p": "Leve esta lista para a demonstração e peça para ver funcionando na tela."
+        },
+        {
+          "ol": [
+            "Consigo criar um copo com sabores com mínimo e máximo e cobertura paga? O cliente fica travado se não escolher?",
+            "Como vendo por quilo no caixa? A balança se conecta ao sistema ou o peso é digitado?",
+            "Tem totem? Que formas de pagamento ele aceita na tela?",
+            "Tem cardápio na TV que eu mesmo troco pelo painel?",
+            "O delivery é próprio, com meu domínio? Tem comissão por pedido ou taxa de pagamento online?",
+            "Tem abertura, sangria e fechamento de caixa com relatório impresso?",
+            "O estoque baixa sozinho na venda? E o produto por quilo?",
+            "Funciona sem internet? O que acontece se a conexão cair?",
+            "Como fica a NFC-e: o sistema emite ou uso o meu emissor?",
+            "Quem configura o cardápio, a loja e o totem no começo?"
+          ]
+        },
+        {
+          "p": "No Mostralo, as respostas honestas são: balança sem conexão (peso digitado), totem com Pix, sistema que precisa de internet e NFC-e no seu emissor. Em troca, a gente deixa cardápio, loja, totem e TV prontos com a sua marca. Compare com o que mais você está avaliando na página de [funcionalidades](/funcionalidades) e, se ainda está no começo, leia [como montar uma sorveteria](/guia/como-montar-uma-sorveteria)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o sistema para sorveteria do balcão ao delivery",
+    "p": [
+      "No Mostralo, a sorveteria e a gelateria usam o mesmo cadastro para o copo com sabores no totem e na loja online, o sorvete por quilo no caixa, a TV de cardápio e o delivery próprio sem comissão por pedido. A gente deixa tudo pronto para você, com garantia de 7 dias. Conheça a página para [sorveterias](/nicho-sorveterias), acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Copo com sabores de mínimo e máximo e coberturas pagas",
+      "Sorvete por quilo no PDV com o valor calculado pelo peso",
+      "Totem com Pix na tela, senha e TV de cardápio",
+      "Delivery próprio, campanhas de WhatsApp, caixa e relatórios"
+    ]
+  },
+  "faq": [
+    [
+      "Qual o melhor sistema para sorveteria?",
+      "O que monta o copo com limite de sabores, vende por quilo no caixa, tem totem, TV de cardápio, delivery próprio e fechamento de caixa. Use as perguntas deste guia na demonstração de cada fornecedor."
+    ],
+    [
+      "O sistema para sorveteria se conecta à balança?",
+      "Depende do sistema. No Mostralo, a balança não é ligada: o atendente digita o peso que ela mostrou e o caixa calcula o valor pelo preço do quilo."
+    ],
+    [
+      "O totem da sorveteria aceita cartão?",
+      "No Mostralo, o totem recebe no Pix, com QR Code na tela. Quem quer pagar com cartão ou dinheiro paga no caixa."
+    ],
+    [
+      "Serve como sistema para açaiteria?",
+      "Sim. O açaí usa a mesma lógica de copo com tamanhos, complementos com limite e adicionais pagos."
+    ],
+    [
+      "O sistema emite nota fiscal?",
+      "A emissão da NFC-e fica no seu emissor fiscal ou com o seu contador. Confirme com ele antes de trocar de sistema."
+    ]
+  ],
+  "sources": [
+    [
+      "Ibametro (Governo da Bahia) — Cartilha do consumidor: balanças, tara e marca de verificação",
+      "https://www.ba.gov.br/ibametro/sites/site-ibametro/files/migracao_2024/arquivos/File/publicacoes/cartilha_ibametro.pdf"
+    ],
+    [
+      "Blog Cielo — Como montar uma sorveteria e encantar seus clientes? (atualizado em 30/08/2023)",
+      "https://blog.cielo.com.br/dicas-e-historias-de-sucesso/como-montar-uma-sorveteria/"
+    ]
+  ],
+  "related": [
+    "totem-para-sorveteria",
+    "como-montar-uma-sorveteria",
+    "acaiteria-e-sorveteria-no-verao",
+    "cardapio-de-acai-com-adicionais",
+    "cardapio-digital-na-tv",
+    "pdv-para-pequeno-negocio"
+  ]
+}

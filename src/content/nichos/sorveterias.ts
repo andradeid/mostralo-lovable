@@ -37,7 +37,7 @@ const solutions = [
     icon: Monitor,
     title: 'TV de Cardápio',
     subtitle: 'Preço e promoção na parede',
-    description: 'As telas do cardápio e das promoções passam na TV da loja, com a sua marca. Mudou o preço ou acabou um sabor? Troca no painel e a TV atualiza.',
+    description: 'As telas do cardápio e das promoções passam na TV da loja, com a sua marca. Mudou o preço ou acabou um sabor? Troque a tela pelo painel e a TV atualiza na hora.',
     cls: solutionCls('pink'),
   },
 ];

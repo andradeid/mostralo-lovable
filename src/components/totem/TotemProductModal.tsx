@@ -71,16 +71,23 @@ export function TotemProductModal({
           setAddonCategories(categoriesData);
         }
 
-        // Buscar adicionais
-        const { data: addonsData } = await supabase
-          .from('addons')
-          .select('id, name, price, category_id')
-          .eq('store_id', storeId)
-          .eq('is_available', true)
-          .order('display_order');
-
-        if (addonsData) {
-          setAddons(addonsData);
+        // Só os adicionais ligados a este produto (igual à loja online)
+        const { data: links } = await supabase
+          .from('product_addons')
+          .select('addon_id')
+          .eq('product_id', product.id);
+        const linked = new Set((links ?? []).map(l => l.addon_id));
+        if (linked.size === 0) {
+          setAddons([]);
+        } else {
+          const { data: addonsData } = await supabase
+            .from('addons')
+            .select('id, name, price, category_id')
+            .eq('store_id', storeId)
+            .eq('is_available', true)
+            .in('id', [...linked])
+            .order('display_order');
+          setAddons(addonsData ?? []);
         }
       } catch (err) {
         console.error('Erro ao carregar adicionais:', err);
@@ -90,15 +97,31 @@ export function TotemProductModal({
     };
 
     fetchAddons();
-  }, [storeId]);
+  }, [storeId, product.id]);
 
   const handleAddonToggle = (addon: Addon, checked: boolean) => {
     if (checked) {
-      setSelectedAddons(prev => [...prev, addon]);
+      const cat = addonCategories.find(c => c.id === addon.category_id);
+      const max = cat?.max_selections ?? 0;
+      setSelectedAddons(prev => {
+        const inCat = prev.filter(a => a.category_id === addon.category_id);
+        // Limite da categoria: com 1 escolha só, troca a escolhida; com mais, para no máximo
+        if (max === 1 && inCat.length >= 1) return [...prev.filter(a => a.category_id !== addon.category_id), addon];
+        if (max > 0 && inCat.length >= max) return prev;
+        return [...prev, addon];
+      });
     } else {
       setSelectedAddons(prev => prev.filter(a => a.id !== addon.id));
     }
   };
+
+  // Categorias com mínimo que ainda não foi atingido (ex.: escolher os sabores)
+  const missingCategory = addonCategories.find(c => {
+    const min = c.min_selections ?? 0;
+    if (min <= 0) return false;
+    if (!addons.some(a => a.category_id === c.id)) return false;
+    return selectedAddons.filter(a => a.category_id === c.id).length < min;
+  });
 
   const handleAddToCart = () => {
     const item: TotemCartItem = {
@@ -172,7 +195,16 @@ export function TotemProductModal({
               {groupedAddons.map(category => (
                 category.addons.length > 0 && (
                   <div key={category.id}>
-                    <h3 className="font-semibold mb-2">{category.name}</h3>
+                    <h3 className="font-semibold mb-2">
+                      {category.name}
+                      {(category.min_selections || category.max_selections) ? (
+                        <span className={`ml-2 text-sm font-normal ${config.dark_mode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {category.min_selections && category.max_selections && category.min_selections !== category.max_selections
+                            ? `escolha de ${category.min_selections} a ${category.max_selections}`
+                            : category.max_selections ? `escolha até ${category.max_selections}` : `escolha pelo menos ${category.min_selections}`}
+                        </span>
+                      ) : null}
+                    </h3>
                     <div className="space-y-2">
                       {category.addons.map(addon => (
                         <label
@@ -270,11 +302,11 @@ export function TotemProductModal({
 
           <Button
             onClick={handleAddToCart}
-            disabled={salesPaused}
-            className={`w-full h-14 text-lg font-semibold text-white ${salesPaused ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={salesPaused || !!missingCategory || loading}
+            className={`w-full h-14 text-lg font-semibold text-white ${salesPaused || missingCategory ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ backgroundColor: config.theme_color }}
           >
-            {salesPaused ? 'Vendas Pausadas' : 'Adicionar ao Carrinho'}
+            {salesPaused ? 'Vendas Pausadas' : missingCategory ? `Escolha ${missingCategory.name.toLowerCase()}` : 'Adicionar ao Carrinho'}
           </Button>
         </div>
       </div>

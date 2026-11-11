@@ -106,6 +106,14 @@ const faqs = [
   },
 ];
 
+const related = [
+  { label: 'Sistema para sorveteria', to: '/guia/sistema-para-sorveteria' },
+  { label: 'Totem para sorveteria', to: '/guia/totem-para-sorveteria' },
+  { label: 'Sorvete por quilo', to: '/guia/sorvete-por-quilo' },
+  { label: 'Cardápio de sorveteria', to: '/guia/cardapio-de-sorveteria' },
+  { label: 'Como montar uma sorveteria', to: '/guia/como-montar-uma-sorveteria' },
+];
+
 // ---- Página ----
 export const sorveterias: NicheContent = {
   path: '/nicho-sorveterias',
@@ -292,6 +300,8 @@ export const sorveterias: NicheContent = {
             triggerInner: { as: 'span', className: 'font-semibold' },
             items: faqs,
           }),
+          h('p', { className: 'text-center text-zinc-500 mt-10 mb-3 text-sm', text: 'Para ler com calma:' }),
+          links({ className: 'flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm', linkClassName: 'text-pink-300 hover:text-pink-200 underline underline-offset-4', items: related }),
         ]),
       ]),
     ]),

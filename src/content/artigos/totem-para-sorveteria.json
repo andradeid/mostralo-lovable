@@ -16,6 +16,45 @@
   ],
   "image": "/images/guias/totem-para-sorveteria.jpg",
   "imageAlt": "Atendente no balcão de uma sorveteria com vitrine de sabores ao lado do totem de autoatendimento para sorveteria",
+  "audio": {
+    "src": "/audio/guias/totem-para-sorveteria.mp3",
+    "duration": 568,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0,
+        "target": "intro"
+      },
+      {
+        "t": 50.5,
+        "target": "s1"
+      },
+      {
+        "t": 108.7,
+        "target": "s2"
+      },
+      {
+        "t": 174.6,
+        "target": "s3"
+      },
+      {
+        "t": 238.0,
+        "target": "s4"
+      },
+      {
+        "t": 332.6,
+        "target": "s5"
+      },
+      {
+        "t": 378.4,
+        "target": "s6"
+      },
+      {
+        "t": 509.5,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Um totem de autoatendimento para sorveteria deixa o cliente escolher o tamanho, os sabores e as coberturas numa tela, pagar no Pix e esperar a senha, enquanto o caixa atende outra pessoa. Ele vale a pena quando a fila nasce da indecisão na frente da vitrine, que é o que acontece em todo fim de tarde quente.",
     "Este guia é só sobre sorveteria, gelateria e açaiteria: por que o copo montado trava o caixa, onde colocar o totem na loja, quando usar um tablet no balcão ou um totem de chão, como fica o pagamento e como deixar o cardápio pronto para a tela. A parte geral sobre totem está no guia de [totem de autoatendimento](/guia/totem-de-autoatendimento)."

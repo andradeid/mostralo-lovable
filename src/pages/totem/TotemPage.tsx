@@ -65,7 +65,7 @@ export default function TotemPage() {
       try {
         // Buscar loja
         const { data: storeData, error: storeError } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('id, name, slug, logo_url')
           .eq('slug', storeSlug)
           .single();

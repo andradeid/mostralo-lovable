@@ -5,7 +5,7 @@
   "description": "Cardápio de sorveteria que vende: tamanhos de copo, limite de sabores por tamanho, coberturas com preço, especiais e o que fazer quando um sabor acaba.",
   "excerpt": "Copo com sabor a mais e cobertura que sai de graça comem o lucro da sorveteria. Veja como montar o cardápio com tamanhos claros, limite de sabores, adicionais pagos e especiais.",
   "date": "2026-11-11",
-  "readMinutes": 7,
+  "readMinutes": 8,
   "category": "Por segmento",
   "keywords": [
     "cardápio de sorveteria",
@@ -19,14 +19,14 @@
   "imageAlt": "Atendente no balcão de uma sorveteria servindo uma bola de sorvete no copo em frente à vitrine de sabores, ao lado do cardápio de sorveteria",
   "intro": [
     "Um cardápio de sorveteria que vende e não dá prejuízo tem quatro blocos, nesta ordem: tamanhos com preço fechado, sabores com um limite claro para cada tamanho, coberturas e adicionais sempre cobrados e alguns especiais de valor mais alto, como milkshake e sundae. Quando cada regra está escrita no cardápio, o cliente escolhe rápido e a equipe não precisa negociar no balcão.",
-    "Neste guia você vai ver quais tamanhos oferecer, quantos sabores liberar em cada um, o que cobrar à parte, como organizar a vitrine e os sabores do dia, como mostrar um sabor esgotado e como manter o mesmo cardápio na loja online, no totem e na TV."
+    "Neste guia você vai ver quais tamanhos oferecer, quantos sabores liberar em cada um, o que cobrar à parte, como cuidar dos sabores do dia e do sabor esgotado e como manter o mesmo cardápio na loja online, no totem e na TV."
   ],
   "sections": [
     {
       "h2": "Como montar um cardápio de sorveteria que vende",
       "blocks": [
         {
-          "p": "O prejuízo na sorveteria raramente vem do preço da bola. Vem do que escapa: o terceiro sabor no copo de dois, a calda que ninguém cobrou, o milkshake que só existe na cabeça do atendente. O cardápio resolve isso quando segue uma estrutura fixa."
+          "p": "O prejuízo na sorveteria raramente vem do preço da bola. Vem do que escapa: o terceiro sabor no copo de dois, a calda que ninguém cobrou. O cardápio resolve isso com uma estrutura fixa."
         },
         {
           "img": "/images/guias/cardapio-de-sorveteria-2.jpg",
@@ -42,7 +42,7 @@
           ]
         },
         {
-          "p": "No cardápio digital, essa também é a ordem das categorias: o que mais sai fica em cima. Picolé, bebidas e potes para levar entram depois dos especiais."
+          "p": "Essa também é a ordem das categorias no cardápio digital. Picolé, bebidas e potes para levar entram depois."
         }
       ]
     },
@@ -50,7 +50,7 @@
       "h2": "Tamanhos de copo de sorvete: bolas ou gramas?",
       "blocks": [
         {
-          "p": "Para quem pede no balcão, o tamanho em bolas é mais fácil de entender. Para o seu custo, o que vale é a grama. Por isso, pese a bola de verdade: peça para a equipe tirar dez bolas com a mesma colher, pese tudo e divida por dez. Esse peso médio vira o padrão do treinamento e a base do preço."
+          "p": "Para o cliente, tamanho em bolas é mais fácil de entender. Para o seu custo, vale a grama. Peça para a equipe tirar dez bolas com a mesma colher, pese tudo e divida por dez. Esse peso médio vira o padrão do treinamento e a base do preço."
         },
         {
           "table": {
@@ -89,7 +89,7 @@
           }
         },
         {
-          "p": "Três ou quatro tamanhos bastam. Com mais do que isso, o cliente trava na escolha e a fila cresce. O sorvete servido por peso no self-service segue outra lógica, explicada no guia de [sorvete por quilo](/guia/sorvete-por-quilo). Para chegar ao preço de cada tamanho, use o guia de [como calcular margem de lucro](/guia/como-calcular-margem-de-lucro)."
+          "p": "Três ou quatro tamanhos bastam; com mais, o cliente trava na escolha e a fila cresce. O self-service por peso segue outra lógica, explicada no guia de [sorvete por quilo](/guia/sorvete-por-quilo). Para chegar ao preço de cada tamanho, use o guia de [como calcular margem de lucro](/guia/como-calcular-margem-de-lucro)."
         }
       ]
     },
@@ -97,18 +97,18 @@
       "h2": "Quantos sabores liberar em cada tamanho",
       "blocks": [
         {
-          "p": "O limite de sabores é o que protege a margem. Sem ele, o copo médio vira três bolas pequenas, a equipe gasta tempo trocando de cuba e o cliente acha que levou menos. Escreva o limite no nome do produto (\"Copo médio, até 2 sabores\") e deixe o sistema travar a escolha."
+          "p": "O limite de sabores protege a margem. Sem ele, o copo médio vira três bolas pequenas e a equipe perde tempo trocando de cuba. Escreva o limite no nome do produto (\"Copo médio, até 2 sabores\") e deixe o sistema travar a escolha."
         },
         {
           "p": "No Mostralo, o mínimo e o máximo ficam no **grupo** de adicionais, e não no tamanho. Um grupo \"Sabores\" com mínimo 1 e máximo 3 vale igual para todos os produtos ligados a ele. Para ter limites diferentes, cadastre cada tamanho como um produto e crie um grupo de sabores para cada limite:"
         },
         {
           "ol": [
-            "No menu Loja, abra **Categorias de Adicionais** e crie \"Sabores do copo pequeno\", marque \"Esta categoria é obrigatória\" e use mínimo 1 e limite máximo 1.",
-            "Crie \"Sabores do copo médio\" com mínimo 1 e máximo 2, e \"Sabores do copo grande\" com mínimo 1 e máximo 3.",
-            "Em **Adicionais**, cadastre os sabores dentro de cada grupo, com preço R$ 0,00. Cada adicional pertence a um grupo só, então o mesmo sabor é cadastrado uma vez em cada grupo.",
-            "Em **Produtos**, crie \"Copo pequeno\", \"Copo médio\" e \"Copo grande\" e ligue cada um ao seu grupo de sabores e aos grupos de coberturas.",
-            "Monte um copo de teste na loja online e no totem para ver se o limite trava no número certo."
+            "Em Loja, **Categorias de Adicionais**, crie \"Sabores do copo pequeno\", marque \"Esta categoria é obrigatória\" e use mínimo 1 e limite máximo 1.",
+            "Crie \"Sabores do copo médio\" (mínimo 1, máximo 2) e \"Sabores do copo grande\" (mínimo 1, máximo 3).",
+            "Em **Adicionais**, cadastre os sabores em cada grupo, com preço R$ 0,00. Cada adicional pertence a um grupo só, então o mesmo sabor entra uma vez em cada grupo.",
+            "Em **Produtos**, crie os três copos e ligue cada um ao seu grupo de sabores e aos de coberturas.",
+            "Monte um copo de teste na loja online e no totem para conferir o limite."
           ]
         },
         {
@@ -123,7 +123,7 @@
       "h2": "Coberturas e adicionais de sorvete: o que cobrar",
       "blocks": [
         {
-          "p": "Cobertura grátis parece gentileza, mas é custo que se repete em todo copo. A regra simples: o que custa pouco e quase todo mundo usa pode entrar no preço do copo; o resto é adicional pago, com o valor escrito ao lado do nome."
+          "p": "Cobertura grátis é custo que se repete em todo copo. A regra: o que custa pouco e quase todo mundo usa pode entrar no preço do copo; o resto é adicional pago, com o valor ao lado do nome."
         },
         {
           "table": {
@@ -160,18 +160,18 @@
       "h2": "Especiais: milkshake, sundae, affogato e açaí",
       "blocks": [
         {
-          "p": "Os especiais são os itens de valor mais alto do cardápio de sorvete. Um estudo da Worldpanel by Numerator, da Kantar, publicado em julho de 2025, mostra que o segmento premium tem menos compradores, mas concentra a maior parte do gasto com sorvete no Brasil. Ou seja, vale ter três ou quatro itens montados, com foto e preço."
+          "p": "Os especiais são os itens de valor mais alto do cardápio de sorvete. Um estudo da Worldpanel by Numerator (Kantar), publicado em julho de 2025, mostra que o segmento premium tem menos compradores, mas concentra a maior parte do gasto com sorvete no Brasil. Vale ter três ou quatro especiais com foto e preço."
         },
         {
           "ul": [
-            "**Milkshake:** dois tamanhos no máximo, com o sabor escolhido num grupo obrigatório de 1 sabor.",
-            "**Sundae:** sorvete, calda e crocante já definidos. O cliente não monta, só escolhe.",
-            "**Affogato:** sorvete de creme com café expresso. Bom para o inverno e para a tarde.",
-            "**Açaí:** se a loja vende, ele ganha categoria própria, com os tamanhos e complementos dele."
+            "**Milkshake:** até dois tamanhos, com um grupo obrigatório de 1 sabor.",
+            "**Sundae:** sorvete, calda e crocante já definidos. O cliente só escolhe.",
+            "**Affogato:** sorvete de creme com café expresso, bom para o inverno.",
+            "**Açaí:** se a loja vende, ganha categoria própria, com tamanhos e complementos dele."
           ]
         },
         {
-          "p": "No inverno, os especiais quentes e o delivery seguram o caixa. O boletim de tendências do Sebrae sobre sorveterias aponta que cerca de 70% do consumo de sorvete no Brasil acontece entre setembro e março. Mais ideias para a alta estação no guia de [como vender mais no verão](/guia/acaiteria-e-sorveteria-no-verao)."
+          "p": "O boletim de tendências do Sebrae sobre sorveterias aponta que cerca de 70% do consumo de sorvete no Brasil acontece entre setembro e março; no inverno, os especiais quentes e o delivery seguram o caixa. Mais ideias no guia de [como vender mais no verão](/guia/acaiteria-e-sorveteria-no-verao)."
         }
       ]
     },
@@ -179,7 +179,7 @@
       "h2": "Sabores mais vendidos, sabores do dia e sabor esgotado",
       "blocks": [
         {
-          "p": "Num levantamento do iFood divulgado em 2025, chocolate apareceu como o sabor de sorvete mais pedido no app, seguido do açaí. Morango, coco, creme de avelã, maracujá, pistache, napolitano, frutas vermelhas e doce de leite também estão entre os favoritos. Use isso como ponto de partida e confira no seu relatório de vendas quais giram na sua loja."
+          "p": "Num levantamento do iFood divulgado em 2025, chocolate foi o sabor de sorvete mais pedido no app, seguido do açaí. Morango, coco, creme de avelã, maracujá, pistache, napolitano, frutas vermelhas e doce de leite também aparecem entre os favoritos. Use como ponto de partida e confira no seu relatório quais giram na sua loja."
         },
         {
           "ul": [
@@ -193,7 +193,7 @@
           "p": "Quando um sabor acaba, tire ele do cardápio na hora. No Mostralo, em **Adicionais**, desligue a chave do sabor (fica \"Inativo\") ou edite e marque \"Ocultar item\". O sabor some da loja online e do totem, e volta ligando a chave. Se o sabor está em mais de um grupo (pequeno, médio e grande), desligue em todos."
         },
         {
-          "tip": "Combine com a equipe: a cuba esvaziou, alguém desliga o sabor no painel antes de servir o próximo cliente. É isso que evita o pedido online com sabor que não existe mais."
+          "tip": "Combine com a equipe: a cuba esvaziou, alguém desliga o sabor no painel antes de servir o próximo cliente. Assim não entra pedido online de sabor que acabou."
         }
       ]
     },
@@ -201,13 +201,13 @@
       "h2": "Fotos e o mesmo cardápio na loja, no totem e na TV",
       "blocks": [
         {
-          "p": "Foto vende sorvete. Fotografe o copo de verdade, com luz natural e fundo limpo, logo depois de servir, antes de derreter. Uma foto por tamanho e uma por especial já bastam."
+          "p": "Foto vende sorvete. Fotografe o copo de verdade, com luz natural e fundo limpo, logo depois de servir. Uma foto por tamanho e uma por especial bastam."
         },
         {
-          "p": "No Mostralo, a loja online e o totem usam o mesmo cadastro: mudou o preço ou desligou um sabor, muda nos dois. A TV de cardápio, no **Painel Digital**, mostra as imagens e vídeos que você sobe, em rodízio. Ela não puxa os preços sozinha, então troque a imagem quando o preço mudar. Veja como montar as telas no guia de [cardápio digital na TV](/guia/cardapio-digital-na-tv)."
+          "p": "No Mostralo, a loja online e o totem usam o mesmo cadastro: mudou o preço ou desligou um sabor, muda nos dois. A TV de cardápio, no **Painel Digital**, mostra em rodízio as imagens e vídeos que você sobe e não puxa os preços sozinha; troque a imagem quando o preço mudar. Veja o guia de [cardápio digital na TV](/guia/cardapio-digital-na-tv)."
         },
         {
-          "p": "Outros recursos para o ramo estão na página para [sorveterias](/nicho-sorveterias) e no guia de [sistema para sorveteria](/guia/sistema-para-sorveteria)."
+          "p": "Mais recursos na página para [sorveterias](/nicho-sorveterias) e no guia de [sistema para sorveteria](/guia/sistema-para-sorveteria)."
         }
       ]
     }
@@ -227,23 +227,23 @@
   "faq": [
     [
       "Quantos sabores colocar no cardápio de sorveteria?",
-      "Para uma loja pequena, 8 a 12 sabores fixos e 2 a 4 em rodízio costumam bastar. Confira no relatório de vendas quais giram e troque os que ficam parados na vitrine."
+      "Para uma loja pequena, 8 a 12 sabores fixos e 2 a 4 em rodízio costumam bastar. Troque os que ficam parados na vitrine."
     ],
     [
       "Copo de sorvete por bola ou por grama?",
-      "No cardápio, bola é mais fácil para o cliente. Para o custo, pese a bola média da sua equipe e use esse peso para calcular o preço de cada tamanho. Self-service por peso é outro formato, cobrado pelo quilo."
+      "No cardápio, bola é mais fácil para o cliente. Para o custo, pese a bola média da equipe e use esse peso no preço de cada tamanho."
     ],
     [
       "Dá para ter limite de sabores diferente para cada tamanho no Mostralo?",
-      "Sim, com um grupo de sabores para cada limite. O mínimo e o máximo ficam no grupo, então crie \"Sabores do copo pequeno\" com até 1, \"Sabores do copo médio\" com até 2 e assim por diante, e ligue cada tamanho ao seu grupo."
+      "Sim, com um grupo de sabores para cada limite, porque o mínimo e o máximo ficam no grupo: \"Sabores do copo pequeno\" com até 1, \"Sabores do copo médio\" com até 2, e cada tamanho ligado ao seu grupo."
     ],
     [
       "Como mostrar que um sabor de sorvete acabou?",
-      "No Mostralo, em Adicionais, desligue a chave do sabor ou marque \"Ocultar item\". Ele some da loja online e do totem até você ligar de novo. Se o sabor está em vários grupos, desligue em cada um."
+      "No Mostralo, em Adicionais, desligue a chave do sabor ou marque \"Ocultar item\". Ele some da loja online e do totem até você ligar de novo; se está em vários grupos, desligue em cada um."
     ],
     [
       "Devo cobrar a cobertura do sorvete?",
-      "Cobre o que pesa no custo, como castanha, chantilly e calda extra, com o preço escrito ao lado do nome. Deixe no preço do copo só o que custa pouco e quase todo cliente usa."
+      "Cobre o que pesa no custo, como castanha, chantilly e calda extra, com o preço ao lado do nome. No preço do copo, só o que custa pouco e quase todo cliente usa."
     ]
   ],
   "sources": [

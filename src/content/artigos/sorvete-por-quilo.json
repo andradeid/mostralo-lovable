@@ -17,6 +17,7 @@
   ],
   "image": "/images/guias/sorvete-por-quilo.jpg",
   "imageAlt": "Atendente no balcão de uma sorveteria self-service colocando o pote na balança para cobrar o sorvete por quilo",
+  "audio": {"src": "/audio/guias/sorvete-por-quilo.mp3", "duration": 612, "voice": "Puck", "segments": [{"t": 0, "target": "intro"}, {"t": 53.0, "target": "s1"}, {"t": 195.9, "target": "s2"}, {"t": 269.2, "target": "s3"}, {"t": 381.7, "target": "s4"}, {"t": 440.7, "target": "s5"}, {"t": 494.5, "target": "s6"}, {"t": 553.5, "target": "mostralo"}]},
   "intro": [
     "Para cobrar sorvete por quilo, some o custo de um quilo servido (massa, coberturas, perda e embalagem), divida pela parte do preço que esse custo pode ocupar e arredonde. No balcão, o pote vazio é descontado na balança (a tara), o cliente vê o peso no mostrador e o caixa multiplica esse peso pelo preço do quilo.",
     "Neste guia você vê a conta do preço do quilo com um exemplo que fecha, as regras da balança que a fiscalização confere, como registrar o peso no caixa sem erro, quando cobrar a cobertura à parte, o que fazer com quem quer pouquinho e como deixar o preço à vista."

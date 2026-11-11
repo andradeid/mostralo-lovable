@@ -17,6 +17,22 @@
   ],
   "image": "/images/guias/como-montar-uma-sorveteria.jpg",
   "imageAlt": "Dona de sorveteria atrás do balcão com a vitrine de sorvetes conferindo o celular antes da inauguração, ilustrando como montar uma sorveteria",
+  "audio": {
+    "src": "/audio/guias/como-montar-uma-sorveteria.mp3",
+    "duration": 647,
+    "voice": "Puck",
+    "segments": [
+      {"t": 0, "target": "intro"},
+      {"t": 48.9, "target": "s1"},
+      {"t": 116.1, "target": "s2"},
+      {"t": 205.1, "target": "s3"},
+      {"t": 299.0, "target": "s4"},
+      {"t": 408.0, "target": "s5"},
+      {"t": 481.7, "target": "s6"},
+      {"t": 533.2, "target": "s7"},
+      {"t": 588.2, "target": "mostralo"}
+    ]
+  },
   "intro": [
     "Para montar uma sorveteria, você precisa decidir quatro coisas antes de comprar qualquer freezer: se vai fabricar ou revender sorvete, o ponto, o formato de venda (copo, casquinha, pote ou quilo) e as licenças da vigilância sanitária. O resto, equipamentos, cardápio, sistema e divulgação, sai dessas decisões.",
     "Aqui você vê ponto, equipamentos, quanto custa segundo fontes atuais, documentos, preço e um checklist de 60 dias. Serve também para a segunda unidade."

@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, Cherry, DollarSign, IceCreamBowl, MessageSquare, Sparkles, Star, Sun, Tablet, Truck, Zap } from 'lucide-react';
+import { ArrowRight, BarChart3, Cherry, DollarSign, IceCreamBowl, MessageSquare, Monitor, Sparkles, Sun, Tablet, Truck, Zap } from 'lucide-react';
 import { badge, cta, f, faq, FOOTER_LINKS, grid, h, icon, itemIcon, layer, links, plans, savings, span, trust, whatsapp } from '@/components/nicho/build';
 import type { NicheContent } from '@/components/nicho/types';
 
@@ -16,22 +16,29 @@ const solutionCls = (color: keyof typeof SOLUTION_CLS) => SOLUTION_CLS[color];
 const solutions = [
   {
     icon: Cherry,
-    title: 'Montador de Taças e Copos',
-    description: 'O cliente escolhe o tamanho, os sabores e os toppings (frutas, chocolates, caldas) de forma visual. O pedido chega detalhado à produção, sem erro de anotação.',
+    title: 'Montador de Copos e Taças',
+    description: 'O cliente escolhe o tamanho, os sabores (com o limite que você definir) e as coberturas com preço. Sabor obrigatório: não sai copo sem sabor. O pedido chega detalhado na produção, sem erro de anotação.',
     cls: solutionCls('pink'),
   },
   {
     icon: Tablet,
     title: 'Totem de Autoatendimento',
     subtitle: 'O fim das filas',
-    description: 'Deixe que o cliente peça e pague via PIX ou Cartão sozinho. Ideal para dias de calor intenso, libertando a sua equipa para focar apenas na montagem dos pedidos.',
+    description: 'O cliente monta o pedido sozinho, paga no Pix na própria tela e recebe a senha. Quem prefere cartão ou dinheiro passa no caixa. Nos dias de calor, a equipe fica livre para montar os pedidos.',
     cls: solutionCls('orange'),
   },
   {
     icon: Zap,
     title: 'PDV Touch Rápido',
-    description: 'Vendas presenciais em poucos toques, com a comanda impressa (térmica 58/80 mm) para a equipa de produção saber exatamente o que preparar.',
+    description: 'Vendas no balcão em poucos toques, com abertura e fechamento de caixa e a comanda impressa na térmica (58 ou 80 mm) para a produção saber exatamente o que montar.',
     cls: solutionCls('amber'),
+  },
+  {
+    icon: Monitor,
+    title: 'TV de Cardápio',
+    subtitle: 'Preço e promoção na parede',
+    description: 'As telas do cardápio e das promoções passam na TV da loja, com a sua marca. Mudou o preço ou acabou um sabor? Troca no painel e a TV atualiza.',
+    cls: solutionCls('pink'),
   },
 ];
 
@@ -40,21 +47,21 @@ const benefits = [
     icon: Sun,
     title: 'WhatsApp Marketing',
     subtitle: 'O Gatilho do Calor',
-    description: "'Fim de semana de Sol!' Monte a campanha de WhatsApp em poucos cliques: você escolhe quem recebe (quem não pede há dias, quem mais compra) e dispara a promoção no dia quente.",
+    description: "Fim de semana de sol? Monte a campanha de WhatsApp em poucos cliques: você escolhe quem recebe (quem não pede há dias, quem mais compra) e manda a promoção no dia quente.",
     stat: '1 clique',
     statLabel: 'para disparar a campanha',
   },
   {
     icon: DollarSign,
     title: 'Independência Total',
-    description: 'Pare de pagar comissão por cada sorvete vendido no delivery. Com o Mostralo, o link é seu, os dados são seus e não há comissão por pedido: só a mensalidade (pagamento online tem taxa à parte).',
+    description: 'Pare de pagar comissão por cada sorvete vendido no delivery. Com o Mostralo, o link é seu, os clientes são seus e não há comissão por pedido: só a mensalidade (pagamento online tem taxa à parte).',
     stat: '0%',
     statLabel: 'comissão por pedido',
   },
   {
     icon: BarChart3,
-    title: 'Financeiro e Gestão de Sabores',
-    description: 'Saiba quais são os sabores campeões de venda e quais estão parados no estoque. Dashboard completo com fluxo de caixa e ticket médio por cliente.',
+    title: 'Caixa e relatórios',
+    description: 'Vendas do balcão, do totem e do delivery no mesmo painel: relatório por produto, horário e forma de pagamento, com abertura, sangria e fechamento de caixa.',
     stat: 'Na hora',
     statLabel: 'relatório de vendas',
   },
@@ -67,23 +74,35 @@ const channels = [
 ];
 
 const testimonials = [
-  { quote: 'O Totem foi a melhor decisão. No dia mais quente do ano, a fila simplesmente não existia mais.', author: 'Rafael', business: 'Gelato Artesanal - SP' },
-  { quote: 'O montador de taças zerou os erros. Chocolate com morango? O cliente escolhe e vem certinho.', author: 'Carla', business: 'Sorveteria Tropical - MG' },
-  { quote: 'O WhatsApp automático no calor é genial. Mandou promoção no domingo de sol e a loja lotou.', author: 'Bruno', business: 'Ice Cream Paradise - RJ' },
+  { n: '1', title: 'Você manda a logo e o cardápio', description: 'Ainda não tem cardápio montado? Manda só a logo e os sabores. A gente organiza tamanhos, coberturas e preços.' },
+  { n: '2', title: 'A gente monta tudo com a sua marca', description: 'Loja online, totem, caixa e TV de cardápio prontos com as suas cores. Você vê funcionando antes de decidir.' },
+  { n: '3', title: 'Instala, treina e inaugura', description: 'Configuramos impressoras, totem e TV, treinamos a equipe e acompanhamos os primeiros dias.' },
 ];
 
 const faqs = [
   {
-    q: 'Como funciona o montador de taças?',
-    a: 'O cliente entra no seu cardápio digital ou totem, escolhe o tamanho da taça (pequena, média, grande), seleciona os sabores (até o limite que você definir), escolhe caldas (chocolate, morango, caramelo) e toppings (granulado, frutas, chantilly). O pedido chega completo e visual na produção, sem erro de anotação.',
+    q: 'Como funciona o montador de copos e taças?',
+    a: 'O cliente entra no seu cardápio digital ou no totem, escolhe o tamanho (pequeno, médio, grande), seleciona os sabores até o limite que você definir e escolhe caldas e coberturas, cada uma com o seu preço. O pedido chega completo na produção, sem erro de anotação.',
   },
   {
     q: 'O Totem aguenta o movimento do dia de calor?',
-    a: 'Sim! O Totem foi projetado para dias de pico. Enquanto seus atendentes focam na montagem, o cliente pede e paga sozinho. É como ter um caixa extra que não cansa, no horário que a loja estiver aberta.',
+    a: 'Sim. Enquanto a equipe monta os pedidos, o cliente pede e paga no Pix sozinho, e recebe a senha. É como ter um caixa a mais nos horários de pico. Quem quer pagar no cartão ou em dinheiro passa no caixa.',
   },
   {
     q: "Como funciona o WhatsApp 'Gatilho do Calor'?",
-    a: 'Pelas campanhas de WhatsApp do Mostralo: você escreve a promoção, filtra quem recebe (dias sem pedir, número de pedidos ou quanto já gastou) e dispara na hora ou agenda para o dia que quiser. "Sol chegando! 🍦 Que tal um gelado?"',
+    a: 'Pelas campanhas de WhatsApp do Mostralo: você escreve a promoção, filtra quem recebe (dias sem pedir, número de pedidos ou quanto já gastou) e manda na hora ou agenda para o dia que quiser. Exemplo: "Sol chegando! Que tal um sorvete hoje?"',
+  },
+  {
+    q: 'Vocês montam o cardápio e a loja para mim?',
+    a: 'Sim, a gente deixa tudo pronto para você: cardápio com tamanhos, sabores e coberturas, loja online, totem, caixa e TV de cardápio com a sua marca. Se você ainda está abrindo a sorveteria, dá para ver tudo funcionando antes da inauguração.',
+  },
+  {
+    q: 'Funciona com sorvete por quilo?',
+    a: 'Sim. No caixa, o produto vendido por quilo pede o peso: o atendente digita o que a balança mostra e o sistema calcula o valor. A balança não é ligada ao sistema; o peso é digitado.',
+  },
+  {
+    q: 'Preciso comprar equipamento?',
+    a: 'O Mostralo roda no navegador: tablet, computador, celular ou Smart TV que você já tenha servem. Para o totem e o caixa, dá para usar um tablet com suporte ou uma tela touch, e as impressoras térmicas comuns de 58 ou 80 mm. Se precisar comprar, a gente indica e configura.',
   },
 ];
 
@@ -91,9 +110,9 @@ const faqs = [
 export const sorveterias: NicheContent = {
   path: '/nicho-sorveterias',
   seo: {
-    title: 'Mostralo para Sorveterias | Sistema Completo para Gelatarias e Lojas de Gelados',
-    description: 'Sistema All-in-One para sorveterias: Totem de autoatendimento, montador de taças, WhatsApp Marketing e delivery próprio. Menos filas e sem comissão por pedido: mensalidade fixa.',
-    keywords: 'sistema sorveteria, pdv sorvete, totem autoatendimento gelato, cardápio digital sorvete, delivery sorveteria, gestão gelataria',
+    title: 'Sistema para Sorveteria e Gelateria com Totem | Mostralo',
+    description: 'Sistema para sorveteria e gelateria: totem de autoatendimento, caixa (PDV), montador de copos com sabores, TV de cardápio e delivery próprio sem comissão por pedido.',
+    keywords: 'sistema para sorveteria, sistema para gelateria, pdv sorveteria, totem autoatendimento sorveteria, cardápio digital sorvete, tv de cardápio, delivery sorveteria',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-white',
   sections: [
@@ -108,7 +127,7 @@ export const sorveterias: NicheContent = {
             className: 'inline-flex items-center gap-2 bg-pink-500/20 border border-pink-500/30 rounded-full px-4 py-2 mb-8',
             icon: IceCreamBowl,
             iconClassName: 'w-5 h-5 text-pink-400',
-            text: 'Para Sorveterias, Gelatarias e Lojas de Gelados',
+            text: 'Para sorveterias, gelaterias e açaiterias',
             textClassName: 'text-pink-300 text-sm font-medium',
           }),
           h('h1', {
@@ -117,7 +136,7 @@ export const sorveterias: NicheContent = {
           }),
           h('p', {
             className: 'text-xl md:text-2xl text-zinc-300 mb-10 max-w-3xl mx-auto',
-            text: 'O Mostralo é o ecossistema All-in-One que organiza a sua sorveteria: do autoatendimento inteligente à gestão de entregas ultra-rápidas. Sem comissão por pedido em cada bola de gelado e com campanhas de WhatsApp para os seus clientes voltarem.',
+            text: 'O Mostralo organiza a sua sorveteria inteira: totem de autoatendimento, caixa, TV de cardápio e delivery próprio, tudo no mesmo sistema. Sem comissão por pedido em cada bola de sorvete, e a gente deixa tudo pronto com a sua marca.',
           }),
           cta({
             asChild: true,
@@ -132,8 +151,9 @@ export const sorveterias: NicheContent = {
             textClassName: 'text-sm text-zinc-300',
             items: [
               { icon: DollarSign, text: 'Sem comissão por pedido' },
-              { icon: Cherry, text: 'Montador de Taças' },
+              { icon: Cherry, text: 'Montador de copos' },
               { icon: Tablet, text: 'Totem Autoatendimento' },
+              { icon: Monitor, text: 'TV de cardápio' },
               { icon: MessageSquare, text: 'WhatsApp Marketing' },
             ],
           }),
@@ -148,16 +168,16 @@ export const sorveterias: NicheContent = {
           h('h2', { className: 'text-3xl md:text-4xl font-bold mb-6', text: ['Filas intermináveis e pedidos errados?', ' ', span('text-pink-400', 'Temos a solução.')] }),
           h('p', {
             className: 'text-xl text-zinc-400',
-            text: 'No calor, a sua loja enche e o atendimento precisa ser imediato. Se o cliente espera muito ou o pedido vem sem a cobertura desejada, a experiência estraga-se. O Mostralo organiza a operação e tira você das comissões de 25% dos aplicativos de entrega.',
+            text: 'No calor, a loja enche e o atendimento precisa ser rápido. Se o cliente espera muito ou o pedido vem sem a cobertura que ele pediu, a experiência acaba. O Mostralo organiza a operação e tira você das comissões dos aplicativos de entrega.',
           }),
         ]),
         grid({
-          className: 'grid md:grid-cols-3 gap-8 max-w-6xl mx-auto',
+          className: 'grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto',
           items: solutions,
           card: h('Card', 'bg-zinc-900 border-zinc-800 hover:border-pink-500/50 transition-all duration-300 group', [
             h('CardContent', 'p-8', [
               h('div', { key: 'iconWrap' }, [itemIcon(undefined, { key: 'icon' })]),
-              f('h3', 'text-xl font-bold mb-2', 'title'),
+              f('h3', 'text-xl font-bold mb-2 text-white', 'title'),
               f('p', 'text-pink-400 text-sm mb-3', 'subtitle', { when: 'subtitle' }),
               f('p', 'text-zinc-400', 'description'),
             ]),
@@ -170,7 +190,7 @@ export const sorveterias: NicheContent = {
     h('section', 'py-20', [
       h('div', 'container mx-auto px-4', [
         h('div', 'max-w-4xl mx-auto text-center mb-16', [
-          h('h2', { className: 'text-3xl md:text-4xl font-bold mb-6', text: ['Tecnologia que cria', ' ', span(GRADIENT, '"Fãs"'), ' ', 'da sua Marca'] }),
+          h('h2', { className: 'text-3xl md:text-4xl font-bold mb-6', text: ['Tecnologia que faz o cliente', ' ', span(GRADIENT, 'voltar')] }),
         ]),
         grid({
           className: 'grid md:grid-cols-3 gap-8 max-w-6xl mx-auto',
@@ -181,7 +201,7 @@ export const sorveterias: NicheContent = {
                 h('div', 'w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform', [itemIcon('w-7 h-7 text-orange-400')]),
                 h('div', 'text-right', [f('div', 'text-2xl font-bold text-pink-400', 'stat'), f('div', 'text-xs text-zinc-500', 'statLabel')]),
               ]),
-              f('h3', 'text-xl font-bold mb-1', 'title'),
+              f('h3', 'text-xl font-bold mb-1 text-white', 'title'),
               f('p', 'text-orange-400 text-sm mb-3', 'subtitle', { when: 'subtitle' }),
               f('p', 'text-zinc-400', 'description'),
             ]),
@@ -198,13 +218,13 @@ export const sorveterias: NicheContent = {
             className: 'inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 rounded-full px-4 py-2 mb-6',
             icon: Sparkles,
             iconClassName: 'w-4 h-4 text-orange-400',
-            text: 'Experiência Phygital',
+            text: 'Loja e online juntos',
             textClassName: 'text-orange-300 text-sm font-medium',
           }),
           h('h2', { className: 'text-3xl md:text-4xl font-bold mb-6', text: ['Do balcão físico ao mundo digital:', ' ', span('text-pink-400', 'tudo integrado.')] }),
           h('p', {
             className: 'text-xl text-zinc-400',
-            text: 'Com o Mostralo, sua sorveteria opera no físico e no digital de forma unificada. O cliente pode pedir no Totem da loja, no balcão ou pelo delivery - tudo vai para o mesmo sistema, com o mesmo controle.',
+            text: 'Com o Mostralo, a loja física e o online funcionam juntos. O cliente pede no totem, no balcão ou pelo delivery, e tudo cai no mesmo sistema, com o mesmo controle.',
           }),
         ]),
         h('div', 'max-w-5xl mx-auto', [
@@ -215,7 +235,7 @@ export const sorveterias: NicheContent = {
             card: h('Card', 'bg-zinc-900 border-zinc-800 hover:border-pink-500/50 transition-all duration-300', [
               h('CardContent', 'p-6 text-center', [
                 h('div', 'w-16 h-16 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 flex items-center justify-center mx-auto mb-4', [itemIcon('w-8 h-8 text-pink-400')]),
-                f('h3', 'font-bold text-lg mb-1', 'title'),
+                f('h3', 'font-bold text-lg mb-1 text-white', 'title'),
                 f('p', 'text-sm text-zinc-400', 'subtitle'),
               ]),
             ]),
@@ -225,7 +245,7 @@ export const sorveterias: NicheContent = {
           h('Card', 'bg-zinc-900 border-orange-500/30 max-w-md mx-auto', [
             h('CardContent', 'p-6 text-center', [
               h('div', 'w-20 h-20 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center mx-auto mb-4', [icon(BarChart3, 'w-10 h-10 text-orange-400')]),
-              h('h3', { className: 'font-bold text-xl mb-2', text: 'DASHBOARD ÚNICO' }),
+              h('h3', { className: 'font-bold text-xl mb-2 text-white', text: 'DASHBOARD ÚNICO' }),
               h('p', { className: 'text-zinc-400', text: 'Controle total da sua operação' }),
             ]),
           ]),
@@ -235,20 +255,20 @@ export const sorveterias: NicheContent = {
 
     savings(),
 
-    // Depoimentos
+    // Como começa
     h('section', 'py-20 bg-zinc-900/50', [
       h('div', 'container mx-auto px-4', [
         h('div', 'max-w-4xl mx-auto text-center mb-16', [
-          h('h2', { className: 'text-3xl md:text-4xl font-bold mb-6', text: ['Sorveterias que já', ' ', span('text-pink-400', 'derretem a concorrência')] }),
+          h('h2', { className: 'text-3xl md:text-4xl font-bold mb-6', text: ['Vai abrir ou ampliar a sorveteria?', ' ', span('text-pink-400', 'A gente deixa tudo pronto.')] }),
         ]),
         grid({
           className: 'grid md:grid-cols-3 gap-8 max-w-6xl mx-auto',
           items: testimonials,
           card: h('Card', 'bg-zinc-900 border-zinc-800 hover:border-pink-500/30 transition-all duration-300', [
             h('CardContent', 'p-6', [
-              h('div', 'flex gap-1 mb-4', [icon(Star, 'w-4 h-4 text-orange-400 fill-orange-400', { repeat: 5 })]),
-              f('p', 'text-zinc-300 mb-6 italic', 'quote', { quote: true }),
-              h('div', [f('div', 'font-semibold', 'author'), f('div', 'text-sm text-pink-400', 'business')]),
+              f('div', 'w-10 h-10 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center mb-4', 'n'),
+              f('h3', 'text-xl font-bold mb-2 text-white', 'title'),
+              f('p', 'text-zinc-400', 'description'),
             ]),
           ]),
         }),

@@ -37,7 +37,7 @@ const solutions = [
     icon: Monitor,
     title: 'TV de Cardápio',
     subtitle: 'Preço e promoção na parede',
-    description: 'As telas do cardápio e das promoções passam na TV da loja, com a sua marca. Mudou o preço ou acabou um sabor? Troca no painel e a TV atualiza.',
+    description: 'As telas do cardápio e das promoções passam na TV da loja, com a sua marca. Mudou o preço ou acabou um sabor? Troque a tela pelo painel e a TV atualiza na hora.',
     cls: solutionCls('pink'),
   },
 ];
@@ -104,6 +104,14 @@ const faqs = [
     q: 'Preciso comprar equipamento?',
     a: 'O Mostralo roda no navegador: tablet, computador, celular ou Smart TV que você já tenha servem. Para o totem e o caixa, dá para usar um tablet com suporte ou uma tela touch, e as impressoras térmicas comuns de 58 ou 80 mm. Se precisar comprar, a gente indica e configura.',
   },
+];
+
+const related = [
+  { label: 'Sistema para sorveteria', to: '/guia/sistema-para-sorveteria' },
+  { label: 'Totem para sorveteria', to: '/guia/totem-para-sorveteria' },
+  { label: 'Sorvete por quilo', to: '/guia/sorvete-por-quilo' },
+  { label: 'Cardápio de sorveteria', to: '/guia/cardapio-de-sorveteria' },
+  { label: 'Como montar uma sorveteria', to: '/guia/como-montar-uma-sorveteria' },
 ];
 
 // ---- Página ----
@@ -292,6 +300,8 @@ export const sorveterias: NicheContent = {
             triggerInner: { as: 'span', className: 'font-semibold' },
             items: faqs,
           }),
+          h('p', { className: 'text-center text-zinc-500 mt-10 mb-3 text-sm', text: 'Para ler com calma:' }),
+          links({ className: 'flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm', linkClassName: 'text-pink-300 hover:text-pink-200 underline underline-offset-4', items: related }),
         ]),
       ]),
     ]),

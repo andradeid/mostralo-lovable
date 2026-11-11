@@ -1,0 +1,214 @@
+{
+  "slug": "sorvete-por-quilo",
+  "title": "Sorvete por quilo: como calcular o preço e cobrar certo",
+  "h1": "Sorvete por quilo: como calcular o preço do quilo, pesar com a tara certa e cobrar no caixa",
+  "description": "Sorvete por quilo: como calcular o preço do kg com custo, perda e margem, descontar a tara do pote, seguir a regra da balança e cobrar rápido no caixa.",
+  "excerpt": "Quanto cobrar no quilo do sorvete, como descontar o pote na balança, o que a fiscalização confere e como o caixa transforma o peso em valor. Com um exemplo de conta do começo ao fim.",
+  "date": "2026-11-11",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "sorvete por quilo",
+    "como cobrar sorvete por quilo",
+    "preço do sorvete por quilo",
+    "self-service de sorvete",
+    "balança para sorveteria",
+    "tara do pote"
+  ],
+  "image": "/images/guias/sorvete-por-quilo.jpg",
+  "imageAlt": "Atendente no balcão de uma sorveteria self-service colocando o pote na balança para cobrar o sorvete por quilo",
+  "audio": {"src": "/audio/guias/sorvete-por-quilo.mp3", "duration": 612, "voice": "Puck", "segments": [{"t": 0, "target": "intro"}, {"t": 53.0, "target": "s1"}, {"t": 195.9, "target": "s2"}, {"t": 269.2, "target": "s3"}, {"t": 381.7, "target": "s4"}, {"t": 440.7, "target": "s5"}, {"t": 494.5, "target": "s6"}, {"t": 553.5, "target": "mostralo"}]},
+  "intro": [
+    "Para cobrar sorvete por quilo, some o custo de um quilo servido (massa, coberturas, perda e embalagem), divida pela parte do preço que esse custo pode ocupar e arredonde. No balcão, o pote vazio é descontado na balança (a tara), o cliente vê o peso no mostrador e o caixa multiplica esse peso pelo preço do quilo.",
+    "Neste guia você vê a conta do preço do quilo com um exemplo que fecha, as regras da balança que a fiscalização confere, como registrar o peso no caixa sem erro, quando cobrar a cobertura à parte, o que fazer com quem quer pouquinho e como deixar o preço à vista."
+  ],
+  "sections": [
+    {
+      "h2": "Como calcular o preço do sorvete por quilo",
+      "blocks": [
+        {
+          "p": "Copiar o preço do vizinho é o erro mais comum. Comece pelo custo de **um quilo servido**, não de um quilo comprado: no self-service, parte da massa derrete, fica na cuba ou vai em prova de sabor, e a cobertura à vontade também sai de graça se não entrar na conta."
+        },
+        {
+          "p": "Exemplo: uma sorveteria compra a massa do fornecedor e quer saber quanto cobrar."
+        },
+        {
+          "table": {
+            "head": ["Item do custo", "Como chegar ao número", "Custo por kg servido"],
+            "rows": [
+              ["Massa de sorvete", "Preço do balde ÷ quilos do balde", "R$ 18,00"],
+              ["Perda (derretimento, sobra na cuba, prova)", "10% da massa", "R$ 1,80"],
+              ["Coberturas e caldas à vontade", "Gasto do mês ÷ quilos vendidos no mês", "R$ 3,00"],
+              ["Pote, colher e guardanapo", "Custo de um pote ÷ peso médio do pote", "R$ 1,20"],
+              ["Custo direto do quilo", "Soma das linhas", "R$ 24,00"]
+            ]
+          }
+        },
+        {
+          "p": "Agora decida quanto do preço o custo direto pode ocupar. No exemplo, a sorveteria quer que ele fique em 35% do preço, para sobrar 65% para aluguel, funcionários, energia dos freezers, impostos, taxas de cartão e lucro. A conta é: preço = custo ÷ 0,35. Fica R$ 24,00 ÷ 0,35 = R$ 68,57, arredondado para **R$ 69,90 o quilo**. Conferindo: R$ 69,90 menos R$ 24,00 deixa R$ 45,90, que é 65,7% do preço."
+        },
+        {
+          "p": "A porcentagem certa depende das suas despesas do mês. O passo a passo para chegar nela está no guia de [como calcular margem de lucro](/guia/como-calcular-margem-de-lucro)."
+        },
+        {
+          "tip": "Refaça a conta a cada aumento do fornecedor e no começo do verão. Se a massa sobe de R$ 18,00 para R$ 20,00 o quilo, o custo direto vai para R$ 26,20 e o mesmo R$ 69,90 passa a deixar 62,5%, não 65,7%."
+        }
+      ]
+    },
+    {
+      "h2": "Regras da balança no self-service de sorvete",
+      "blocks": [
+        {
+          "p": "A balança é o que a fiscalização olha primeiro. A cartilha do Ibametro (órgão de metrologia da Bahia) e as dicas do Inmetro resumem o que o cliente pode cobrar:"
+        },
+        {
+          "ul": [
+            "**Zero antes de pesar:** a balança deve marcar zero no mostrador antes da pesagem.",
+            "**Tara do pote descontada:** o produto é pesado sem embalagem ou com o peso dela descontado. Coloque o pote vazio, aperte tara e só então sirva ou pese.",
+            "**Mostrador à vista:** a balança fica num lugar em que o cliente acompanha a pesagem.",
+            "**Balança aprovada e verificada:** com a marca de verificação do Inmetro e o selo atualizado. Em Minas Gerais, por exemplo, o Ipem faz a verificação todo ano, sem aviso prévio."
+          ]
+        },
+        {
+          "p": "Se você usa dois tamanhos de pote, confira a tara de cada um. Um pote maior pesado com a tara do menor cobra gramas que o cliente não comeu."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação do Ipem do seu estado, que fiscaliza as balanças, nem a do Procon. Confirme com eles as regras da sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "Do peso ao valor no caixa",
+      "blocks": [
+        {
+          "p": "A regra do caixa é sempre a mesma: peso líquido vezes o preço do quilo, arredondado nos centavos."
+        },
+        {
+          "img": "/images/guias/sorvete-por-quilo-2.jpg",
+          "alt": "Diagrama do sorvete por quilo no caixa: pote com sorvete pesa 0,430 kg, a tara de 0,020 kg é descontada, o atendente digita 0,410 e o caixa cobra R$ 28,66 pelo quilo a R$ 69,90",
+          "caption": "Sorvete por quilo: peso menos a tara do pote, vezes o preço do quilo, é o valor no caixa."
+        },
+        {
+          "p": "No PDV do Mostralo, o sorvete do self-service é cadastrado como **Vendido por quilo**, com o preço do kg no campo de preço. No caixa, ao escolher o produto, abre o campo de peso: o atendente digita o peso que a balança mostrou (0,410 é 410 gramas) e o item entra na venda com o valor calculado e o peso no nome, por exemplo \"Sorvete self-service (0,410 kg)\"."
+        },
+        {
+          "ul": [
+            "**A balança não é ligada ao sistema.** O peso é sempre digitado, por isso o atendente lê o número no mostrador que o cliente também está vendo.",
+            "**Produto por quilo não controla estoque por unidade.** Ao marcar Vendido por quilo, o controle de quantidade daquele produto é desligado. O pote fechado, o picolé e a bebida continuam baixando do estoque a cada venda.",
+            "**Conferência da massa:** divida o valor vendido de sorvete por quilo no período pelo preço do kg e compare com os baldes que saíram do freezer. Exemplo: R$ 6.990,00 vendidos ÷ R$ 69,90 = 100 kg. Se saíram 115 kg de massa, a perda passou dos 10% da sua conta."
+          ]
+        },
+        {
+          "p": "Mais sobre o caixa no guia de [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio) e sobre a contagem da massa no de [controle de estoque](/guia/controle-de-estoque-para-delivery)."
+        }
+      ]
+    },
+    {
+      "h2": "Cobertura inclusa no quilo ou cobrada à parte?",
+      "blocks": [
+        {
+          "table": {
+            "head": ["Jeito de cobrar", "Como funciona", "Cuidado"],
+            "rows": [
+              ["Inclusa no quilo", "Caldas e confeitos ficam na bancada e entram no peso", "Coloque o gasto no custo do quilo, como no exemplo"],
+              ["Cobrada à parte", "A cobertura especial tem preço fixo por porção", "Sirva depois da pesagem ou em potinho separado, para não cobrar duas vezes"],
+              ["Misto", "Básicas inclusas, especiais à parte", "Deixe escrito na placa quais são as especiais"]
+            ]
+          }
+        },
+        {
+          "p": "O misto é o mais comum: calda e granulado entram no peso, e a cobertura cara (creme de avelã, fruta fresca) vira um produto de preço fixo. No PDV, ela vira um atalho. Se a cobertura especial também passar pela balança junto com o sorvete, o cliente paga por ela no quilo e de novo no preço fixo."
+        }
+      ]
+    },
+    {
+      "h2": "Preço mínimo: o que fazer com quem quer só um pouquinho",
+      "blocks": [
+        {
+          "p": "Uma bola no pote dá 80 ou 100 gramas, o que no exemplo fica entre R$ 5,59 e R$ 6,99, e ainda gasta pote e colher. Muita sorveteria pensa em cobrar um valor mínimo. Cuidado: os Procons tratam como abusivo exigir um consumo mínimo do cliente, com base no artigo 39 do Código de Defesa do Consumidor."
+        },
+        {
+          "p": "Um caminho mais seguro é oferecer **opções de preço fixo** ao lado do self-service, como casquinha, copinho de uma bola e picolé. Quem quer pouco escolhe uma delas, e o seu custo de pote fica coberto no preço. Se mesmo assim quiser um valor mínimo no quilo, confirme antes com o Procon da sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "Como mostrar o preço do quilo para o cliente",
+      "blocks": [
+        {
+          "p": "O preço do quilo precisa estar claro antes de o cliente servir. Três lugares resolvem:"
+        },
+        {
+          "ol": [
+            "**Placa ao lado da balança,** com o preço do quilo em número grande e a tara do pote, por exemplo \"Pote vazio descontado na balança\".",
+            "**TV de cardápio,** com o preço do quilo, as coberturas especiais e as opções de preço fixo passando em rodízio. No Mostralo, as telas são trocadas pelo painel quando o preço muda. Veja o guia de [cardápio digital na TV](/guia/cardapio-digital-na-tv).",
+            "**Cardápio da loja online,** com os potes de tamanho fixo para o delivery, já que o self-service por quilo fica no balcão. Ideias de organização no guia de [cardápio de sorveteria](/guia/cardapio-de-sorveteria)."
+          ]
+        },
+        {
+          "p": "Para ver o sorvete por quilo dentro da rotina inteira da loja, com copo, totem e delivery, leia o guia de [sistema para sorveteria](/guia/sistema-para-sorveteria)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: sorvete por quilo no caixa, preço na TV e delivery no mesmo sistema",
+    "p": [
+      "No Mostralo, a sorveteria cadastra o self-service como produto vendido por quilo, o atendente digita o peso da balança e o caixa calcula o valor na hora. As coberturas especiais e as opções de preço fixo viram atalhos, a TV de cardápio mostra o preço do quilo e o mesmo cadastro vira loja online para o delivery. A gente deixa tudo pronto para você, com garantia de 7 dias. Conheça a página para [sorveterias](/nicho-sorveterias), acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Sorvete por quilo no PDV com o valor calculado pelo peso digitado",
+      "Atalhos para cobertura especial, casquinha e picolé",
+      "TV de cardápio com o preço do quilo, trocada pelo painel",
+      "Abertura, sangria, fechamento de caixa e relatório de vendas"
+    ]
+  },
+  "faq": [
+    [
+      "Como calcular o preço do sorvete por quilo?",
+      "Some o custo de um quilo servido (massa, perda, coberturas e embalagem) e divida pela parte do preço que o custo pode ocupar. Exemplo: R$ 24,00 ÷ 0,35 = R$ 68,57, arredondado para R$ 69,90."
+    ],
+    [
+      "O peso do pote pode ser cobrado no sorvete por quilo?",
+      "Não. O produto deve ser pesado sem a embalagem ou com o peso dela descontado. Use o botão de tara da balança com o pote vazio antes de pesar."
+    ],
+    [
+      "A balança da sorveteria precisa ser aprovada pelo Inmetro?",
+      "Sim. A balança deve ter a marca de verificação do Inmetro e o selo de verificação atualizado. A verificação é feita pelo Ipem do seu estado."
+    ],
+    [
+      "Posso cobrar um valor mínimo no self-service de sorvete?",
+      "Os Procons consideram abusivo exigir consumo mínimo. Prefira oferecer opções de preço fixo, como casquinha e copinho, e confirme com o Procon da sua cidade."
+    ],
+    [
+      "O Mostralo se conecta à balança?",
+      "Não. O atendente digita o peso que a balança mostrou e o sistema calcula o valor pelo preço do quilo cadastrado."
+    ]
+  ],
+  "sources": [
+    [
+      "Ibametro (Governo da Bahia) — Cartilha do consumidor: zero, tara, mostrador visível e marca de verificação",
+      "https://www.ba.gov.br/ibametro/sites/site-ibametro/files/migracao_2024/arquivos/File/publicacoes/cartilha_ibametro.pdf"
+    ],
+    [
+      "Agência Gov — Dia do Consumidor: confira 15 dicas do Inmetro para compras mais seguras (14/03/2026)",
+      "https://agenciagov.ebc.com.br/noticias/202603/dia-do-consumidor-confira-15-dicas-do-inmetro-para-compras-mais-seguras"
+    ],
+    [
+      "Governo de Minas Gerais — Solicitar verificação de balanças comerciais (Ipem-MG)",
+      "https://www.mg.gov.br/servico/solicitar-verificacao-de-balancas-comerciais"
+    ],
+    [
+      "Correio Braziliense — Consumação mínima: Procon considera prática abusiva (10/10/2026)",
+      "https://www.correiobraziliense.com.br/cbradar/consumacao-minima-balada-procon-venda-casada/"
+    ]
+  ],
+  "related": [
+    "sistema-para-sorveteria",
+    "cardapio-de-sorveteria",
+    "como-calcular-margem-de-lucro",
+    "totem-para-sorveteria",
+    "pdv-para-pequeno-negocio",
+    "cardapio-digital-na-tv"
+  ]
+}

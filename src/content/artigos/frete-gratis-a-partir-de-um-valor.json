@@ -1,0 +1,181 @@
+{
+  "slug": "frete-gratis-a-partir-de-um-valor",
+  "title": "Frete grátis a partir de um valor: quando vale a pena",
+  "h1": "Frete grátis a partir de um valor: quando vale a pena e como mostrar \"faltam R$ X\"",
+  "description": "Frete grátis a partir de um valor: a conta para achar o valor certo, quando dá lucro no delivery e como mostrar \"faltam R$ X\" no carrinho do cliente.",
+  "excerpt": "Qual valor escolher para o frete grátis, a conta da semana que mostra se dá lucro, quando usar só em dias fracos e como mostrar \"faltam R$ X\" no carrinho para o cliente completar o pedido.",
+  "date": "2026-11-12",
+  "readMinutes": 7,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "frete grátis a partir de um valor",
+    "frete grátis acima de",
+    "taxa de entrega grátis delivery",
+    "faltam R$ para frete grátis",
+    "como aumentar ticket médio delivery",
+    "valor mínimo para frete grátis"
+  ],
+  "image": "/images/guias/frete-gratis-a-partir-de-um-valor.jpg",
+  "imageAlt": "Ilustração de carrinho de delivery no celular com a faixa faltam R$ 12,00 para frete grátis e o valor mínimo do frete grátis a partir de um valor",
+  "intro": [
+    "**Frete grátis a partir de um valor** vale a pena quando o valor fica acima do seu pedido médio o bastante para o cliente comprar mais do que custa a entrega. A conta é simples: pedido médio mais o custo da entrega dividido pela sua margem. Abaixo disso, você só troca a taxa por desconto.",
+    "O frete pesa na decisão de compra: no Radar do E-commerce D2C da Nuvemshop de setembro de 2026, o frete grátis apareceu em 31,05% dos pedidos das lojas virtuais. No delivery é igual: o cliente olha a taxa antes de fechar. Neste guia você vê a conta do valor certo, a simulação de uma semana inteira, as variações que protegem a margem e como mostrar \"faltam R$ X\" no carrinho, que é o que faz o cliente completar o pedido."
+  ],
+  "sections": [
+    {
+      "h2": "Frete grátis a partir de um valor: quando vale a pena?",
+      "blocks": [
+        { "p": "O frete grátis acima de um valor não é desconto para todo mundo. Ele é uma troca: você paga a entrega e, em troca, o cliente põe mais itens no pedido. Só dá lucro quando três coisas acontecem juntas." },
+        { "ol": [
+          "**O valor fica bem acima do pedido médio.** Se o valor está colado no que o cliente já gasta, ele ganha a entrega sem comprar nada a mais.",
+          "**Poucos pedidos já passam do valor.** Quem já pedia acima deixa de pagar a taxa, e esse dinheiro sai do seu bolso.",
+          "**A oferta traz pedido novo ou cliente que volta.** É aqui que a conta vira lucro de verdade, como mostra a simulação mais abaixo."
+        ] },
+        { "p": "Antes de tudo, você precisa saber quanto custa a sua entrega. Se ainda não fez essa conta, veja o guia de [como calcular taxa de entrega](/guia/como-calcular-taxa-de-entrega), com faixas por distância e por bairro." }
+      ]
+    },
+    {
+      "h2": "A conta do valor mínimo: pedido médio mais entrega dividida pela margem",
+      "blocks": [
+        { "p": "Use três números do seu negócio: o **pedido médio** (faturamento do delivery dividido pela quantidade de pedidos), o **custo de uma entrega** (o que você paga ao motoboy, em média) e a **margem** (o que sobra de cada real vendido depois de ingredientes e embalagem). Se não sabe a margem, o guia de [como calcular margem de lucro](/guia/como-calcular-margem-de-lucro) mostra o passo a passo." },
+        { "p": "Exemplo: uma hamburgueria com pedido médio de R$ 48, entrega de R$ 7 e margem de 35%. O valor mínimo que se paga é 48 + (7 ÷ 0,35) = 48 + 20 = **R$ 68**. Arredonde para cima: **R$ 70**." },
+        { "table": {
+          "head": ["Frete grátis acima de", "Venda a mais (cliente de R$ 48)", "Lucro a mais (35%)", "Entrega que você paga", "Resultado por cliente"],
+          "rows": [
+            ["R$ 55", "R$ 7,00", "R$ 2,45", "R$ 7,00", "perde R$ 4,55"],
+            ["R$ 60", "R$ 12,00", "R$ 4,20", "R$ 7,00", "perde R$ 2,80"],
+            ["R$ 70", "R$ 22,00", "R$ 7,70", "R$ 7,00", "ganha R$ 0,70"],
+            ["R$ 80", "R$ 32,00", "R$ 11,20", "R$ 7,00", "ganha R$ 4,20"]
+          ]
+        } },
+        { "p": "Repare: R$ 60 parece um bom número porque é \"um pouco mais\" que o pedido médio, mas cada cliente que sobe até lá dá prejuízo. A regra é que o cliente precisa comprar **pelo menos o custo da entrega dividido pela margem** a mais. Neste exemplo, R$ 20 a mais." },
+        { "img": "/images/guias/frete-gratis-a-partir-de-um-valor-2.jpg", "alt": "Diagrama da conta do frete grátis a partir de um valor: pedido médio de R$ 48 mais entrega de R$ 7 dividida pela margem de 35% dá valor mínimo de R$ 68", "caption": "Frete grátis a partir de um valor: pedido médio mais entrega dividida pela margem. Neste exemplo, R$ 68, arredondado para R$ 70." }
+      ]
+    },
+    {
+      "h2": "A semana inteira: quem já pedia acima deixa de pagar a taxa",
+      "blocks": [
+        { "p": "A tabela acima olha um cliente. O que decide é a semana. Exemplo: a mesma hamburgueria, com 100 pedidos de entrega por semana e frete grátis acima de R$ 80." },
+        { "table": {
+          "head": ["Grupo de pedidos", "Conta", "Efeito na semana"],
+          "rows": [
+            ["8 pedidos que já eram de R$ 80 ou mais", "8 × R$ 7 de taxa que você deixa de receber", "menos R$ 56,00"],
+            ["15 clientes que sobem de R$ 50 para R$ 80", "15 × (R$ 30 × 35% menos R$ 7) = 15 × R$ 3,50", "mais R$ 52,50"],
+            ["5 pedidos novos de R$ 80 que não viriam", "5 × (R$ 80 × 35% menos R$ 7) = 5 × R$ 21", "mais R$ 105,00"],
+            ["Total", "menos 56 mais 52,50 mais 105", "mais R$ 101,50"]
+          ]
+        } },
+        { "p": "Sem os 5 pedidos novos, a semana fecha em menos R$ 3,50: praticamente empata. Ou seja, o frete grátis acima de um valor se paga mesmo quando traz cliente novo ou faz quem já é cliente pedir de novo. Se depois de duas ou três semanas o número de pedidos não subiu, aumente o valor ou use a oferta só em alguns dias." },
+        { "tip": "Este guia é informativo e não substitui a orientação de um contador. Use o seu pedido médio, o seu custo de entrega e a sua margem reais na conta." }
+      ]
+    },
+    {
+      "h2": "Como mostrar \"faltam R$ X para frete grátis\" para o cliente",
+      "blocks": [
+        { "p": "O frete grátis só puxa o pedido para cima se o cliente sabe quanto falta **na hora em que está montando o carrinho**. Um aviso no Instagram, que ele viu ontem, não faz ninguém acrescentar uma sobremesa." },
+        { "ul": [
+          "**No carrinho:** uma faixa com o valor exato que falta, que muda a cada item colocado ou tirado.",
+          "**Na finalização:** o mesmo aviso, para quem pulou direto para o pagamento.",
+          "**Quando atinge:** uma confirmação clara, como \"Você ganhou frete grátis\", para o cliente não tirar item com medo de perder a oferta.",
+          "**Itens fáceis de somar:** bebidas, sobremesas e porções pequenas no fim do cardápio, com preço perto da diferença mais comum."
+        ] },
+        { "p": "Para divulgar, deixe o valor escrito sempre do mesmo jeito em todo lugar. Dois modelos para adaptar:" },
+        { "templates": [
+          { "title": "Status ou story do WhatsApp", "text": "Hoje tem frete grátis nos pedidos acima de [valor]. O carrinho mostra quanto falta, é só completar com uma bebida ou sobremesa. Peça pelo link: [link do cardápio]" },
+          { "title": "Resposta para cliente que pergunta da taxa", "text": "Oi, [nome]! A entrega para o seu bairro fica [taxa]. Pedidos acima de [valor] saem com frete grátis, e o próprio carrinho avisa quanto falta. Nosso cardápio: [link do cardápio]" }
+        ] }
+      ]
+    },
+    {
+      "h2": "Variações que protegem a margem",
+      "blocks": [
+        { "p": "Frete grátis todos os dias, para todos, é a versão mais cara. Estas variações mantêm o efeito e cortam o custo:" },
+        { "table": {
+          "head": ["Variação", "Quando usar", "Por que protege a margem"],
+          "rows": [
+            ["Só em dias fracos (ex.: terça a quinta)", "Movimento cai no meio da semana", "No fim de semana o cliente já pede; não precisa pagar a entrega dele"],
+            ["Só em um horário (ex.: das 18h às 19h30)", "Cozinha ociosa no começo da noite", "Puxa pedido para o horário vazio em vez de lotar o pico"],
+            ["Só na primeira compra", "Quer trazer cliente novo para o seu link", "O custo vai só para quem pode virar cliente fixo"],
+            ["Com limite de usos", "Ação curta ou orçamento fechado", "Você sabe de antemão o máximo que vai gastar"],
+            ["Só com itens de uma categoria", "Quer girar um produto (ex.: combos)", "O frete grátis vem junto de um item com margem boa"]
+          ]
+        } },
+        { "p": "Se a sua área de entrega tem bairros muito longe, confira o custo da faixa mais distante antes. Uma entrega de R$ 12 num pedido de R$ 80 come 15% do valor. Nesse caso, prefira um valor mais alto ou os dias fracos." }
+      ]
+    },
+    {
+      "h2": "Erros comuns no frete grátis acima de um valor",
+      "blocks": [
+        { "ul": [
+          "**Valor colado no pedido médio.** É o erro mais caro: quase todo mundo ganha a entrega sem comprar mais.",
+          "**Fazer a conta com a taxa que você cobra, não com o custo.** Se você cobra R$ 5 mas paga R$ 8 ao motoboy, use R$ 8.",
+          "**Esconder a condição.** \"Frete grátis\" no banner e a regra só no fim gera reclamação. Escreva o valor junto.",
+          "**Pedir cupom para o frete grátis.** Cupom serve para ação de divulgação. Se a ideia é aumentar o pedido, a oferta tem que aparecer sozinha no carrinho.",
+          "**Esquecer as outras promoções ativas.** Se a loja tem outro desconto rodando, saiba qual vale no pedido. Se os dois puderem valer juntos, refaça a conta com os dois."
+        ] },
+        { "p": "Para outras formas de aumentar o pedido, veja o guia de [cupom de desconto no delivery](/guia/cupom-de-desconto-delivery) e o de [combo para hamburgueria](/guia/combo-para-hamburgueria)." }
+      ]
+    },
+    {
+      "h2": "Como fazer no Mostralo",
+      "blocks": [
+        { "p": "No Mostralo, o frete grátis acima de um valor é uma promoção da loja. O passo a passo:" },
+        { "ol": [
+          "No painel, abra **Promoções** e crie uma nova.",
+          "Em benefícios, ligue **Frete Grátis**.",
+          "Em regras, preencha o **Valor Mínimo do Pedido** com o valor da sua conta (no exemplo, R$ 70 ou R$ 80).",
+          "Se quiser, escolha os dias permitidos e o horário, marque só para a primeira compra, defina o limite de usos e se vale para todos os produtos ou para uma categoria.",
+          "Deixe o campo de cupom vazio para a oferta valer sozinha, e ligue **Exibir na Loja** para ela aparecer no cardápio."
+        ] },
+        { "p": "Pronto: quando o cliente escolhe entrega, o carrinho e a finalização mostram \"Faltam R$ X para frete grátis\", com o valor atualizado a cada item, e \"Você ganhou frete grátis\" quando ele chega lá. O pedido é conferido no servidor antes de gravar, com o dia e o horário no fuso da loja, e vale uma promoção por pedido: a que dá o maior desconto. Veja todos os recursos de delivery em [funcionalidades](/funcionalidades) ou a página para [hamburguerias](/nicho-hamburguerias)." }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: frete grátis com a conta certa e o aviso no carrinho",
+    "p": [
+      "No Mostralo, você define o valor do frete grátis, os dias e o horário, e o cardápio digital avisa o cliente quanto falta enquanto ele monta o pedido. Você vende pelo seu link, sem comissão por pedido (só existe taxa se você escolher receber pelo pagamento online do Mostralo). A gente deixa tudo pronto para você. [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Faixa \"faltam R$ X para frete grátis\" no carrinho e na finalização",
+      "Frete grátis por valor mínimo, dia da semana, horário e primeira compra",
+      "Limite de usos e oferta só para uma categoria de produtos",
+      "Promoção conferida no servidor antes de gravar o pedido"
+    ]
+  },
+  "faq": [
+    [
+      "Como saber o valor certo para dar frete grátis?",
+      "Some ao seu pedido médio o custo de uma entrega dividido pela sua margem. Com pedido médio de R$ 48, entrega de R$ 7 e margem de 35%, o valor mínimo é R$ 68. Arredonde para cima."
+    ],
+    [
+      "Frete grátis acima de um valor dá prejuízo?",
+      "Dá, se o valor ficar perto do pedido médio ou se muitos pedidos já passam dele. Ele se paga quando o cliente compra pelo menos o custo da entrega dividido pela margem a mais e quando a oferta traz pedidos novos."
+    ],
+    [
+      "Devo usar a taxa que cobro ou o custo da entrega na conta?",
+      "O custo real, o que você paga ao entregador em média. A taxa que você cobra pode ser menor que o custo, e aí a conta fica errada."
+    ],
+    [
+      "É melhor frete grátis todo dia ou só em alguns dias?",
+      "Para a maioria dos deliveries, só nos dias e horários fracos. No fim de semana o cliente já pede, e você pagaria a entrega de quem viria de qualquer jeito."
+    ],
+    [
+      "Como mostrar quanto falta para o frete grátis?",
+      "Numa faixa no carrinho e na finalização, com o valor exato que falta e atualizado a cada item. No Mostralo isso aparece sozinho quando a promoção de frete grátis está ativa e sem cupom."
+    ]
+  ],
+  "sources": [
+    ["Nuvemshop: lojas com frete grátis concentram 89,4% do faturamento no e-commerce D2C (Mercado & Consumo, out/2026)", "https://mercadoeconsumo.com.br/11/10/2026/logistica/lojas-com-frete-gratis-concentram-894-do-faturamento-no-e-commerce-d2c/"],
+    ["Bling: como oferecer frete grátis sem prejuízo", "https://blog.bling.com.br/frete-gratis/"],
+    ["Mercado & Consumo: frete está entre os principais motivos de abandono de carrinho (set/2026)", "https://mercadoeconsumo.com.br/22/09/2026/tecnologia/frete-sem-inteligencia-de-dados-causa-mais-de-70-das-desistencias-de-carrinho/"]
+  ],
+  "related": [
+    "como-calcular-taxa-de-entrega",
+    "cupom-de-desconto-delivery",
+    "como-calcular-margem-de-lucro",
+    "combo-para-hamburgueria",
+    "delivery-proprio-sem-comissao",
+    "black-friday-no-delivery"
+  ]
+}

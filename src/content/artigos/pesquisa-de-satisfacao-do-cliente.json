@@ -1,0 +1,287 @@
+{
+  "slug": "pesquisa-de-satisfacao-do-cliente",
+  "title": "Pesquisa de satisfação do cliente: medir a nota certa",
+  "h1": "Pesquisa de satisfação do cliente: como medir a nota depois do atendimento",
+  "description": "Pesquisa de satisfação do cliente depois do atendimento: a conta do CSAT, quando mandar pelo WhatsApp, modelos de mensagem e como acompanhar a nota do time.",
+  "excerpt": "O que é CSAT, a conta para saber se o cliente saiu satisfeito, a melhor hora de mandar a pesquisa pelo WhatsApp, modelos prontos e como acompanhar a nota média sem planilha.",
+  "date": "2026-11-13",
+  "readMinutes": 8,
+  "category": "Agendamento",
+  "keywords": [
+    "pesquisa de satisfação do cliente",
+    "pesquisa de satisfação pelo whatsapp",
+    "o que é csat",
+    "como medir a satisfação do cliente",
+    "modelo de mensagem pesquisa de satisfação",
+    "nota de atendimento 1 a 5"
+  ],
+  "image": "/images/guias/pesquisa-de-satisfacao-do-cliente.jpg",
+  "imageAlt": "Ilustração de celular com a pergunta de nota de 1 a 5 e as estrelas, exemplo de pesquisa de satisfação do cliente pelo WhatsApp depois do atendimento",
+  "intro": [
+    "**Pesquisa de satisfação do cliente** é mandar, logo depois do atendimento, uma pergunta curta pedindo uma nota de 1 a 5. Com essas notas você calcula o CSAT: a porcentagem de clientes que saíram satisfeitos. É o jeito mais simples de saber se o seu negócio está entregando o que promete, antes de o cliente sumir sem dizer o motivo.",
+    "A maioria dos clientes insatisfeitos não reclama: só não volta. A pesquisa dá voz a quem ficou calado e mostra, em número, se o time melhorou ou piorou de um mês para o outro. Neste guia você vê a conta do CSAT, o melhor momento para perguntar, modelos de mensagem que não parecem robô e como acompanhar a nota média sem precisar de planilha."
+  ],
+  "sections": [
+    {
+      "h2": "O que é pesquisa de satisfação do cliente (e o que é CSAT)?",
+      "blocks": [
+        {
+          "p": "Pesquisa de satisfação é qualquer pergunta que mede como o cliente se sentiu com o seu atendimento, produto ou serviço. A mais fácil de aplicar em negócio pequeno é a nota de 1 a 5, logo depois do atendimento: \"de 1 a 5, como foi?\". Rápida de responder e fácil de acompanhar."
+        },
+        {
+          "p": "Dessas notas sai o **CSAT** (Customer Satisfaction Score, ou índice de satisfação do cliente). Ele é a porcentagem de clientes satisfeitos. A conta é simples:"
+        },
+        {
+          "tip": "CSAT = clientes que deram nota 4 ou 5, dividido pelo total de respostas, vezes 100."
+        },
+        {
+          "p": "Exemplo: em um mês, 40 clientes responderam. 34 deram 4 ou 5 estrelas. O CSAT é 34 ÷ 40 × 100 = 85%. Quanto mais perto de 100, melhor. Uma referência comum de mercado é que acima de 70% já é um resultado muito bom; abaixo disso, vale olhar o que está puxando a nota para baixo."
+        },
+        {
+          "img": "/images/guias/pesquisa-de-satisfacao-do-cliente-2.jpg",
+          "alt": "Gráfico de pesquisa de satisfação do cliente com 40 notas de 1 a 5 e a conta do CSAT de 85%",
+          "caption": "Pesquisa de satisfação do cliente: 34 notas 4 ou 5 em 40 respostas dão CSAT de 85%."
+        },
+        {
+          "p": "Não confunda com o NPS, que pergunta \"de 0 a 10, o quanto você indicaria?\" e mede lealdade. Para o dia a dia de uma barbearia, salão, clínica ou estética, a nota de 1 a 5 logo depois do atendimento é mais direta e tem mais resposta."
+        }
+      ]
+    },
+    {
+      "h2": "Por que medir a satisfação depois de cada atendimento?",
+      "blocks": [
+        {
+          "p": "Porque o silêncio engana. Um cliente pode sair sem reclamar e nunca mais marcar. Sem a pesquisa, você só descobre que algo está errado quando a agenda esvazia. Com ela, você pega o problema na hora de um atendimento só, enquanto dá para corrigir."
+        },
+        {
+          "ul": [
+            "**Acha o ponto fraco cedo:** se um profissional ou um horário puxa a nota para baixo, aparece no número antes de virar boca a boca ruim.",
+            "**Reconhece o time pelo que entrega:** quem mantém nota alta merece ser reconhecido; a nota tira isso do \"achismo\".",
+            "**Recupera quem ficou chateado:** uma nota 1 ou 2 é a chance de ligar, pedir desculpa e resolver antes de o cliente contar para os outros.",
+            "**Mostra evolução:** comparar o CSAT do mês com o do mês passado diz se a mudança que você fez funcionou."
+          ]
+        },
+        {
+          "tip": "Peça a nota a todo cliente, sem escolher só quem você acha que gostou. Além de ser mais honesto, é a nota ruim que ensina mais."
+        },
+        {
+          "p": "Serve para qualquer negócio de horário marcado: [barbearia](/nicho-barbearias), salão, nail designer, clínica de estética, lava-jato. Mais guias desse tipo em [Agendamento](/conteudos/categoria/agendamento)."
+        }
+      ]
+    },
+    {
+      "h2": "Qual o melhor momento para mandar a pesquisa?",
+      "blocks": [
+        {
+          "p": "Logo depois do atendimento, mas não na hora exata em que o cliente está saindo. O ponto certo é entre 30 minutos e algumas horas depois: fresco o bastante para ele lembrar, calmo o bastante para responder com atenção."
+        },
+        {
+          "table": {
+            "head": [
+              "Quando mandar",
+              "Resposta",
+              "Observação"
+            ],
+            "rows": [
+              [
+                "Na hora, ainda no balcão",
+                "baixa",
+                "o cliente está de saída, com pressa"
+              ],
+              [
+                "30 min a 2 h depois",
+                "alta",
+                "melhor janela: lembra bem e tem tempo"
+              ],
+              [
+                "No dia seguinte",
+                "média",
+                "ainda funciona, mas esfria"
+              ],
+              [
+                "Dias depois",
+                "baixa",
+                "ele já esqueceu o detalhe do atendimento"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O canal importa tanto quanto a hora. E-mail e formulário longo têm pouca resposta. O **WhatsApp** é onde o cliente já fala com você: uma pergunta de uma linha, com a nota a um toque de distância, tem muito mais retorno do que um link de formulário."
+        }
+      ]
+    },
+    {
+      "h2": "Modelos de mensagem de pesquisa de satisfação pelo WhatsApp",
+      "blocks": [
+        {
+          "p": "A mensagem tem que ser curta, pessoal e com a nota fácil de dar. Nada de texto grande nem três perguntas. Escolha um dos modelos abaixo e troque os campos entre colchetes:"
+        },
+        {
+          "templates": [
+            {
+              "title": "Nota de 1 a 5 depois do atendimento",
+              "text": "Oi, [nome]! Aqui é da [nome do negócio]. Como foi seu atendimento hoje com [profissional]? De 1 a 5, qual nota você dá? Sua resposta ajuda a gente a melhorar."
+            },
+            {
+              "title": "Com link para a nota",
+              "text": "Oi, [nome]! Obrigado por vir na [nome do negócio]. Leva 1 minuto para avaliar seu atendimento com [profissional]: [link]. A sua opinião vale muito para a gente."
+            },
+            {
+              "title": "Retorno para quem deu nota baixa",
+              "text": "Oi, [nome]. Vi que seu atendimento do dia [data] não foi como esperava, e isso não é o que a gente quer entregar. Pode me contar o que aconteceu? Quero resolver com você."
+            }
+          ]
+        },
+        {
+          "p": "Repare que nenhum modelo pede uma nota alta nem promete brinde em troca de avaliação. Pesquisa com \"me dá 5 estrelas\" vicia o resultado: você perde justamente a informação que ia ajudar. Pergunte de forma neutra e deixe o cliente responder o que sentiu."
+        }
+      ]
+    },
+    {
+      "h2": "Pesquisa de satisfação e avaliação no Google são a mesma coisa?",
+      "blocks": [
+        {
+          "p": "Não. São duas coisas que se completam, mas têm objetivos diferentes."
+        },
+        {
+          "table": {
+            "head": [
+              "",
+              "Pesquisa de satisfação",
+              "Avaliação no Google"
+            ],
+            "rows": [
+              [
+                "Para quê",
+                "medir e melhorar por dentro",
+                "aparecer bem para quem ainda não conhece"
+              ],
+              [
+                "Quem vê",
+                "só você e seu time",
+                "qualquer pessoa no Google e no Maps"
+              ],
+              [
+                "O que pergunta",
+                "nota de 1 a 5 do atendimento",
+                "estrelas e comentário público"
+              ],
+              [
+                "Quando usar",
+                "sempre, com todo cliente",
+                "sempre, com todo cliente"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Dá para usar as duas juntas: a pesquisa interna te avisa quem saiu feliz e por quê, e a avaliação no Google constrói a reputação pública. Só tome cuidado com uma regra do Google: você não pode pedir avaliação pública só para quem gostou. Se quiser ver como fazer isso certo, veja o guia de [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google)."
+        },
+        {
+          "tip": "Regra do Google (reforçada em abril de 2026): não dê meta de avaliações para a equipe nem peça ao cliente um texto pronto ou que cite o nome do profissional. Convide todo mundo, com texto neutro."
+        }
+      ]
+    },
+    {
+      "h2": "Como ligar a pesquisa de satisfação no Mostralo",
+      "blocks": [
+        {
+          "p": "No agendamento do Mostralo a pesquisa sai sozinha pelo WhatsApp da loja. Para ligar:"
+        },
+        {
+          "ol": [
+            "No painel, abra Agendamento, Configurações, aba Comunicação, e ligue Pesquisa de satisfação.",
+            "Edite o texto da mensagem e inclua a variável {link}: é pela página desse link que a nota de 1 a 5 e o comentário ficam registrados no painel. Use também {cliente} e {profissional} para a mensagem sair com o nome certo.",
+            "Na aba Avaliações, em Enviar após, escolha quantos minutos depois do fim do atendimento a mensagem sai (o padrão é 30) e por quantos dias o link vale (o padrão é 7).",
+            "Na aba Testes, mande a pesquisa para o seu próprio número e confira como chega."
+          ]
+        },
+        {
+          "p": "A mensagem só sai quando o agendamento fica como Concluído: pelo botão Finalizar Atendimento ou, na aba Automação, com Ativar automação de status, que conclui sozinho alguns minutos depois do horário. O WhatsApp da loja precisa estar conectado ao Mostralo."
+        },
+        {
+          "p": "As respostas aparecem em Agendamento, Avaliações: nota média, total de avaliações, positivas (4 e 5 estrelas), melhor profissional, melhor serviço e quantas vieram com comentário, com filtro por profissional e por nota. Com esses números o CSAT do mês sai na hora: positivas divididas pelo total."
+        },
+        {
+          "tip": "A pesquisa automática é do agendamento. Em pedido de delivery, use o primeiro modelo de mensagem acima pelo WhatsApp da loja. Veja tudo o que a plataforma faz em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Como transformar a nota em melhoria de verdade",
+      "blocks": [
+        {
+          "p": "A pesquisa só vale se virar ação. Um ritmo simples que funciona para negócio pequeno:"
+        },
+        {
+          "ol": [
+            "**Toda semana:** olhe as notas 1 e 2 e fale com o cliente que deu, uma por uma. É aí que você recupera gente.",
+            "**Todo mês:** calcule o CSAT do mês e compare com o anterior. Subiu ou caiu? Por quê?",
+            "**Por profissional:** veja a nota média de cada um. Quem está acima da média serve de exemplo; quem está abaixo precisa de apoio, não de bronca.",
+            "**Por serviço ou horário:** se um serviço específico ou um turno concentra nota baixa, o problema está ali, não no cliente."
+          ]
+        },
+        {
+          "p": "Uma meta realista para começar é CSAT acima de 70% e nenhuma nota 1 ou 2 sem retorno. Com o tempo, a própria pesquisa mostra se a meta precisa subir."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Pesquisa de satisfação automática no Mostralo",
+    "p": [
+      "No agendamento do Mostralo, a pesquisa de satisfação sai sozinha pelo WhatsApp da loja depois que o atendimento é concluído. O cliente dá a nota de 1 a 5 e, se quiser, deixa um comentário. Você acompanha a nota média, as positivas e o melhor profissional no próprio painel, sem planilha. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Mensagem automática pelo WhatsApp depois do atendimento, com o tempo de espera que você escolher",
+      "Nota de 1 a 5 e comentário numa página simples, com um toque",
+      "Painel com nota média, avaliações positivas (4 e 5 estrelas) e melhor profissional",
+      "Filtro por profissional e por nota para achar quem precisa de apoio"
+    ]
+  },
+  "faq": [
+    [
+      "O que é CSAT na pesquisa de satisfação?",
+      "CSAT é o índice de satisfação do cliente: a porcentagem de clientes que deram nota alta (4 ou 5 numa escala de 1 a 5). Calcula-se dividindo as notas 4 e 5 pelo total de respostas e multiplicando por 100. Acima de 70% é considerado um bom resultado."
+    ],
+    [
+      "Qual a melhor hora para mandar a pesquisa de satisfação?",
+      "Entre 30 minutos e algumas horas depois do atendimento. O cliente ainda lembra bem da experiência e tem tempo para responder com calma. Na saída ele está com pressa, e dias depois já esqueceu o detalhe."
+    ],
+    [
+      "Pesquisa de satisfação pelo WhatsApp funciona?",
+      "Sim, costuma ter mais resposta que e-mail ou formulário, porque é o canal onde o cliente já fala com o negócio. O segredo é a mensagem ser curta, pessoal e com a nota fácil de dar, de preferência a um toque de distância."
+    ],
+    [
+      "Posso pedir só para os clientes que gostaram?",
+      "Para a pesquisa interna, o ideal é perguntar a todos: a nota baixa é a que mais ensina. E para avaliação pública no Google é proibido escolher só quem gostou; convide todo cliente com texto neutro."
+    ],
+    [
+      "Pesquisa de satisfação é a mesma coisa que avaliação no Google?",
+      "Não. A pesquisa de satisfação é interna, só você e seu time veem, e serve para melhorar. A avaliação no Google é pública e serve para a reputação. As duas se completam, mas têm objetivos diferentes."
+    ]
+  ],
+  "sources": [
+    [
+      "QuestionPro: como calcular o CSAT, o que é e como implementar",
+      "https://www.questionpro.com/blog/pt-br/como-calcular-o-csat-o-que-e-e-como-implementar/"
+    ],
+    [
+      "Pipedrive: CSAT, o que é, método de cálculo e como utilizar",
+      "https://www.pipedrive.com/pt/blog/csat"
+    ],
+    [
+      "Better Bunch: Google's 2026 review policy changes (abril/2026)",
+      "https://www.betterbunch.com/blogs-and-articles/google-2026-policy-updates"
+    ]
+  ],
+  "related": [
+    "como-conseguir-avaliacoes-no-google",
+    "agenda-online-para-barbearia",
+    "agenda-para-salao-de-beleza",
+    "agenda-para-nail-designer",
+    "agendamento-recorrente-cliente-fixo",
+    "pagina-de-agendamento-estetica-automotiva"
+  ]
+}

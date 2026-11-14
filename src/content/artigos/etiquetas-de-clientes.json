@@ -1,0 +1,209 @@
+{
+  "slug": "etiquetas-de-clientes",
+  "title": "Etiquetas de clientes: separar VIP, fiado e atacado",
+  "h1": "Etiquetas de clientes: como separar VIP, fiado e atacado no seu negócio",
+  "description": "Etiquetas de clientes para separar VIP, fiado e atacado: critério de cada grupo, conta para achar o cliente VIP, cuidados com o fiado e passo a passo no painel.",
+  "excerpt": "Como criar etiquetas de clientes para separar VIP, fiado e atacado, com critério claro para cada grupo, a conta para achar quem mais compra e o cuidado que o fiado pede.",
+  "date": "2026-11-14",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "etiquetas de clientes",
+    "como separar clientes vip",
+    "segmentação de clientes pequeno comércio",
+    "controle de cliente fiado",
+    "cliente de atacado e varejo",
+    "cadastro de clientes com etiquetas"
+  ],
+  "image": "/images/guias/etiquetas-de-clientes.jpg",
+  "imageAlt": "Ilustração de lista de clientes com etiquetas coloridas VIP, Fiado e Atacado, exemplo de etiquetas de clientes num pequeno comércio",
+  "intro": [
+    "**Etiquetas de clientes** são marcas coloridas que você coloca no cadastro de cada cliente para separar grupos que pedem tratamento diferente, como VIP, fiado e atacado. Com elas, qualquer pessoa da equipe olha o nome e já sabe como atender, sem depender da memória do dono.",
+    "No balcão do bairro todo mundo sabe quem é o cliente bom, quem compra na caderneta e quem leva caixa fechada. O problema aparece quando entra um funcionário novo, quando a loja cresce ou quando você quer mandar uma oferta só para um grupo. Neste guia você vê o critério de cada etiqueta, a conta para achar seus clientes VIP, o cuidado que o fiado pede e como fazer isso no painel em poucos minutos."
+  ],
+  "sections": [
+    {
+      "h2": "Para que servem as etiquetas de clientes?",
+      "blocks": [
+        {
+          "p": "A etiqueta responde a uma pergunta rápida: **como eu trato esta pessoa?** Ela não substitui o histórico de compras, ela resume o que o histórico já mostrou. Três usos fazem diferença no dia a dia:"
+        },
+        {
+          "ul": [
+            "**Atender igual, qualquer que seja o atendente:** o cliente VIP é reconhecido mesmo no dia em que você não está na loja.",
+            "**Achar um grupo em segundos:** filtrar só quem compra no atacado para avisar da chegada de mercadoria, ou só os VIP para um convite.",
+            "**Não esquecer combinados:** quem tem conta em aberto, quem pediu nota fiscal, quem só compra com entrega."
+          ]
+        },
+        {
+          "p": "Regra de ouro: poucas etiquetas, com critério escrito. Dez etiquetas que ninguém sabe quando usar viram bagunça. Comece com três ou quatro."
+        }
+      ]
+    },
+    {
+      "h2": "Quais etiquetas criar: o critério de cada uma",
+      "blocks": [
+        {
+          "p": "Antes de marcar o primeiro cliente, escreva numa frase quando cada etiqueta entra e quando sai. Assim a equipe toda marca do mesmo jeito. Uma base que funciona para mercadinho, padaria, açougue, loja e delivery:"
+        },
+        {
+          "table": {
+            "head": ["Etiqueta", "Quando entra", "Quando sai", "O que a equipe faz"],
+            "rows": [
+              ["VIP", "Está entre os clientes que mais gastaram nos últimos 3 meses", "Na revisão do mês, se caiu da lista", "Atende pelo nome, avisa primeiro das novidades"],
+              ["Fiado", "O dono autorizou comprar para pagar depois", "Quando o dono decide encerrar o fiado", "Confere com o dono antes de vender a prazo"],
+              ["Atacado", "Compra em volume para revender ou para empresa", "Se parou de comprar em volume", "Confere quantidade e combinado de preço"],
+              ["Entrega fixa", "Pede toda semana no mesmo dia", "Se ficou um mês sem pedir", "Separa o pedido com antecedência"]
+            ]
+          }
+        },
+        {
+          "tip": "Escreva o critério num papel perto do caixa ou no grupo da equipe. Etiqueta sem critério vira opinião, e opinião muda de um atendente para o outro."
+        }
+      ]
+    },
+    {
+      "h2": "Como separar clientes VIP: a conta que funciona",
+      "blocks": [
+        {
+          "p": "Cliente VIP não é quem você acha simpático: é quem mais sustenta o caixa. O jeito mais simples de achar é ordenar os clientes pelo **total gasto nos últimos 3 meses** e olhar o topo da lista. A ideia vem da curva ABC (o princípio do 80/20): poucos clientes costumam responder por boa parte do faturamento."
+        },
+        {
+          "p": "Exemplo: um mercadinho com 400 clientes no cadastro faturou R$ 30.000 no trimestre com vendas identificadas. Ordenando pelo total gasto, os 40 primeiros (10% dos clientes) somam R$ 12.000."
+        },
+        {
+          "table": {
+            "head": ["Grupo", "Clientes", "Quanto gastaram no trimestre", "Parte do faturamento"],
+            "rows": [
+              ["Os 40 que mais gastaram", "40 (10%)", "R$ 12.000", "40%"],
+              ["Os outros 360", "360 (90%)", "R$ 18.000", "60%"],
+              ["Total", "400", "R$ 30.000", "100%"]
+            ]
+          }
+        },
+        {
+          "p": "Esses 40 recebem a etiqueta VIP. A conta é: **gasto do grupo ÷ faturamento total × 100**. Aqui, 12.000 ÷ 30.000 × 100 = 40%. Se perder um desses clientes, você sente no caixa; por isso eles merecem atenção primeiro."
+        },
+        {
+          "p": "Revise uma vez por mês: quem caiu da lista perde a etiqueta, quem subiu ganha. Para tirar os números do sistema sem planilha, veja o guia de [relatório de vendas para pequeno negócio](/guia/relatorio-de-vendas-pequeno-negocio)."
+        }
+      ]
+    },
+    {
+      "h2": "Etiqueta de fiado: o cuidado que ela pede",
+      "blocks": [
+        {
+          "p": "O fiado ainda é comum no comércio de bairro e é sinal de confiança. A etiqueta ajuda o atendente a saber que aquele cliente tem permissão para comprar a prazo, mas ela **é só um aviso**: não guarda o saldo devedor. O valor de cada compra e de cada pagamento precisa estar anotado no seu controle de contas a receber (caderno, planilha ou sistema financeiro)."
+        },
+        {
+          "p": "Três cuidados que evitam problema:"
+        },
+        {
+          "ol": [
+            "**A etiqueta é interna.** Ela aparece só no painel, para a equipe. Nunca exponha a lista de quem deve: o Código de Defesa do Consumidor (art. 42) proíbe expor o cliente em dívida ao ridículo ou a constrangimento na cobrança. Lista de devedores na parede ou no grupo do bairro é exatamente o que a lei veda.",
+            "**Só o dono coloca e tira.** Combine que atendente não marca fiado por conta própria. Quem decide quem pode comprar a prazo é você.",
+            "**Cobrança com calma e em particular.** Mensagem só para o cliente, em horário comercial, com o valor certo e sem ameaça."
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui orientação de advogado ou contador sobre cobrança e crédito ao cliente."
+        }
+      ]
+    },
+    {
+      "h2": "Etiqueta de atacado: o que ela resolve (e o que não resolve)",
+      "blocks": [
+        {
+          "p": "Cliente de atacado é o dono de lanchonete que leva 30 pães todo dia, a empresa que compra café e copo para o escritório, o revendedor que leva caixa fechada. A etiqueta avisa a equipe de que aquela compra é diferente: quantidade maior, às vezes entrega marcada, às vezes um preço combinado."
+        },
+        {
+          "p": "O que a etiqueta não faz é mudar o preço sozinha. Se você dá desconto por volume, a forma mais segura é deixar a regra visível para todos, em vez de cada atendente decidir na hora. Uma promoção do tipo [leve X, pague Y](/guia/promocao-leve-x-pague-y) faz isso com regra clara, para qualquer cliente que comprar a quantidade."
+        },
+        {
+          "p": "Use a etiqueta de atacado também para avisar esse grupo quando chega mercadoria ou quando o preço de um item de giro muda: filtre a lista e fale só com quem compra em volume."
+        }
+      ]
+    },
+    {
+      "h2": "Etiquetas de clientes no Mostralo: passo a passo",
+      "blocks": [
+        {
+          "p": "No Mostralo, as etiquetas ficam no cadastro de clientes do painel. Leva poucos minutos:"
+        },
+        {
+          "ol": [
+            "Abra **Clientes** no painel e procure o cliente pelo nome ou telefone.",
+            "Clique em **Etiquetas** no cartão do cliente.",
+            "Crie a etiqueta nova: dê um nome curto (VIP, Fiado, Atacado) e escolha a cor. Use sempre a mesma cor para o mesmo grupo.",
+            "Marque as etiquetas daquele cliente e salve. Para tirar, é só desmarcar.",
+            "Para ver um grupo, use o **filtro de etiquetas** no topo da lista. Selecionando mais de uma, aparecem os clientes que têm qualquer uma delas.",
+            "Para conferir quem merece VIP, abra os **detalhes** do cliente: lá estão o total de pedidos, o total gasto e o histórico de pedidos da sua loja."
+          ]
+        },
+        {
+          "img": "/images/guias/etiquetas-de-clientes-2.jpg",
+          "alt": "Diagrama das etiquetas de clientes VIP, Fiado e Atacado com o critério de entrada e o que a equipe faz em cada uma",
+          "caption": "Etiquetas de clientes: um critério para entrar, uma ação para a equipe."
+        },
+        {
+          "p": "Além das suas, o Mostralo coloca sozinho as **etiquetas de canal**, como Delivery, Balcão, Totem, Agendamento e Cardápio na Mesa, conforme o cliente compra por cada canal. Essas a equipe vê, mas não tira à mão, para que continuem dizendo a verdade sobre por onde o cliente compra."
+        },
+        {
+          "p": "Se você tem atendentes, o acesso à tela de clientes depende da permissão **Clientes** de cada um. Quem não tem essa permissão não vê a lista, o que ajuda a manter o fiado entre você e quem você escolher. Veja outras ferramentas de gestão em [funcionalidades](/funcionalidades) e mais guias em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    },
+    {
+      "h2": "Rotina de 15 minutos por mês",
+      "blocks": [
+        {
+          "p": "Etiqueta desatualizada engana a equipe. Reserve 15 minutos no começo do mês:"
+        },
+        {
+          "ul": [
+            "**VIP:** refaça a lista pelo total gasto dos últimos 3 meses. Quem saiu, perde a etiqueta; quem entrou, ganha.",
+            "**Fiado:** confira se cada cliente com a etiqueta ainda tem permissão e se o saldo no seu controle está em dia.",
+            "**Atacado:** filtre o grupo e veja quem parou de comprar. Às vezes uma mensagem resolve.",
+            "**Etiquetas sem uso:** se ninguém usa, apague. Menos etiquetas, mais clareza."
+          ]
+        },
+        {
+          "p": "Se o seu negócio é mercadinho, vale ler também o guia de [sistema para mercadinho](/guia/sistema-para-mercadinho), que junta caixa, estoque e clientes."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Clientes organizados no Mostralo",
+    "p": [
+      "No Mostralo, cada venda do delivery, do balcão, do totem e do agendamento cai no mesmo cadastro de clientes. Você cria suas etiquetas, filtra os grupos e vê o histórico de cada cliente sem planilha. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Etiquetas com nome e cor que você escolhe, como VIP, Fiado e Atacado",
+      "Etiquetas de canal colocadas sozinhas conforme o cliente compra",
+      "Filtro por etiqueta e busca por nome ou telefone",
+      "Total de pedidos, total gasto e histórico de cada cliente"
+    ]
+  },
+  "faq": [
+    ["Quantas etiquetas de clientes devo criar?", "Comece com três ou quatro, como VIP, Fiado e Atacado, cada uma com um critério escrito de quando entra e quando sai. Crie outra só quando a equipe sentir falta dela."],
+    ["Como saber quem é cliente VIP?", "Ordene os clientes pelo total gasto nos últimos 3 meses e marque os do topo da lista, por exemplo os 10% que mais gastaram. Revise todo mês."],
+    ["A etiqueta de fiado controla quanto o cliente deve?", "Não. No Mostralo a etiqueta é um aviso para a equipe de que aquele cliente pode comprar a prazo. O saldo de cada cliente fica no seu controle de contas a receber."],
+    ["O cliente vê a etiqueta que eu coloquei nele?", "Não. As etiquetas aparecem só no painel da loja, para quem tem permissão de ver clientes. Mesmo assim, nunca exponha quem está devendo: o Código de Defesa do Consumidor proíbe constranger o cliente na cobrança."],
+    ["A etiqueta de atacado muda o preço automaticamente?", "Não. Ela avisa a equipe de que a compra é em volume. Para desconto por quantidade com regra clara, use uma promoção como leve X, pague Y."],
+    ["Posso tirar a etiqueta Delivery ou Balcão de um cliente?", "Não. As etiquetas de canal são colocadas pelo sistema conforme o cliente compra por cada canal e servem para mostrar por onde ele compra de verdade."]
+  ],
+  "sources": [
+    ["Código de Defesa do Consumidor comentado: art. 42 (Aurum)", "https://www.aurum.com.br/blog/cdc-comentado/art-42-cdc/"],
+    ["Cobrança abusiva e o artigo 42 do CDC (Serasa, out/2026)", "https://www.serasa.com.br/blog/cobranca-abusiva-artigo-42-cdc/"],
+    ["Clientes VIPs: como identificar e fidelizar (Nuvemshop, atualizado em jul/2026)", "https://www.nuvemshop.com.br/blog/cliente-vip/"]
+  ],
+  "related": [
+    "relatorio-de-vendas-pequeno-negocio",
+    "sistema-para-mercadinho",
+    "promocao-leve-x-pague-y",
+    "pdv-para-pequeno-negocio",
+    "pesquisa-de-satisfacao-do-cliente",
+    "agendamento-recorrente-cliente-fixo"
+  ]
+}

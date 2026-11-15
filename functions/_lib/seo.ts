@@ -202,13 +202,28 @@ function storeBody(store: SeoStore, products: SeoProduct[], domain: string | nul
     `</main>`;
 }
 
-/** HTML simples do produto: nome, preço, descrição, foto e link para a loja. */
-function productBody(store: SeoStore, p: SeoProduct, home: string): string {
+/**
+ * HTML simples do produto: nome, preço, descrição, foto, dados da loja e outros produtos
+ * com links. Sem a loja e os outros produtos a página fica rala e o Google a trata como
+ * "soft 404" (aconteceu com produtos de descrição curta, nov/2026).
+ */
+function productBody(store: SeoStore, p: SeoProduct, home: string, others: SeoProduct[], domain: string | null): string {
   const img = images(p)[0];
-  return `<main ${SHELL}><p><a href="${esc(home)}">${esc(store.name)}</a></p><h1>${esc(clean(p.name))}</h1>` +
-    `<p><strong>${brl(effectivePrice(p))}</strong></p>` +
-    (img ? `<img src="${esc(img)}" alt="${esc(clean(p.name))}" style="max-width:100%;height:auto" loading="lazy">` : '') +
+  const name = esc(clean(p.name));
+  const shop = esc(store.name);
+  const local = [store.address, store.city, store.state].filter(Boolean).map((x) => esc(clean(x))).join(' - ');
+  const more = others
+    .filter((o) => o.slug && o.slug !== p.slug)
+    .slice(0, 12)
+    .map((o) => `<li><a href="${esc(productUrl(store.slug, domain, encodeURIComponent(o.slug as string)))}">${esc(clean(o.name))}</a> - ${brl(effectivePrice(o))}</li>`)
+    .join('');
+  return `<main ${SHELL}><p><a href="${esc(home)}">${shop}</a></p><h1>${name}</h1>` +
+    `<p><strong>${brl(effectivePrice(p))}</strong>${p.is_available === false ? ' (indisponível no momento)' : ''}</p>` +
+    (img ? `<img src="${esc(img)}" alt="${name}" style="max-width:100%;height:auto" loading="lazy">` : '') +
     (p.description ? `<p>${esc(clean(p.description.replace(/<[^>]*>/g, ' ')))}</p>` : '') +
+    `<p>${name} é vendido por <a href="${esc(home)}">${shop}</a>${local ? `, ${local}` : ''}. Faça o pedido pelo site da loja.</p>` +
+    (store.description ? `<h2>Sobre ${shop}</h2><p>${esc(clean(store.description))}</p>` : '') +
+    (more ? `<h2>Mais produtos de ${shop}</h2><ul>${more}</ul><p><a href="${esc(home)}">Ver o cardápio completo</a></p>` : '') +
     `</main>`;
 }
 
@@ -378,7 +393,7 @@ export async function withProductPage(
   if (!store) return res;
   if (seo.hidden) return noindex(res);
   const domain = knownDomain !== undefined ? knownDomain : seo.domain;
-  const p = await loadProduct(store.id, productSlug);
+  const [p, others] = await Promise.all([loadProduct(store.id, productSlug), loadProducts(store.id)]);
   if (!p) {
     // Endereço antigo (ex.: o que perdia letras acentuadas): 301 para o endereço atual
     const current = await currentSlugForOld(store.id, productSlug);
@@ -412,7 +427,7 @@ export async function withProductPage(
           ],
         },
       ],
-      body: productBody(store, p, home),
+      body: productBody(store, p, home, others, domain),
     },
     `${store.slug}/${productSlug}`,
   );
@@ -571,6 +586,7 @@ Allow: /
 Disallow: /dashboard
 Disallow: /auth
 Disallow: /api/
+Allow: /api/sb/
 
 ${lines.map((l) => `Sitemap: ${l}`).join('\n')}
 `;

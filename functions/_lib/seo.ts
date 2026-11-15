@@ -211,7 +211,12 @@ function productBody(store: SeoStore, p: SeoProduct, home: string, others: SeoPr
   const img = images(p)[0];
   const name = esc(clean(p.name));
   const shop = esc(store.name);
-  const local = [store.address, store.city, store.state].filter(Boolean).map((x) => esc(clean(x))).join(' - ');
+  // O endereço às vezes já traz cidade/UF: não repetir.
+  const addr = clean(store.address);
+  const city = clean(store.city);
+  const local = esc(addr && city && addr.toLowerCase().includes(city.toLowerCase())
+    ? addr
+    : [addr, city, clean(store.state)].filter(Boolean).join(' - '));
   const more = others
     .filter((o) => o.slug && o.slug !== p.slug)
     .slice(0, 12)

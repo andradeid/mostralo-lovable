@@ -1,0 +1,241 @@
+{
+  "slug": "produto-por-quilo-no-pdv",
+  "title": "Produto por quilo no PDV: açougue, hortifruti e self-service",
+  "h1": "Produto por quilo no PDV: como cobrar certo no açougue, no hortifruti e no self-service",
+  "description": "Produto por quilo no PDV: como achar o preço do kg pela perda, pesar com a tara certa, digitar o peso no caixa e corrigir erro, com exemplos que fecham.",
+  "excerpt": "Carne, tomate e comida do buffet têm a mesma regra no caixa: peso líquido vezes o preço do quilo. Veja como calcular o preço do kg com a perda, pesar certo e lançar no PDV sem erro.",
+  "date": "2026-11-15",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "produto por quilo no PDV",
+    "sistema para açougue",
+    "sistema para hortifruti",
+    "restaurante por quilo sistema",
+    "como cobrar por quilo no caixa",
+    "preço do quilo com perda"
+  ],
+  "image": "/images/guias/produto-por-quilo-no-pdv.jpg",
+  "imageAlt": "Ilustração de um caixa com produto por quilo no PDV: o operador digita o peso de 0,850 kg de patinho e o sistema calcula o valor",
+  "intro": [
+    "Para vender produto por quilo no PDV, cadastre o preço do kg no produto, pese com a tara descontada e digite no caixa o peso líquido que a balança mostrou: o sistema multiplica o peso pelo preço do quilo e arredonda nos centavos. Carne, legumes e comida do buffet seguem essa mesma conta.",
+    "O que muda de um negócio para outro é o preço do quilo. No açougue, a peça perde osso e aparas; no hortifruti, parte da caixa estraga; no self-service, o prato pesa. Neste guia você vê a conta do preço do kg com a perda, um exemplo de venda que fecha, as regras da balança e o passo a passo no caixa do Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Como funciona o produto por quilo no PDV",
+      "blocks": [
+        {
+          "p": "A balança pesa, o cliente vê o peso no mostrador e o caixa registra o mesmo número. A regra do valor é uma só: **peso líquido × preço do quilo**, arredondado nos centavos. Por isso o cadastro guarda o preço do kg, e não o preço de uma unidade."
+        },
+        {
+          "img": "/images/guias/produto-por-quilo-no-pdv-2.jpg",
+          "alt": "Diagrama do produto por quilo no PDV: a balança mostra o peso líquido, o operador digita 0,850 kg de patinho a R$ 54,90 o quilo e o caixa lança R$ 46,67",
+          "caption": "Produto por quilo no PDV: balança com a tara descontada, peso digitado e valor calculado na hora."
+        },
+        {
+          "p": "Nem tudo na loja é vendido por peso. Uma tabela simples ajuda a decidir o cadastro de cada produto:"
+        },
+        {
+          "table": {
+            "head": ["Produto", "Como cadastrar", "No caixa"],
+            "rows": [
+              ["Carne no balcão, linguiça a granel", "Vendido por quilo, preço do kg", "Digita o peso da balança"],
+              ["Tomate, banana, batata soltos", "Vendido por quilo, preço do kg", "Digita o peso da balança"],
+              ["Comida do buffet", "Vendido por quilo, preço do kg", "Digita o peso com o prato descontado"],
+              ["Maço de cheiro-verde, bandeja fechada", "Por unidade", "Botão de atalho ou busca"],
+              ["Carvão, refrigerante, tempero embalado", "Por unidade, com código de barras", "Passa no leitor"]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Açougue: preço do quilo pelo rendimento da peça",
+      "blocks": [
+        {
+          "p": "No açougue, o erro mais comum é dividir o valor da nota pelo peso comprado. A peça perde osso, gordura e aparas na desossa, e o quilo que vai para o balcão sai mais caro do que o da nota. Pese o que sobra limpo para vender e faça a conta com esse peso."
+        },
+        {
+          "table": {
+            "head": ["Exemplo de açougue", "Valor"],
+            "rows": [
+              ["Peça comprada: 10 kg a R$ 40,00 o quilo", "R$ 400,00"],
+              ["Osso e aparas que não viram venda: 1,5 kg (15%)", "1,5 kg"],
+              ["Carne limpa para o balcão", "8,5 kg"],
+              ["Custo real do quilo: R$ 400,00 ÷ 8,5 kg", "R$ 47,06"],
+              ["Preço para o custo ser 70% do preço: R$ 47,06 ÷ 0,70", "R$ 67,23 (arredonde para R$ 67,90)"]
+            ]
+          }
+        },
+        {
+          "tip": "Se as aparas viram carne moída de segunda ou vão para a linguiça da casa, elas não são perda: tire da conta só o que vai para o lixo ou sai de graça. O rendimento muda de peça para peça, por isso pese a desossa de algumas compras e anote a média de cada corte."
+        },
+        {
+          "p": "A parte do custo no preço é uma escolha sua. Para montar essa conta com despesas, impostos e lucro, veja o guia de [margem de lucro](/guia/como-calcular-margem-de-lucro)."
+        }
+      ]
+    },
+    {
+      "h2": "Hortifruti: a quebra entra no preço do quilo",
+      "blocks": [
+        {
+          "p": "No hortifruti, a perda vem do que amassa, murcha e estraga na banca. Quem não coloca a quebra no preço trabalha de graça no fim da semana. A conta é igual à do açougue: divida o valor pago pelo peso que de fato vira venda."
+        },
+        {
+          "table": {
+            "head": ["Exemplo de hortifruti (tomate)", "Valor"],
+            "rows": [
+              ["Caixa de 20 kg comprada", "R$ 80,00"],
+              ["Quebra média: 15% (3 kg)", "3 kg"],
+              ["Peso que vira venda", "17 kg"],
+              ["Custo real do quilo: R$ 80,00 ÷ 17 kg", "R$ 4,71"],
+              ["Preço para o custo ser 60% do preço: R$ 4,71 ÷ 0,60", "R$ 7,85 (arredonde para R$ 7,99)"]
+            ]
+          }
+        },
+        {
+          "p": "Folhas, ervas e itens que estragam rápido costumam ser vendidos por maço ou bandeja: cadastre como unidade e deixe como botão de atalho no caixa. Fruta e legume a granel ficam por quilo."
+        },
+        {
+          "p": "Para anotar a quebra de verdade, separe por uma semana o que vai para o descarte de cada produto e pese no fim do dia. Três ou quatro semanas de anotação já mostram a média de cada item."
+        }
+      ]
+    },
+    {
+      "h2": "Self-service: o prato nunca entra no peso",
+      "blocks": [
+        {
+          "p": "No restaurante por quilo, o cliente paga a comida, não a louça. A balança precisa estar zerada com o prato descontado (a tara) antes da pesagem, e o mostrador virado para o cliente. Se cada prato tem um peso diferente, use sempre o mesmo modelo de prato no buffet."
+        },
+        {
+          "p": "O preço do quilo varia muito por região. Em São Paulo, a pesquisa do Procon-SP feita em fevereiro de 2026 achou média de R$ 86,86 o quilo na capital, de R$ 79,49 na zona Norte a R$ 94,36 na zona Oeste. Use como referência de mercado, não como preço: a conta certa é a do seu custo."
+        },
+        {
+          "p": "Exemplo de um restaurante que cobra R$ 69,90 o quilo: a balança mostra 0,520 kg de comida, já sem o prato. No caixa, 0,520 × R$ 69,90 = R$ 36,35. O refrigerante em lata (R$ 6,00) entra como unidade, e a conta fecha em R$ 42,35."
+        }
+      ]
+    },
+    {
+      "h2": "Exemplo de venda no caixa do açougue",
+      "blocks": [
+        {
+          "p": "Veja uma venda com dois produtos por quilo e um por unidade. Cada item pesado entra com o peso no nome, o que facilita conferir o comprovante com o cliente."
+        },
+        {
+          "table": {
+            "head": ["Item no comprovante", "Peso", "Preço do kg", "Valor"],
+            "rows": [
+              ["Patinho (0,850 kg)", "0,850 kg", "R$ 54,90", "R$ 46,67"],
+              ["Linguiça toscana (0,620 kg)", "0,620 kg", "R$ 29,90", "R$ 18,54"],
+              ["Carvão 5 kg", "não", "não", "R$ 24,90"],
+              ["Total", "não", "não", "R$ 90,11"]
+            ]
+          }
+        },
+        {
+          "p": "Repare no arredondamento: 0,850 × R$ 54,90 dá R$ 46,665, e o caixa cobra R$ 46,67. Já 0,620 × R$ 29,90 dá R$ 18,538, e o caixa cobra R$ 18,54. A regra vale para qualquer peso."
+        }
+      ]
+    },
+    {
+      "h2": "Regras da balança que a fiscalização confere",
+      "blocks": [
+        {
+          "ul": [
+            "**Balança aprovada pelo Inmetro**, com selo de verificação atualizado e lacre. A regra das balanças comerciais é a Portaria Inmetro 157/2022, e usar balança sem aprovação pode gerar multa e apreensão do equipamento.",
+            "**Mostrador à vista do cliente**, mostrando o peso e o preço. O cliente tem que conseguir acompanhar a pesagem.",
+            "**Tara descontada antes de pesar.** Bandeja, saco, pote e prato não podem entrar no peso cobrado.",
+            "**Preço do quilo à vista** perto do balcão ou do buffet."
+          ]
+        },
+        {
+          "p": "Em agosto de 2024, numa operação em feiras livres, o Inmetro e os órgãos estaduais inspecionaram 2.869 balanças em 1.828 estabelecimentos e lavraram 139 autos de infração. Manter a verificação em dia sai mais barato do que a multa."
+        },
+        {
+          "tip": "Este guia é informativo. As regras de metrologia e de vigilância sanitária têm detalhes por estado; confirme com o órgão de metrologia do seu estado (Ipem) e com a vigilância sanitária local."
+        }
+      ]
+    },
+    {
+      "h2": "Passo a passo no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "**Cadastre o produto por quilo:** em Produtos, abra o produto e, em Código e custo, ligue **Vendido por quilo**. O preço do produto passa a ser o preço do kg. Se for cadastrar no próprio caixa, o cadastro rápido que abre ao ler um código novo também tem essa opção.",
+            "**Escolha o modo do caixa:** o modo **Misto (padaria)** mostra botões grandes de atalho e o campo de peso na própria tela, bom para balcão de açougue e hortifruti. O modo **Lista (supermercado)** é para quem passa muito código de barras.",
+            "**Lance o peso:** toque no produto, digite o peso com vírgula (0,450 é 450 gramas) e aperte Enter. O valor aparece antes de confirmar. Se o produto tem código de barras, ler o código abre o campo de peso direto.",
+            "**Corrija sem apagar a venda:** errou o peso? A tecla F2 abre o peso do último item para corrigir. Delete tira o último item, F3 volta para a busca e F4 vai para o pagamento.",
+            "**Feche o caixa no fim do dia** com abertura, sangria e fechamento, como mostra o guia de [abertura e fechamento de caixa](/guia/abertura-e-fechamento-de-caixa)."
+          ]
+        },
+        {
+          "p": "Dois cuidados. O Mostralo não se conecta à balança nem lê a etiqueta impressa por ela: o peso é sempre digitado, olhando o mesmo mostrador que o cliente vê. E o produto vendido por quilo não tem controle de estoque no sistema; para saber quanto saiu de cada corte ou legume, pese o que sobrou na câmara e na banca e compare com o que entrou. O leitor de código continua baixando o estoque dos produtos por unidade, como explica o guia de [leitor de código de barras](/guia/leitor-de-codigo-de-barras)."
+        },
+        {
+          "p": "Para ver como o mesmo caixa funciona em outros negócios de balcão, leia os guias de [sistema para padaria](/guia/sistema-para-padaria) e [sistema para mercadinho](/guia/sistema-para-mercadinho), ou veja a página para [supermercados](/nicho-supermercados)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: produto por quilo, atalhos e caixa no mesmo PDV",
+    "p": [
+      "No Mostralo, o açougue, o hortifruti e o restaurante por quilo vendem por peso e por unidade no mesmo caixa: o operador digita o peso, o valor sai calculado e o comprovante mostra o peso de cada item. Atalhos grandes, leitor de código e fechamento de caixa ficam na mesma tela. A gente deixa tudo pronto para você, com garantia de 7 dias. Veja as [funcionalidades](/funcionalidades), acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Produto vendido por quilo com o valor calculado pelo peso digitado",
+      "Modo Misto com botões grandes e campo de peso na própria tela",
+      "Teclas F2, F3, F4 e Delete para corrigir e fechar a venda rápido",
+      "Abertura, sangria e fechamento de caixa com relatório"
+    ]
+  },
+  "faq": [
+    [
+      "O PDV lê o peso direto da balança?",
+      "No Mostralo, não. O operador digita o peso que a balança mostrou, com vírgula (0,450 é 450 gramas), e o caixa calcula o valor. Por isso a balança precisa estar à vista do operador e do cliente."
+    ],
+    [
+      "Como calcular o preço do quilo da carne no açougue?",
+      "Divida o valor pago pela peça pelo peso que sobra limpo para vender, depois da desossa. Exemplo: R$ 400,00 por 10 kg que rendem 8,5 kg dão custo real de R$ 47,06 o quilo. Em cima desse custo entram despesas e lucro."
+    ],
+    [
+      "Posso cobrar o peso do prato ou da bandeja?",
+      "Não. O cliente paga só o produto. A balança deve ser zerada com o prato, o pote ou a bandeja descontados (a tara) antes da pesagem."
+    ],
+    [
+      "Produto por quilo baixa do estoque?",
+      "No Mostralo, o produto marcado como vendido por quilo não tem controle de estoque. Para saber quanto saiu, pese o que sobrou e compare com o que entrou. Produtos por unidade continuam baixando do estoque a cada venda."
+    ],
+    [
+      "Errei o peso no caixa. Preciso cancelar a venda?",
+      "Não. No PDV do Mostralo, a tecla F2 abre o peso do último item para corrigir, e a tecla Delete tira o último item da venda."
+    ]
+  ],
+  "sources": [
+    [
+      "IstoÉ Dinheiro — Procon-SP: preço médio do self-service por quilo em São Paulo (06/04/2026)",
+      "https://istoedinheiro.com.br/self-service-preco-procon"
+    ],
+    [
+      "Agência Gov — Dia do Consumidor: confira 15 dicas do Inmetro para compras mais seguras (2026)",
+      "https://agenciagov.ebc.com.br/noticias/202603/dia-do-consumidor-confira-15-dicas-do-inmetro-para-compras-mais-seguras"
+    ],
+    [
+      "Agência Gov — Inmetro verifica balanças em operação especial do Dia do Feirante (2024)",
+      "https://agenciagov.ebc.com.br/noticias/202409/inmetro-verifica-balancas-em-operacao-especial-2018dia-do-feirante2019"
+    ],
+    [
+      "Sibapem — Cartilha sobre balanças comerciais e a Portaria Inmetro 157/2022",
+      "https://sibapem.com.br/wp-content/uploads/2025/02/CARTILHA4.pdf"
+    ]
+  ],
+  "related": [
+    "sistema-para-padaria",
+    "sistema-para-mercadinho",
+    "como-calcular-margem-de-lucro",
+    "leitor-de-codigo-de-barras",
+    "abertura-e-fechamento-de-caixa",
+    "sorvete-por-quilo"
+  ]
+}

@@ -1,10 +1,11 @@
 {
   "slug": "como-calcular-taxa-de-entrega",
-  "title": "Como calcular taxa de entrega: por km, bairro e raio",
+  "title": "Taxa de entrega por km: como calcular o valor certo",
   "h1": "Como calcular taxa de entrega: custo do motoboy, km, bairro, pedido mínimo e frete grátis",
-  "description": "Como calcular taxa de entrega com conta que fecha: custo do motoboy por minuto, combustível por km, faixas de raio, bairro, pedido mínimo e frete grátis.",
+  "description": "Como calcular a taxa de entrega por km com conta que fecha: custo do motoboy, combustível, faixas de raio, bairro, pedido mínimo e frete grátis, com exemplo.",
   "excerpt": "Taxa de entrega no chute vira prejuízo na entrega longe e cliente perdido na entrega perto. Veja a conta passo a passo, com motoboy, combustível, faixas de km, bairro, pedido mínimo e frete grátis.",
   "date": "2026-10-31",
+  "updated": "2026-11-15",
   "readMinutes": 8,
   "category": "Delivery e pedidos",
   "keywords": [

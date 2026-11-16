@@ -1,0 +1,313 @@
+{
+  "slug": "promocao-com-brinde",
+  "title": "Promoção com brinde: quando dá lucro e quando dá prejuízo",
+  "h1": "Promoção com brinde: a conta que mostra quando dá lucro e quando só dá prejuízo",
+  "description": "Promoção com brinde dá lucro quando o brinde custa pouco e faz o pedido subir. Veja a conta do valor mínimo, que brinde escolher e como montar no delivery.",
+  "excerpt": "Um brinde parece barato, mas vai também para quem já ia gastar aquele valor. Veja quantos pedidos precisam subir para o brinde pagar, que produto escolher e as regras que protegem a margem.",
+  "date": "2026-11-16",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "promoção com brinde",
+    "brinde na compra",
+    "compre e ganhe",
+    "brinde para clientes delivery",
+    "brinde acima de um valor",
+    "promoção que dá lucro"
+  ],
+  "image": "/images/guias/promocao-com-brinde.jpg",
+  "imageAlt": "Ilustração de uma promoção com brinde no cardápio digital: pedido acima de R$ 70 ganha uma batata pequena, que entra no pedido a R$ 0,00",
+  "intro": [
+    "Uma promoção com brinde dá lucro quando o brinde custa pouco para você, vale bastante para o cliente e faz parte dos pedidos subir até o valor mínimo. Ela dá prejuízo quando o brinde vai quase todo para quem já ia gastar aquele valor de qualquer jeito.",
+    "A vantagem do brinde sobre o desconto é simples: o cliente enxerga o preço do cardápio, e você paga só o custo. Uma batata de R$ 12 que custa R$ 3,50 parece um presente de R$ 12. Neste guia você vê a conta da semana que mostra se a promoção fecha, como escolher o brinde, as regras que evitam abuso e como montar tudo no cardápio digital."
+  ],
+  "sections": [
+    {
+      "h2": "Brinde ou desconto: qual sai mais barato?",
+      "blocks": [
+        {
+          "p": "Desconto sai do seu caixa pelo valor cheio. Se você dá 10% num pedido de R$ 70, perde R$ 7 de verdade. O brinde sai pelo **custo** do produto: a batata que você vende por R$ 12 custa, por exemplo, R$ 3,50 de batata, óleo e embalagem."
+        },
+        {
+          "table": {
+            "head": [
+              "Exemplo num pedido de R$ 70",
+              "O cliente enxerga",
+              "Sai do seu caixa"
+            ],
+            "rows": [
+              [
+                "Desconto de 10%",
+                "R$ 7,00 a menos",
+                "R$ 7,00"
+              ],
+              [
+                "Batata pequena de brinde",
+                "R$ 12,00 de presente",
+                "R$ 3,50"
+              ],
+              [
+                "Frete grátis (entrega de R$ 8)",
+                "R$ 8,00 a menos",
+                "R$ 8,00 (se o motoboy é pago por entrega)"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Por isso o brinde costuma ser a promoção mais barata para o mesmo efeito. Mas ele tem uma armadilha: vai para todo mundo que cumpre a regra, inclusive para o cliente que já gastava R$ 80 sem promoção nenhuma. É aí que a conta precisa ser feita. Se a dúvida é entre brinde e frete, veja também [frete grátis a partir de um valor](/guia/frete-gratis-a-partir-de-um-valor)."
+        }
+      ]
+    },
+    {
+      "h2": "A conta da promoção com brinde: quantos pedidos precisam subir",
+      "blocks": [
+        {
+          "p": "Exemplo: uma hamburgueria tem ticket médio de R$ 52 e margem de contribuição de 35% (o que sobra de cada venda depois de ingredientes, embalagem e taxas; veja [como calcular a margem de lucro](/guia/como-calcular-margem-de-lucro)). Ela lança: **pedido a partir de R$ 70 ganha uma batata pequena**, que custa R$ 3,50."
+        },
+        {
+          "ul": [
+            "Cliente que subia de R$ 52 para R$ 70: são R$ 18 a mais × 35% = R$ 6,30 de margem extra, menos R$ 3,50 do brinde = **R$ 2,80 de lucro** por pedido.",
+            "Cliente que já passava de R$ 70: não gastou nada a mais e levou o brinde = **R$ 3,50 de custo** por pedido."
+          ]
+        },
+        {
+          "img": "/images/guias/promocao-com-brinde-2.jpg",
+          "alt": "Diagrama da promoção com brinde: cada pedido que sobe de R$ 52 para R$ 70 deixa R$ 2,80 de lucro e cada pedido que já passava de R$ 70 custa R$ 3,50",
+          "caption": "Promoção com brinde: o lucro vem de quem sobe até o valor mínimo; o custo vem de quem já passava dele."
+        },
+        {
+          "p": "Agora a semana. A loja tem 40 pedidos que já passavam de R$ 70. Veja dois cenários:"
+        },
+        {
+          "table": {
+            "head": [
+              "Na semana",
+              "Cenário fraco",
+              "Cenário bom"
+            ],
+            "rows": [
+              [
+                "Brinde para quem já passava de R$ 70 (40 × R$ 3,50)",
+                "- R$ 140,00",
+                "- R$ 140,00"
+              ],
+              [
+                "Pedidos que subiram para R$ 70",
+                "25",
+                "80"
+              ],
+              [
+                "Margem extra desses pedidos (× R$ 6,30)",
+                "+ R$ 157,50",
+                "+ R$ 504,00"
+              ],
+              [
+                "Brinde desses pedidos (× R$ 3,50)",
+                "- R$ 87,50",
+                "- R$ 280,00"
+              ],
+              [
+                "Resultado da promoção",
+                "- R$ 70,00",
+                "+ R$ 84,00"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A regra que sai dessa conta: cada pedido que sobe paga R$ 2,80, e cada pedido que já passava custa R$ 3,50. Para empatar, **para cada 4 pedidos que já passavam do mínimo, pelo menos 5 precisam subir até ele** (3,50 ÷ 2,80 = 1,25). Com 40 que já passavam, o empate é em 50 pedidos subindo."
+        },
+        {
+          "p": "Compare com um desconto de 10% no cenário bom: 40 pedidos × R$ 7 = R$ 280 de custo, mais 80 pedidos × (R$ 6,30 − R$ 7,00) = R$ 56 de prejuízo. Resultado: **R$ 336 de prejuízo** na semana, contra R$ 84 de lucro com o brinde."
+        },
+        {
+          "tip": "O valor mínimo é a alavanca. Se ele fica abaixo do ticket médio, quase todo mundo já passa dele e o brinde vira só custo. Coloque o mínimo de 20% a 40% acima do ticket médio: alto o bastante para exigir mais um item, perto o bastante para o cliente achar que vale."
+        }
+      ]
+    },
+    {
+      "h2": "Que brinde escolher",
+      "blocks": [
+        {
+          "p": "O bom brinde tem custo baixo perto do preço do cardápio, combina com o pedido e não substitui uma venda. Brinde que o cliente compraria de qualquer jeito (o refrigerante que ele sempre pede, por exemplo) troca uma venda por um presente."
+        },
+        {
+          "table": {
+            "head": [
+              "Exemplo de negócio",
+              "Brinde",
+              "Preço no cardápio",
+              "Custo",
+              "Custo ÷ preço"
+            ],
+            "rows": [
+              [
+                "Hamburgueria",
+                "Batata pequena",
+                "R$ 12,00",
+                "R$ 3,50",
+                "29%"
+              ],
+              [
+                "Pizzaria",
+                "Brownie",
+                "R$ 9,00",
+                "R$ 2,50",
+                "28%"
+              ],
+              [
+                "Doceria",
+                "Brigadeiro gourmet",
+                "R$ 5,00",
+                "R$ 1,20",
+                "24%"
+              ],
+              [
+                "Pet shop",
+                "Petisco de 100 g",
+                "R$ 15,00",
+                "R$ 5,00",
+                "33%"
+              ],
+              [
+                "Açaiteria",
+                "Açaí de 150 ml",
+                "R$ 8,00",
+                "R$ 3,20",
+                "40%"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "Prefira brinde com custo até cerca de um terço do preço: o presente parece grande e pesa pouco.",
+            "Escolha algo que viaja bem no delivery. Sorvete solto ou fritura que murcha viram reclamação.",
+            "Ofereça 2 ou 3 opções. O cliente escolhe a que prefere e você não depende de um produto só no estoque.",
+            "Use o brinde para apresentar um produto novo: quem prova de graça pode comprar na próxima."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "As regras que protegem a margem",
+      "blocks": [
+        {
+          "ul": [
+            "**Valor mínimo do pedido**: é o que faz o pedido subir. Sem mínimo, o brinde vai para pedido de R$ 15.",
+            "**Dias e horário**: use o brinde nos dias fracos (segunda a quarta, por exemplo), não na sexta à noite, quando a cozinha já está cheia.",
+            "**Limite total de usos**: 100 brindes na semana e acabou. Assim o custo máximo é conhecido antes: 100 × R$ 3,50 = R$ 350.",
+            "**Limite por cliente**: um brinde por cliente evita quem divide o pedido grande em dois.",
+            "**Só primeira compra**: bom para trazer cliente novo do Instagram sem dar presente para quem já compra."
+          ]
+        },
+        {
+          "p": "Divulgue a regra inteira: valor mínimo, dias, data de término e quantidade. O Procon-SP lembra que \"enquanto durarem os estoques\" não é informação precisa: a oferta deve trazer a data e o limite. E o que foi anunciado precisa ser cumprido."
+        },
+        {
+          "tip": "Brinde que todo cliente ganha ao cumprir a regra é uma promoção comum. Já sorteio, vale-brinde (o prêmio escondido em parte das embalagens) e concurso com compra precisam de autorização prévia da Secretaria de Prêmios e Apostas do Ministério da Fazenda (Lei 5.768/1971; Portaria SPA/MF 1.818/2026). Este guia é informativo e não substitui um advogado."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a promoção com brinde no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "No painel, abra **Promoções** e clique em nova promoção. Dê um nome e, se quiser, uma imagem de banner.",
+            "Em Benefícios, ligue **Brinde / Produto Grátis** e marque os produtos que podem ir de brinde. Marcando mais de um, o cliente escolhe qual quer.",
+            "Em Aplicar em, escolha todos os produtos, uma categoria ou produtos específicos, e marque se vale para delivery, retirada ou os dois.",
+            "Em Regras, preencha o **valor mínimo do pedido**, o máximo de usos total e o máximo por cliente.",
+            "Em Período, coloque a data de término, os dias da semana e o horário. Se quiser, ligue o aviso em popup na loja.",
+            "Faça um pedido de teste abaixo e acima do mínimo para ver o brinde aparecer."
+          ]
+        },
+        {
+          "p": "No cardápio, os produtos da promoção ganham o selo de brinde. Na finalização, o cliente vê o brinde e escolhe a opção. O brinde entra no pedido como item a R$ 0,00 com a nota \"Brinde da promoção\", então a cozinha vê na comanda impressa e, se o produto controla estoque, a baixa acontece junto. O servidor confere tudo de novo: brinde fora da lista ou indisponível não passa."
+        },
+        {
+          "p": "Dá para juntar o brinde com frete grátis ou com a regra de primeira compra no mesmo cadastro. Desconto no produto e leve X pague Y são desligados quando o brinde está ligado. Cada pedido usa uma promoção só, a que dá mais desconto; se outra promoção com desconto estiver valendo, ela ganha do brinde. Para outras mecânicas, veja [promoção leve X pague Y](/guia/promocao-leve-x-pague-y) e [cupom de desconto para delivery](/guia/cupom-de-desconto-delivery)."
+        }
+      ]
+    },
+    {
+      "h2": "Como saber se a promoção com brinde funcionou",
+      "blocks": [
+        {
+          "p": "Anote antes de começar o ticket médio e quantos pedidos por semana já passam do valor mínimo. Depois de uma ou duas semanas, compare:"
+        },
+        {
+          "ul": [
+            "Quantos brindes saíram (o contador de usos da promoção mostra).",
+            "Quantos pedidos passaram do mínimo agora, e quantos já passavam antes.",
+            "Se o ticket médio subiu, no [relatório de vendas](/guia/relatorio-de-vendas-pequeno-negocio)."
+          ]
+        },
+        {
+          "p": "Se os pedidos que subiram não chegam a 1,25 vez os que já passavam, suba o valor mínimo, troque o brinde por um mais barato ou limite a promoção aos dias fracos. Mais ideias de promoção na categoria [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: brinde, valor mínimo e limites numa promoção só",
+    "p": [
+      "No Mostralo, você cria a promoção com brinde em poucos minutos: escolhe os produtos de brinde, o valor mínimo, os dias, o horário e os limites. O cardápio mostra o selo, o cliente escolhe o brinde na finalização e o pedido chega na cozinha com o brinde a R$ 0,00. Tudo no seu delivery próprio, sem comissão por pedido. A gente deixa tudo pronto para você, com garantia de 7 dias. Veja as [funcionalidades](/funcionalidades), acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Brinde com uma ou várias opções, e o cliente escolhe qual quer",
+      "Valor mínimo, dias, horário, limite total e limite por cliente",
+      "Brinde junto de frete grátis ou só na primeira compra",
+      "Brinde impresso na comanda e conferido pelo servidor"
+    ]
+  },
+  "faq": [
+    [
+      "Promoção com brinde dá lucro?",
+      "Dá quando o brinde custa pouco e faz parte dos pedidos subir até o valor mínimo. No exemplo do guia, para cada 4 pedidos que já passavam do mínimo, pelo menos 5 precisam subir até ele para a promoção empatar."
+    ],
+    [
+      "Qual o valor mínimo ideal para dar brinde?",
+      "Um ponto de partida é de 20% a 40% acima do seu ticket médio. Abaixo do ticket médio, quase todo mundo já ganha o brinde sem gastar mais."
+    ],
+    [
+      "Brinde é melhor que desconto?",
+      "Em geral sai mais barato, porque o cliente enxerga o preço do cardápio e você paga só o custo. Um brinde de R$ 12 que custa R$ 3,50 pesa menos que um desconto de R$ 7."
+    ],
+    [
+      "Preciso de autorização para dar brinde na compra?",
+      "Brinde que todo cliente ganha ao cumprir a regra é uma promoção comum. Sorteio, vale-brinde e concurso ligados à compra precisam de autorização da Secretaria de Prêmios e Apostas do Ministério da Fazenda. Na dúvida, consulte um advogado."
+    ],
+    [
+      "O cliente pode escolher o brinde?",
+      "No Mostralo, sim: se você marcar mais de um produto de brinde, o cliente escolhe um deles na finalização do pedido."
+    ],
+    [
+      "O brinde baixa do estoque?",
+      "Sim, quando o produto controla estoque. O brinde entra no pedido como item a R$ 0,00 e a baixa acontece como em qualquer item."
+    ]
+  ],
+  "sources": [
+    [
+      "Cescon Barrieu — Portaria SPA/MF 1.818/2026: nova regulamentação das promoções comerciais (2026)",
+      "https://cesconbarrieu.com.br/portaria-promocoes-comerciais/"
+    ],
+    [
+      "Gov.br — Obter autorização para distribuição gratuita de prêmios (Secretaria de Prêmios e Apostas)",
+      "https://www.gov.br/pt-br/servicos/obter-autorizacao-para-atividades-de-distribuicao-gratuita-de-premios-a-titulo-de-propaganda-ou-de-captacao-de-poupanca-popular"
+    ],
+    [
+      "Procon-SP e APAS — Cartilha orientativa para supermercados (2026)",
+      "https://www.procon.sp.gov.br/wp-content/uploads/2026/02/CartilhaOrientativa-Final-5.pdf"
+    ]
+  ],
+  "related": [
+    "promocao-leve-x-pague-y",
+    "cupom-de-desconto-delivery",
+    "frete-gratis-a-partir-de-um-valor",
+    "como-calcular-margem-de-lucro",
+    "combo-para-hamburgueria",
+    "relatorio-de-vendas-pequeno-negocio"
+  ]
+}

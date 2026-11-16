@@ -5,6 +5,7 @@
   "description": "Pizza meio a meio: como cobrar pela média, pelo proporcional ou pelo sabor mais caro, o que diz o Procon, a conta da margem e o cardápio que calcula sozinho.",
   "excerpt": "Média, proporcional ou sabor mais caro? Veja como cobrar a pizza meio a meio, o que os Procons dizem, a conta que mostra a margem e como o cardápio digital acerta o preço sozinho.",
   "date": "2026-11-11",
+  "updated": "2026-11-16",
   "readMinutes": 7,
   "category": "Delivery e pedidos",
   "keywords": [
@@ -16,7 +17,8 @@
     "pizza três sabores preço"
   ],
   "image": "/images/guias/pizza-meio-a-meio-como-cobrar.jpg",
-  "imageAlt": "Ilustração de pizza meio a meio com calabresa de um lado e camarão do outro e o cálculo do preço pela média dos dois sabores",
+  "imageAlt": "Dono de pizzaria confere o pedido no celular ao lado de uma pizza meio a meio de calabresa e camarão, exemplo de como cobrar pizza meio a meio",
+  "audio": {"src": "/audio/guias/pizza-meio-a-meio-como-cobrar.mp3", "duration": 678.8, "voice": "Puck", "segments": [{"t": 0.0, "target": "intro"}, {"t": 52.07, "target": "s1"}, {"t": 139.14, "target": "s2"}, {"t": 236.13, "target": "s3"}, {"t": 354.29, "target": "s4"}, {"t": 434.0, "target": "s5"}, {"t": 489.35, "target": "s6"}, {"t": 517.58, "target": "s7"}, {"t": 619.25, "target": "mostralo"}]},
   "intro": [
     "Na pizza meio a meio, o jeito mais seguro de cobrar é a **média dos sabores**: some o preço de cada sabor no mesmo tamanho e divida pela quantidade de sabores. Cobrar a pizza inteira pelo sabor mais caro é comum, mas vários Procons consideram essa prática abusiva.",
     "E não é detalhe: em levantamento da VR divulgado em julho de 2026, 92% dos consumidores disseram preferir pedir pizza meio a meio. Neste guia você vê as três regras de cobrança, o que dizem os órgãos de defesa do consumidor, a conta que mostra que a média não derruba a sua margem, como tratar três e quatro sabores, borda e adicionais, e como deixar o cardápio fazer a conta sozinho."

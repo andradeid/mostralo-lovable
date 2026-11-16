@@ -5,6 +5,7 @@
   "description": "Produto por quilo no PDV: como achar o preço do kg pela perda, pesar com a tara certa, digitar o peso no caixa e corrigir erro, com exemplos que fecham.",
   "excerpt": "Carne, tomate e comida do buffet têm a mesma regra no caixa: peso líquido vezes o preço do quilo. Veja como calcular o preço do kg com a perda, pesar certo e lançar no PDV sem erro.",
   "date": "2026-11-15",
+  "updated": "2026-11-16",
   "readMinutes": 7,
   "category": "Gestão e vendas",
   "keywords": [
@@ -16,7 +17,8 @@
     "preço do quilo com perda"
   ],
   "image": "/images/guias/produto-por-quilo-no-pdv.jpg",
-  "imageAlt": "Ilustração de um caixa com produto por quilo no PDV: o operador digita o peso de 0,850 kg de patinho e o sistema calcula o valor",
+  "imageAlt": "Açougueiro pesa a carne na balança ao lado do caixa, exemplo de venda de produto por quilo no PDV",
+  "audio": {"src": "/audio/guias/produto-por-quilo-no-pdv.mp3", "duration": 766.9, "voice": "Puck", "segments": [{"t": 0.0, "target": "intro"}, {"t": 55.31, "target": "s1"}, {"t": 144.15, "target": "s2"}, {"t": 257.26, "target": "s3"}, {"t": 336.34, "target": "s4"}, {"t": 412.97, "target": "s5"}, {"t": 504.16, "target": "s6"}, {"t": 583.67, "target": "s7"}, {"t": 703.27, "target": "mostralo"}]},
   "intro": [
     "Para vender produto por quilo no PDV, cadastre o preço do kg no produto, pese com a tara descontada e digite no caixa o peso líquido que a balança mostrou: o sistema multiplica o peso pelo preço do quilo e arredonda nos centavos. Carne, legumes e comida do buffet seguem essa mesma conta.",
     "O que muda de um negócio para outro é o preço do quilo. No açougue, a peça perde osso e aparas; no hortifruti, parte da caixa estraga; no self-service, o prato pesa. Neste guia você vê a conta do preço do kg com a perda, um exemplo de venda que fecha, as regras da balança e o passo a passo no caixa do Mostralo."

@@ -5,6 +5,7 @@
   "description": "Etiquetas de clientes para separar VIP, fiado e atacado: critério de cada grupo, conta para achar o cliente VIP, cuidados com o fiado e passo a passo no painel.",
   "excerpt": "Como criar etiquetas de clientes para separar VIP, fiado e atacado, com critério claro para cada grupo, a conta para achar quem mais compra e o cuidado que o fiado pede.",
   "date": "2026-11-14",
+  "updated": "2026-11-16",
   "readMinutes": 7,
   "category": "Gestão e vendas",
   "keywords": [
@@ -16,7 +17,8 @@
     "cadastro de clientes com etiquetas"
   ],
   "image": "/images/guias/etiquetas-de-clientes.jpg",
-  "imageAlt": "Ilustração de lista de clientes com etiquetas coloridas VIP, Fiado e Atacado, exemplo de etiquetas de clientes num pequeno comércio",
+  "imageAlt": "Dono de mercadinho consulta no celular o cadastro de um cliente no balcão, exemplo de uso de etiquetas de clientes",
+  "audio": {"src": "/audio/guias/etiquetas-de-clientes.mp3", "duration": 667.7, "voice": "Puck", "segments": [{"t": 0.0, "target": "intro"}, {"t": 52.99, "target": "s1"}, {"t": 107.82, "target": "s2"}, {"t": 202.45, "target": "s3"}, {"t": 320.17, "target": "s4"}, {"t": 404.4, "target": "s5"}, {"t": 463.11, "target": "s6"}, {"t": 565.06, "target": "s7"}, {"t": 622.41, "target": "mostralo"}]},
   "intro": [
     "**Etiquetas de clientes** são marcas coloridas que você coloca no cadastro de cada cliente para separar grupos que pedem tratamento diferente, como VIP, fiado e atacado. Com elas, qualquer pessoa da equipe olha o nome e já sabe como atender, sem depender da memória do dono.",
     "No balcão do bairro todo mundo sabe quem é o cliente bom, quem compra na caderneta e quem leva caixa fechada. O problema aparece quando entra um funcionário novo, quando a loja cresce ou quando você quer mandar uma oferta só para um grupo. Neste guia você vê o critério de cada etiqueta, a conta para achar seus clientes VIP, o cuidado que o fiado pede e como fazer isso no painel em poucos minutos."

@@ -16,7 +16,8 @@
     "promoção que dá lucro"
   ],
   "image": "/images/guias/promocao-com-brinde.jpg",
-  "imageAlt": "Ilustração de uma promoção com brinde no cardápio digital: pedido acima de R$ 70 ganha uma batata pequena, que entra no pedido a R$ 0,00",
+  "imageAlt": "Dono de hamburgueria separa uma batata de brinde junto do pedido de delivery, exemplo de promoção com brinde",
+  "audio": {"src": "/audio/guias/promocao-com-brinde.mp3", "duration": 761.2, "voice": "Puck", "segments": [{"t": 0.0, "target": "intro"}, {"t": 49.15, "target": "s1"}, {"t": 131.78, "target": "s2"}, {"t": 332.94, "target": "s3"}, {"t": 448.54, "target": "s4"}, {"t": 547.94, "target": "s5"}, {"t": 650.06, "target": "s6"}, {"t": 694.45, "target": "mostralo"}]},
   "intro": [
     "Uma promoção com brinde dá lucro quando o brinde custa pouco para você, vale bastante para o cliente e faz parte dos pedidos subir até o valor mínimo. Ela dá prejuízo quando o brinde vai quase todo para quem já ia gastar aquele valor de qualquer jeito.",
     "A vantagem do brinde sobre o desconto é simples: o cliente enxerga o preço do cardápio, e você paga só o custo. Uma batata de R$ 12 que custa R$ 3,50 parece um presente de R$ 12. Neste guia você vê a conta da semana que mostra se a promoção fecha, como escolher o brinde, as regras que evitam abuso e como montar tudo no cardápio digital."

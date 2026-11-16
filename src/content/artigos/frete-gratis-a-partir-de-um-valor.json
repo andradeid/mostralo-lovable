@@ -5,6 +5,7 @@
   "description": "Frete grátis a partir de um valor: a conta para achar o valor certo, quando dá lucro no delivery e como mostrar \"faltam R$ X\" no carrinho do cliente.",
   "excerpt": "Qual valor escolher para o frete grátis, a conta da semana que mostra se dá lucro, quando usar só em dias fracos e como mostrar \"faltam R$ X\" no carrinho para o cliente completar o pedido.",
   "date": "2026-11-12",
+  "updated": "2026-11-16",
   "readMinutes": 7,
   "category": "Delivery e pedidos",
   "keywords": [
@@ -16,7 +17,8 @@
     "valor mínimo para frete grátis"
   ],
   "image": "/images/guias/frete-gratis-a-partir-de-um-valor.jpg",
-  "imageAlt": "Ilustração de carrinho de delivery no celular com a faixa faltam R$ 12,00 para frete grátis e o valor mínimo do frete grátis a partir de um valor",
+  "imageAlt": "Dono de lanchonete confere no celular o pedido de delivery enquanto o motoboy espera, exemplo de frete grátis a partir de um valor",
+  "audio": {"src": "/audio/guias/frete-gratis-a-partir-de-um-valor.mp3", "duration": 744.4, "voice": "Puck", "segments": [{"t": 0.0, "target": "intro"}, {"t": 59.87, "target": "s1"}, {"t": 119.86, "target": "s2"}, {"t": 252.38, "target": "s3"}, {"t": 373.06, "target": "s4"}, {"t": 437.02, "target": "s5"}, {"t": 539.89, "target": "s6"}, {"t": 604.88, "target": "s7"}, {"t": 689.39, "target": "mostralo"}]},
   "intro": [
     "**Frete grátis a partir de um valor** vale a pena quando o valor fica acima do seu pedido médio o bastante para o cliente comprar mais do que custa a entrega. A conta é simples: pedido médio mais o custo da entrega dividido pela sua margem. Abaixo disso, você só troca a taxa por desconto.",
     "O frete pesa na decisão de compra: no Radar do E-commerce D2C da Nuvemshop de setembro de 2026, o frete grátis apareceu em 31,05% dos pedidos das lojas virtuais. No delivery é igual: o cliente olha a taxa antes de fechar. Neste guia você vê a conta do valor certo, a simulação de uma semana inteira, as variações que protegem a margem e como mostrar \"faltam R$ X\" no carrinho, que é o que faz o cliente completar o pedido."

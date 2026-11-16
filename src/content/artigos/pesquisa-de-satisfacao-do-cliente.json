@@ -5,6 +5,7 @@
   "description": "Pesquisa de satisfação do cliente depois do atendimento: a conta do CSAT, quando mandar pelo WhatsApp, modelos de mensagem e como acompanhar a nota do time.",
   "excerpt": "O que é CSAT, a conta para saber se o cliente saiu satisfeito, a melhor hora de mandar a pesquisa pelo WhatsApp, modelos prontos e como acompanhar a nota média sem planilha.",
   "date": "2026-11-13",
+  "updated": "2026-11-16",
   "readMinutes": 8,
   "category": "Agendamento",
   "keywords": [
@@ -16,7 +17,8 @@
     "nota de atendimento 1 a 5"
   ],
   "image": "/images/guias/pesquisa-de-satisfacao-do-cliente.jpg",
-  "imageAlt": "Ilustração de celular com a pergunta de nota de 1 a 5 e as estrelas, exemplo de pesquisa de satisfação do cliente pelo WhatsApp depois do atendimento",
+  "imageAlt": "Cliente sorri ao responder no celular a pesquisa de satisfação do cliente depois do atendimento no salão",
+  "audio": {"src": "/audio/guias/pesquisa-de-satisfacao-do-cliente.mp3", "duration": 665.9, "voice": "Puck", "segments": [{"t": 0.0, "target": "intro"}, {"t": 50.27, "target": "s1"}, {"t": 147.26, "target": "s2"}, {"t": 228.21, "target": "s3"}, {"t": 303.64, "target": "s4"}, {"t": 355.07, "target": "s5"}, {"t": 436.06, "target": "s6"}, {"t": 543.13, "target": "s7"}, {"t": 609.36, "target": "mostralo"}]},
   "intro": [
     "**Pesquisa de satisfação do cliente** é mandar, logo depois do atendimento, uma pergunta curta pedindo uma nota de 1 a 5. Com essas notas você calcula o CSAT: a porcentagem de clientes que saíram satisfeitos. É o jeito mais simples de saber se o seu negócio está entregando o que promete, antes de o cliente sumir sem dizer o motivo.",
     "A maioria dos clientes insatisfeitos não reclama: só não volta. A pesquisa dá voz a quem ficou calado e mostra, em número, se o time melhorou ou piorou de um mês para o outro. Neste guia você vê a conta do CSAT, o melhor momento para perguntar, modelos de mensagem que não parecem robô e como acompanhar a nota média sem precisar de planilha."

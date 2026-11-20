@@ -15,7 +15,7 @@ import { PizzaFlavorPicker } from '@/components/store/PizzaFlavorPicker';
 import { useCustomScripts } from '@/hooks/useCustomScripts';
 import { MessageCircle } from 'lucide-react';
 import { displayPrices } from '@/lib/productPage/pricing';
-import type { Product } from '@/lib/productPage/types';
+import type { Product, ProductVariant as ProductVariantType } from '@/lib/productPage/types';
 import { useProductPageData } from '@/hooks/productPage/useProductPageData';
 import { useProductPageUI } from '@/hooks/productPage/useProductPageUI';
 import { useProductAddons } from '@/hooks/productPage/useProductAddons';
@@ -28,6 +28,7 @@ import { ProductStoreStatusAlert } from '@/components/store/product-page/Product
 import { ProductGallery } from '@/components/store/product-page/ProductGallery';
 import { ProductSummary } from '@/components/store/product-page/ProductSummary';
 import { ProductVariantsList } from '@/components/store/product-page/ProductVariantsList';
+import { GradePicker } from '@/components/store/GradePicker';
 import { ProductAddonsList } from '@/components/store/product-page/ProductAddonsList';
 import { ProductBottomBar } from '@/components/store/product-page/ProductBottomBar';
 import { ProductPageDialogs } from '@/components/store/product-page/ProductPageDialogs';
@@ -127,7 +128,11 @@ const ProductPage = () => {
             />
 
             {/* Variants */}
-            <ProductVariantsList variants={variants} selectedVariant={selectedVariant} setSelectedVariant={setSelectedVariant} />
+            {product.grade ? (
+              <GradePicker<ProductVariantType> grade={product.grade} variants={variants} onChange={setSelectedVariant} primaryColor={primaryColor} />
+            ) : (
+              <ProductVariantsList variants={variants} selectedVariant={selectedVariant} setSelectedVariant={setSelectedVariant} />
+            )}
 
             {/* Sabores (meio a meio) */}
             <PizzaFlavorPicker

@@ -16,6 +16,8 @@ export interface PDVProduct {
   barcode?: string | null;
   /** Vendido por quilo: price = preço do kg (o PDV pede o peso). */
   sold_by_weight?: boolean;
+  /** Grade (cor × tamanho): o clique abre a escolha da combinação. */
+  grade?: unknown;
   categories?: {
     name: string;
   };
@@ -144,6 +146,7 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTe
           category_id,
           barcode,
           sold_by_weight,
+          grade,
           categories (name)
         `)
         .eq('store_id', storeId)

@@ -7,6 +7,8 @@ import { lastCartItem, mergeScannedItem } from '@/lib/pdv/cartScan';
 export interface CartItem {
   id: string;
   product_id?: string;
+  /** Combinação da grade (cor × tamanho): baixa o estoque dela. */
+  variant_id?: string;
   product_name: string;
   image_url?: string;
   unit_price: number;
@@ -135,6 +137,7 @@ export function usePDV() {
         await addItem({
           comanda_id: comanda.id,
           product_id: item.product_id,
+          variant_id: item.variant_id,
           product_name: item.product_name,
           unit_price: item.unit_price,
           quantity: item.quantity,

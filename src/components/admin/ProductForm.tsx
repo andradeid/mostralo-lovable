@@ -13,6 +13,7 @@ import { BasicInfoSection } from './product-form/BasicInfoSection';
 import { OfferSection } from './product-form/OfferSection';
 import { StockSection } from './product-form/StockSection';
 import { VariantsSection } from './product-form/VariantsSection';
+import { GradeSection } from './product-form/GradeSection';
 import { MainImageSection, GallerySection } from './product-form/ImagesSections';
 import { AddonsSection } from './product-form/AddonsSection';
 import { UpsellSection } from './product-form/UpsellSection';
@@ -41,6 +42,7 @@ export function ProductForm({
   const d = useProductFormData(form, productId);
   const cost = useProductCost(productId);
   const { toast } = d;
+  const hasGrade = !!form.watch('grade');
 
   const onSubmit = async (data: ProductFormData) => {
     try {
@@ -109,20 +111,29 @@ export function ProductForm({
 
             <Separator />
 
-            {/* Controle de Estoque */}
-            <StockSection form={form} />
+            {/* Grade (cor × tamanho): com grade, o estoque e as opções ficam na tabela */}
+            <GradeSection form={form} variants={d.variants} setVariants={d.setVariants} />
 
-            <Separator />
+            {!hasGrade && (
+              <>
+                <Separator />
 
-            {/* Opções */}
-            <VariantsSection
-              variants={d.variants}
-              newVariantName={d.newVariantName}
-              setNewVariantName={d.setNewVariantName}
-              addVariant={d.addVariant}
-              removeVariant={d.removeVariant}
-              updateVariantPrice={d.updateVariantPrice}
-            />
+                {/* Controle de Estoque */}
+                <StockSection form={form} />
+
+                <Separator />
+
+                {/* Opções */}
+                <VariantsSection
+                  variants={d.variants}
+                  newVariantName={d.newVariantName}
+                  setNewVariantName={d.setNewVariantName}
+                  addVariant={d.addVariant}
+                  removeVariant={d.removeVariant}
+                  updateVariantPrice={d.updateVariantPrice}
+                />
+              </>
+            )}
 
             <Separator />
 

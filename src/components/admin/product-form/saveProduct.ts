@@ -44,11 +44,17 @@ export async function saveProduct({ productId, data, storeId, variants, selected
     finalProductId = newProduct.id;
   }
 
+  // Grade: todas as combinações com o preço de venda do produto (oferta, se houver)
+  const salePrice = data.is_on_offer && data.offer_price ? Number(data.offer_price) : Number(data.price);
+  const gradeVariants = data.grade
+    ? variants.filter(v => v.attributes).map(v => ({ ...v, price: salePrice }))
+    : variants.filter(v => !v.attributes);
+
   // Variações e adicionais numa única operação no banco (tudo ou nada; mantém ids e estoque das variações)
   if (finalProductId) {
     const { error: childrenError } = await supabase.rpc('save_product_children' as never, {
       p_product_id: finalProductId,
-      p_variants: buildVariantPayload(variants),
+      p_variants: buildVariantPayload(gradeVariants),
       p_addon_category_ids: selectedAddonCategories,
     } as never);
     if (childrenError) throw childrenError;

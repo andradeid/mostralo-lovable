@@ -5,6 +5,8 @@
 export interface ScanCartLine {
   id: string;
   product_id?: string;
+  /** Combinação da grade (cor × tamanho): só soma com a mesma combinação. */
+  variant_id?: string;
   unit_price: number;
   quantity: number;
   total_price: number;
@@ -27,7 +29,7 @@ export function mergeScannedItem<T extends ScanCartLine>(
 ): T[] {
   const touched = stamp === undefined ? {} : { touched: stamp };
   const idx = cart.findIndex(
-    (l) => !!item.product_id && l.product_id === item.product_id && l.unit_price === item.unit_price && isPlain(l) && isPlain(item),
+    (l) => !!item.product_id && l.product_id === item.product_id && (l.variant_id ?? null) === (item.variant_id ?? null) && l.unit_price === item.unit_price && isPlain(l) && isPlain(item),
   );
   if (idx === -1) {
     return [...cart, { ...item, ...touched, id: newId(), total_price: item.unit_price * item.quantity } as T];

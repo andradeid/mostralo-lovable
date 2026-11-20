@@ -6,6 +6,8 @@ import type { WeighableProduct } from '@/lib/pdv/weight';
 /** Produto escolhido na busca, no atalho ou na grade (pesado ou não). */
 export interface PDVPickProduct extends WeighableProduct {
   sold_by_weight?: boolean | null;
+  /** Grade (cor × tamanho): abre a escolha da combinação. */
+  grade?: unknown;
 }
 
 export interface WeighingState {

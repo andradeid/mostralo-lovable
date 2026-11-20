@@ -20,6 +20,7 @@ import { brl } from '@/lib/brl';
 import { buildStockEntryArgs, costAfterEntry, stockErrorMessage } from '@/lib/stock/stockEntry';
 import { addStockEntry, fetchProductCost, type StockEntryRow } from '@/hooks/stock/stockQueries';
 import { StockProductPicker } from './StockProductPicker';
+import { GradeEntryGrid } from './GradeEntryGrid';
 
 /** O mínimo do produto que o diálogo precisa (serve o produto da tela Produtos e o do Estoque). */
 export interface StockEntryProduct {
@@ -28,6 +29,10 @@ export interface StockEntryProduct {
   barcode?: string | null;
   track_stock: boolean | null;
   stock_quantity: number | null;
+  /** Grade (cor × tamanho): a entrada é por combinação. */
+  grade?: unknown;
+  /** Lido pelo código de uma combinação: já começa com 1 nela. */
+  variant?: { id: string } | null;
 }
 
 interface Props {
@@ -49,6 +54,7 @@ export function StockEntryDialog({ open, onOpenChange, storeId, product: fixedPr
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [gradeQty, setGradeQty] = useState<Record<string, string>>({});
   const quantityRef = useRef<HTMLInputElement>(null);
 
   // Ao abrir: começa do zero (ou com o produto já escolhido)
@@ -61,8 +67,14 @@ export function StockEntryDialog({ open, onOpenChange, storeId, product: fixedPr
     setInvoiceNumber('');
     setNotes('');
     setError('');
+    setGradeQty({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, fixedProduct?.id]);
+
+  // Produto com grade lido pelo código de uma combinação: começa com 1 nela
+  useEffect(() => {
+    setGradeQty(product?.variant ? { [product.variant.id]: '1' } : {});
+  }, [product?.id, product?.variant?.id]);
 
   // Custo atual do produto (para mostrar o custo médio depois da entrada)
   useEffect(() => {
@@ -78,14 +90,16 @@ export function StockEntryDialog({ open, onOpenChange, storeId, product: fixedPr
     };
   }, [open, product?.id]);
 
+  const hasGrade = !!product?.grade;
+  const gradeTotal = Object.values(gradeQty).reduce((s, v) => s + (Number(v) || 0), 0);
   const before = product?.stock_quantity ?? 0;
-  const qty = /^\d+$/.test(quantity.trim()) ? Number(quantity.trim()) : 0;
+  const qty = hasGrade ? gradeTotal : /^\d+$/.test(quantity.trim()) ? Number(quantity.trim()) : 0;
   const newCost = qty > 0 ? costAfterEntry(currentCost, before, qty, unitCost) : null;
 
   const submit = async (keepOpen: boolean) => {
     const built = buildStockEntryArgs({
       productId: product?.id ?? null,
-      quantity,
+      quantity: hasGrade ? String(gradeTotal) : quantity,
       unitCost,
       supplier,
       invoiceNumber,
@@ -98,15 +112,28 @@ export function StockEntryDialog({ open, onOpenChange, storeId, product: fixedPr
     setSaving(true);
     setError('');
     try {
-      const entry = await addStockEntry({ ...built.args });
-      toast.success(`Entrada registrada: ${product!.name} +${built.args.p_quantity} (estoque ${entry.stock_before ?? before} → ${entry.stock_after ?? before + built.args.p_quantity})`);
-      onSaved?.(entry);
+      if (hasGrade) {
+        // Uma entrada por combinação (mesmo custo, fornecedor e nota)
+        let last: StockEntryRow | null = null;
+        for (const [variantId, q] of Object.entries(gradeQty)) {
+          const n = Number(q) || 0;
+          if (n <= 0) continue;
+          last = await addStockEntry({ ...built.args, p_quantity: n, p_variant_id: variantId });
+        }
+        toast.success(`Entrada registrada: ${product!.name} +${gradeTotal} (estoque ${before} → ${before + gradeTotal})`);
+        if (last) onSaved?.(last);
+      } else {
+        const entry = await addStockEntry({ ...built.args });
+        toast.success(`Entrada registrada: ${product!.name} +${built.args.p_quantity} (estoque ${entry.stock_before ?? before} → ${entry.stock_after ?? before + built.args.p_quantity})`);
+        onSaved?.(entry);
+      }
       if (keepOpen) {
         // Próximo item da mesma nota: mantém fornecedor e número da nota
         setProduct(null);
         setQuantity('');
         setUnitCost(null);
         setNotes('');
+        setGradeQty({});
       } else {
         onOpenChange(false);
       }
@@ -152,8 +179,15 @@ export function StockEntryDialog({ open, onOpenChange, storeId, product: fixedPr
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {product && hasGrade && (
             <div className="space-y-2">
+              <Label>Quantidade por combinação *</Label>
+              <GradeEntryGrid productId={product.id} grade={product.grade} quantities={gradeQty} onChange={setGradeQty} />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2" hidden={hasGrade}>
               <Label htmlFor="entry-qty">Quantidade *</Label>
               <Input
                 id="entry-qty"

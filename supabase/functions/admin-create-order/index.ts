@@ -194,6 +194,7 @@ Deno.serve(async (req) => {
         order_id: order.id,
         store_id: storeId,
         product_id: line.product_id,
+        variant_id: line.variant_id ?? null,
         product_name: line.product_name,
         quantity: line.quantity,
         unit_price: line.unit_price,

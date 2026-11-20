@@ -3,6 +3,7 @@
 import type { NavigateFunction } from 'react-router-dom';
 import type { useCart } from '@/contexts/CartContext';
 import { cartItemId, cartItemName, cartUnitPrice, formatPrice, whatsAppOrderMessage } from '@/lib/productPage/pricing';
+import { gradeReadyToAdd } from '@/lib/grade/grade';
 import type { AddonCategory, PizzaFlavorsPricing, Product, ProductVariant, SelectedAddons, Store } from '@/lib/productPage/types';
 import type { Toast } from './useProductAddons';
 import type { ProductPageUI } from './useProductPageUI';
@@ -67,6 +68,15 @@ export function useProductCartActions({
       toast({
         title: "Adicionais obrigatórios",
         description: "Selecione todos os adicionais obrigatórios antes de adicionar ao carrinho.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!gradeReadyToAdd(product.grade, selectedVariant)) {
+      toast({
+        title: selectedVariant ? "Esgotado" : "Escolha a combinação",
+        description: selectedVariant ? "Esta combinação acabou. Escolha outra cor ou tamanho." : "Escolha a cor e o tamanho antes de adicionar.",
         variant: "destructive"
       });
       return;

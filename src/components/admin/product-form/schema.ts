@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import type { Grade } from '@/lib/grade/grade';
 
 export const productSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -23,7 +24,9 @@ export const productSchema = z.object({
   barcode: z.string().max(48, 'Código de barras muito longo').optional(),
   // PDV: preço = preço do kg (pede o peso na venda) e atalho no modo Misto
   sold_by_weight: z.boolean().optional(),
-  pdv_shortcut: z.boolean().optional()
+  pdv_shortcut: z.boolean().optional(),
+  // Grade de estoque (cor × tamanho); null = produto sem grade
+  grade: z.custom<Grade | null>().optional()
 }).refine((data) => {
   if (data.is_on_offer) {
     return data.offer_price && data.offer_price < data.price;

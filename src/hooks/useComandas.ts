@@ -263,6 +263,7 @@ export function useComandas() {
         .insert({
           comanda_id: input.comanda_id,
           product_id: input.product_id || null,
+          variant_id: input.variant_id || null,
           product_name: input.product_name,
           unit_price: input.unit_price,
           quantity: input.quantity,

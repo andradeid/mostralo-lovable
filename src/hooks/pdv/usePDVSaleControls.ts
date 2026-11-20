@@ -12,6 +12,8 @@ import { buildWeightedItem, stripWeightSuffix } from '@/lib/pdv/weight';
 import type { PDVLayout } from '@/lib/pdv/layout';
 import type { PDVPickProduct, PDVSaleProps, WeighingState } from '@/components/pdv/layouts/types';
 import { focusPdvSearch, usePDVHotkeys } from './usePDVHotkeys';
+import type { GradePickProduct } from '@/components/pdv/GradePickDialog';
+import type { StockVariant } from '@/hooks/stock/stockQueries';
 
 type PDVState = ReturnType<typeof usePDV>;
 
@@ -32,6 +34,7 @@ export function usePDVSaleControls({ storeId, pdv, layout, saleTabActive, comand
   const { userRole } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [weighing, setWeighing] = useState<WeighingState | null>(null);
+  const [gradeProduct, setGradeProduct] = useState<GradePickProduct | null>(null);
   const [quantityOpen, setQuantityOpen] = useState(false);
   const [payment, setPayment] = useState<{ open: boolean; method?: string }>({ open: false });
 
@@ -41,19 +44,44 @@ export function usePDVSaleControls({ storeId, pdv, layout, saleTabActive, comand
     setWeighing({ product: { id: product.id, name: product.name, price: Number(product.price) || 0, image_url: product.image_url } });
   }, []);
 
-  // Leitor: produto lido entra no carrinho (por quilo abre o peso) — nos três modos
+  const startGradePick = useCallback((product: GradePickProduct) => setGradeProduct(product), []);
+
+  /** Combinação escolhida (tabela da grade ou leitor): entra no carrinho com o nome "Produto — Preto / 37". */
+  const addVariant = useCallback(
+    (product: GradePickProduct, variant: StockVariant) => {
+      addScannedToCart({
+        product_id: product.id,
+        variant_id: variant.id,
+        product_name: `${product.name} — ${variant.name}`,
+        image_url: product.image_url || undefined,
+        unit_price: Number(variant.price) || Number(product.price) || 0,
+        quantity: 1,
+        barcode: variant.barcode ?? undefined,
+      });
+      setGradeProduct(null);
+    },
+    [addScannedToCart],
+  );
+
+  // Leitor: produto lido entra no carrinho (por quilo abre o peso; grade abre a tabela) — nos três modos
   const scan = usePDVScan({
     storeId,
     comandasTabActive,
     addScannedToCart,
     clearSearch: () => setSearchTerm(''),
     onWeigh: startWeighing,
+    onGrade: startGradePick,
+    onVariant: addVariant,
   });
 
   const pickProduct = useCallback(
     (product: PDVPickProduct & { barcode?: string | null }) => {
       if (product.sold_by_weight) {
         startWeighing(product);
+        return;
+      }
+      if (product.grade) {
+        startGradePick(product);
         return;
       }
       addScannedToCart({
@@ -65,7 +93,7 @@ export function usePDVSaleControls({ storeId, pdv, layout, saleTabActive, comand
         barcode: product.barcode ?? undefined,
       });
     },
-    [addScannedToCart, startWeighing],
+    [addScannedToCart, startWeighing, startGradePick],
   );
 
   const confirmWeight = useCallback(
@@ -160,6 +188,13 @@ export function usePDVSaleControls({ storeId, pdv, layout, saleTabActive, comand
     scan,
     /** Grade: produto por quilo clicado abre o peso. */
     startWeighing,
+    /** Produto com grade (cor × tamanho) clicado: abre a tabela de combinações. */
+    startGradePick,
+    gradeDialog: {
+      product: gradeProduct,
+      onPick: addVariant,
+      onClose: () => setGradeProduct(null),
+    },
     /** Diálogo de peso (o modo Misto mostra o painel na própria tela). */
     weightDialog: {
       weighing: layout === 'mixed' && saleTabActive ? null : weighing,

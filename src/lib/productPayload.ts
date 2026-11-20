@@ -2,6 +2,8 @@
 // Funções puras: o ProductForm só grava o que sai daqui.
 import type * as z from 'zod';
 import type { productSchema } from '../components/admin/product-form/schema';
+import type { Combination } from './grade/grade';
+import type { Json } from '../integrations/supabase/types';
 
 export type ProductFormData = z.infer<typeof productSchema>;
 
@@ -10,6 +12,11 @@ export interface ProductVariant {
   name: string;
   price: number;
   is_default: boolean;
+  /** Grade: combinação (ex.: {Cor: 'Preto', Tamanho: '37'}), código e estoque próprios. */
+  attributes?: Combination | null;
+  barcode?: string | null;
+  track_stock?: boolean | null;
+  stock_quantity?: number | null;
 }
 
 /** Registro de `products` gravado no insert (criar) e no update (editar). */
@@ -31,7 +38,10 @@ export function buildProductPayload(data: ProductFormData, storeId: string) {
     offer_price: data.is_on_offer ? data.offer_price : null,
     track_stock: data.track_stock || false,
     stock_quantity: data.track_stock ? data.stock_quantity : null,
-    stock_alert_threshold: data.track_stock ? (data.stock_alert_threshold ?? 5) : 5
+    stock_alert_threshold: data.track_stock ? (data.stock_alert_threshold ?? 5) : 5,
+    // Grade: o estoque fica nas combinações (o banco soma no produto). Sem grade na tela, o campo nem vai.
+    ...(data.grade !== undefined ? { grade: (data.grade ?? null) as unknown as Json } : {}),
+    ...(data.grade ? { track_stock: true, stock_quantity: data.stock_quantity ?? 0, stock_alert_threshold: data.stock_alert_threshold ?? 5 } : {}),
   };
 }
 
@@ -54,6 +64,13 @@ export function buildVariantPayload(variants: ProductVariant[]) {
     name: variant.name,
     price: variant.price,
     is_default: variant.is_default,
+    // Combinação da grade: atributos, código e estoque (variação comum não manda: o banco mantém como está)
+    ...(variant.attributes ? {
+      attributes: variant.attributes,
+      barcode: (variant.barcode ?? '').trim() || null,
+      track_stock: true,
+      stock_quantity: Math.max(0, Math.floor(Number(variant.stock_quantity) || 0)),
+    } : {}),
   }));
 }
 
@@ -103,7 +120,13 @@ export function variantsFromRows(rows: any[]): ProductVariant[] {
     id: variant.id,
     name: variant.name,
     price: Number(variant.price),
-    is_default: variant.is_default
+    is_default: variant.is_default,
+    ...(variant.attributes ? {
+      attributes: variant.attributes,
+      barcode: variant.barcode ?? null,
+      track_stock: variant.track_stock ?? true,
+      stock_quantity: variant.stock_quantity ?? 0,
+    } : {}),
   }));
 }
 

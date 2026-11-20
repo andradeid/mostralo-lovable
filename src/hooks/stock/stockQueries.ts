@@ -17,7 +17,23 @@ export interface StockProduct {
   is_available: boolean;
   /** Vendido por quilo (o PDV pede o peso). */
   sold_by_weight?: boolean | null;
+  /** Grade (cor × tamanho). */
+  grade?: unknown;
+  /** Lido pelo código de uma combinação da grade. */
+  variant?: StockVariant | null;
 }
+
+export interface StockVariant {
+  id: string;
+  name: string;
+  price: number;
+  barcode: string | null;
+  attributes: Record<string, string> | null;
+  track_stock: boolean | null;
+  stock_quantity: number | null;
+}
+
+export const STOCK_VARIANT_COLUMNS = 'id, name, price, barcode, attributes, track_stock, stock_quantity';
 
 export interface StockEntryRow {
   id: string;
@@ -34,7 +50,7 @@ export interface StockEntryRow {
 }
 
 export const STOCK_PRODUCT_COLUMNS =
-  'id, name, barcode, price, is_on_offer, offer_price, image_url, track_stock, stock_quantity, stock_alert_threshold, is_available, sold_by_weight';
+  'id, name, barcode, price, is_on_offer, offer_price, image_url, track_stock, stock_quantity, stock_alert_threshold, is_available, sold_by_weight, grade';
 
 const db = () => supabase as any;
 
@@ -62,7 +78,31 @@ export async function findStockProductByBarcode(storeId: string, code: string): 
     .eq('barcode', c)
     .maybeSingle();
   if (error) throw error;
-  return (data ?? null) as StockProduct | null;
+  if (data) return data as StockProduct;
+  // Código de uma combinação da grade (cor × tamanho)
+  const { data: vrow, error: vError } = await db()
+    .from('product_variants')
+    .select(`${STOCK_VARIANT_COLUMNS}, products!inner(${STOCK_PRODUCT_COLUMNS}, store_id)`)
+    .eq('barcode', c)
+    .eq('products.store_id', storeId)
+    .limit(1)
+    .maybeSingle();
+  if (vError) throw vError;
+  if (!vrow) return null;
+  const { products: product, ...variant } = vrow;
+  return { ...product, variant } as StockProduct;
+}
+
+/** Combinações da grade de um produto (equipe da loja). */
+export async function fetchGradeVariants(productId: string): Promise<StockVariant[]> {
+  const { data, error } = await db()
+    .from('product_variants')
+    .select(STOCK_VARIANT_COLUMNS)
+    .eq('product_id', productId)
+    .not('attributes', 'is', null)
+    .order('display_order');
+  if (error) throw error;
+  return (data ?? []) as StockVariant[];
 }
 
 /** Custo de um produto (equipe da loja). */

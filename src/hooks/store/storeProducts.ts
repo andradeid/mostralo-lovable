@@ -4,7 +4,7 @@ import { publicSupabase } from '@/integrations/supabase/publicClient';
 
 /** Colunas de produto lidas pela vitrine. */
 export const STORE_PRODUCT_COLUMNS =
-  'id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured';
+  'id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured, grade';
 
 /**
  * Busca variações disponíveis e adicionais (do produto ou da categoria) e devolve os produtos com

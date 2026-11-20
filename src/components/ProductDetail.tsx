@@ -1,3 +1,5 @@
+import { GradePicker } from '@/components/store/GradePicker';
+import { gradeReadyToAdd } from '@/lib/grade/grade';
 import React, { useState, useEffect } from 'react';
 import { ProductDescription } from '@/components/ProductDescription';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -32,6 +34,8 @@ interface Product {
   is_on_offer?: boolean;
   original_price?: number;
   offer_price?: number;
+  /** Grade de estoque (cor × tamanho). */
+  grade?: unknown;
 }
 
 interface ProductVariant {
@@ -40,6 +44,9 @@ interface ProductVariant {
   price: number;
   is_default: boolean;
   is_available: boolean;
+  attributes?: Record<string, string> | null;
+  track_stock?: boolean | null;
+  stock_quantity?: number | null;
 }
 
 interface Store {
@@ -119,10 +126,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         .order('display_order');
 
       if (variantsData && variantsData.length > 0) {
-        setVariants(variantsData);
-        // Selecionar a variante padrão ou a primeira
-        const defaultVariant = variantsData.find(v => v.is_default) || variantsData[0];
-        setSelectedVariant(defaultVariant);
+        const rows = variantsData as unknown as ProductVariant[];
+        setVariants(rows);
+        // Com grade, o seletor de cor/tamanho escolhe a combinação; senão, a padrão ou a primeira
+        if (!product.grade) {
+          const defaultVariant = rows.find(v => v.is_default) || rows[0];
+          setSelectedVariant(defaultVariant);
+        }
       } else {
         setVariants([]);
         setSelectedVariant(null);
@@ -186,6 +196,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   const handleAddToCart = () => {
     if (!product) return;
+    if (!gradeReadyToAdd(product.grade, selectedVariant)) {
+      toast({
+        title: selectedVariant ? 'Esgotado' : 'Escolha a combinação',
+        description: selectedVariant ? 'Esta combinação acabou. Escolha outra cor ou tamanho.' : 'Escolha a cor e o tamanho antes de adicionar.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const currentPrice = getCurrentPrice();
     const variantInfo = selectedVariant ? ` - ${selectedVariant.name}` : '';
@@ -351,8 +369,13 @@ Preço: ${formatPrice(currentPrice)}`;
                 </div>
               </div>
 
+              {/* Grade (cor e tamanho) */}
+              {!!product.grade && variants.length > 0 && (
+                <GradePicker<ProductVariant> grade={product.grade} variants={variants} onChange={setSelectedVariant} primaryColor={primaryColor} />
+              )}
+
               {/* Opções de Tamanho/Variantes */}
-              {variants.length > 0 && (
+              {!product.grade && variants.length > 0 && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium block">Opções:</label>
                   {loadingVariants ? (

@@ -63,7 +63,7 @@ export function useProductPageData(
         .from('products')
         .select(`
           id, name, description, price, image_url, image_gallery, 
-          category_id, button_text, slug, is_on_offer, original_price, offer_price,
+          category_id, button_text, slug, is_on_offer, original_price, offer_price, grade,
           category:categories(name)
         `)
         .eq('slug', productSlug)
@@ -101,9 +101,13 @@ export function useProductPageData(
         .order('display_order');
 
       if (variantsData?.length > 0) {
-        setVariants(variantsData);
-        const defaultVariant = variantsData.find(v => v.is_default) || variantsData[0];
-        setSelectedVariant(defaultVariant);
+        const rows = variantsData as unknown as ProductVariant[];
+        setVariants(rows);
+        // Com grade, quem escolhe a combinação inicial é o seletor de cor/tamanho
+        if (!productData.grade) {
+          const defaultVariant = rows.find(v => v.is_default) || rows[0];
+          setSelectedVariant(defaultVariant);
+        }
       }
 
       // Fetch related products from the same category

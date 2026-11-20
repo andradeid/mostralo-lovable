@@ -83,6 +83,8 @@ export interface PricedAddon {
 }
 export interface PricedItem {
   product_id: string;
+  /** Variação escolhida (na grade, baixa o estoque da combinação). */
+  variant_id?: string | null;
   product_name: string;
   quantity: number;
   unit_price: number; // preço base (variação/oferta/preço), sem adicionais — como o painel sempre gravou
@@ -286,6 +288,7 @@ export function priceAdminOrder(items: AdminOrderItemInput[], storeId: string, c
     const base = catalogBasePrice(p, variant);
     priced.push({
       product_id: p.id,
+      ...(variant ? { variant_id: variant.id } : {}),
       // Com variação, o nome leva o tamanho/opção (ex.: "Pizza Calabresa (Grande)")
       product_name: variant?.name ? `${p.name} (${variant.name})` : p.name,
       quantity: it.quantity,

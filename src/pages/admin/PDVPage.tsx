@@ -37,6 +37,7 @@ import { MixedLayout } from '@/components/pdv/layouts/MixedLayout';
 import { LayoutSwitcher } from '@/components/pdv/layouts/LayoutSwitcher';
 import { StoreLayoutSetting } from '@/components/pdv/layouts/StoreLayoutSetting';
 import { WeightDialog } from '@/components/pdv/layouts/WeightPanel';
+import { GradePickDialog } from '@/components/pdv/GradePickDialog';
 import { QuantityDialog } from '@/components/pdv/layouts/QuantityDialog';
 import type { PDVSaleProps } from '@/components/pdv/layouts/types';
 import type { PDVLayout } from '@/lib/pdv/layout';
@@ -161,6 +162,7 @@ export default function PDVPage() {
   const saleDialogs = (
     <>
       <WeightDialog {...controls.weightDialog} />
+      <GradePickDialog {...controls.gradeDialog} />
       <QuantityDialog {...controls.quantityDialog} />
     </>
   );
@@ -292,7 +294,7 @@ export default function PDVPage() {
 
             <TabsContent value="products" className="flex-1 min-h-0 overflow-auto px-2 pb-2 mt-0">
               {layout === 'grid' ? (
-                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onSearchChange={setPdvSearchTerm} onWeighProduct={controls.startWeighing} />
+                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onSearchChange={setPdvSearchTerm} onWeighProduct={controls.startWeighing} onPickGrade={controls.startGradePick} />
               ) : (
                 <SaleLayout layout={layout} sale={sale} />
               )}
@@ -457,7 +459,7 @@ export default function PDVPage() {
             <div className="h-full flex gap-4">
               {/* Grid de produtos */}
               <div className="flex-1 min-h-0 overflow-auto">
-                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onWeighProduct={controls.startWeighing} />
+                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} onWeighProduct={controls.startWeighing} onPickGrade={controls.startGradePick} />
               </div>
 
               {/* Carrinho lateral - altura fixa com scroll interno */}

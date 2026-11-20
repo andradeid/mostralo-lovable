@@ -25,9 +25,11 @@ interface PDVProductGridProps {
   showSearchInput?: boolean;
   /** Produto vendido por quilo: a tela pede o peso em vez da quantidade. */
   onWeighProduct?: (product: PDVProduct) => void;
+  /** Produto com grade (cor × tamanho): abre a tabela de combinações. */
+  onPickGrade?: (product: PDVProduct) => void;
 }
 
-export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchTerm = '', onSearchChange, showSearchInput = false, onWeighProduct }: PDVProductGridProps) {
+export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchTerm = '', onSearchChange, showSearchInput = false, onWeighProduct, onPickGrade }: PDVProductGridProps) {
   const { storeId } = useStoreAccess();
   const isMobile = useIsMobile();
   
@@ -92,6 +94,10 @@ export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchT
   const handleProductClick = (product: PDVProduct) => {
     if (product.sold_by_weight && onWeighProduct) {
       onWeighProduct(product);
+      return;
+    }
+    if (product.grade && onPickGrade) {
+      onPickGrade(product);
       return;
     }
     setSelectedProduct(product);

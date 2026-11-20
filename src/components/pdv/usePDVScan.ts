@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { useProductScan, SCAN_TOAST_ID, type ScannedProduct } from '@/hooks/barcode/useProductScan';
 import { scanAddedMessage } from '@/lib/barcode/scanRules';
 import type { CartItem } from '@/hooks/usePDV';
+import type { GradePickProduct } from '@/components/pdv/GradePickDialog';
+import type { StockVariant } from '@/hooks/stock/stockQueries';
 
 interface Options {
   storeId: string | null;
@@ -15,9 +17,13 @@ interface Options {
   clearSearch: () => void;
   /** Produto por quilo lido: abre o peso. */
   onWeigh: (product: ScannedProduct) => void;
+  /** Código do produto com grade (sem combinação): abre a tabela de cor/tamanho. */
+  onGrade?: (product: GradePickProduct) => void;
+  /** Código de uma combinação da grade: entra direto. */
+  onVariant?: (product: GradePickProduct, variant: StockVariant) => void;
 }
 
-export function usePDVScan({ storeId, comandasTabActive, addScannedToCart, clearSearch, onWeigh }: Options) {
+export function usePDVScan({ storeId, comandasTabActive, addScannedToCart, clearSearch, onWeigh, onGrade, onVariant }: Options) {
   return useProductScan({
     storeId,
     typedSearchCodes: true,
@@ -32,6 +38,20 @@ export function usePDVScan({ storeId, comandasTabActive, addScannedToCart, clear
       }
       if (product.sold_by_weight) {
         onWeigh(product);
+        return;
+      }
+      if (product.variant && onVariant) {
+        const v = product.variant;
+        if (v.track_stock && v.stock_quantity != null && Number(v.stock_quantity) <= 0) {
+          toast.error(`${product.name} — ${v.name} está sem estoque`, { id: SCAN_TOAST_ID });
+          return;
+        }
+        onVariant(product, v);
+        toast.success(scanAddedMessage(`${product.name} — ${v.name}`), { id: SCAN_TOAST_ID, duration: 1500 });
+        return;
+      }
+      if (product.grade && onGrade) {
+        onGrade(product);
         return;
       }
       addScannedToCart({

@@ -171,7 +171,7 @@ Deno.serve(async (req: Request) => {
     const [productsRes, variantsRes, addonsRes, promosRes, configRes, storeRes] = await Promise.all([
       admin.from("products").select("id, name, store_id, price, offer_price, is_on_offer, is_available, category_id").in("id", productIds),
       variantIds.length
-        ? admin.from("product_variants").select("id, product_id, name, price").in("id", variantIds)
+        ? admin.from("product_variants").select("id, product_id, name, price, attributes, track_stock, stock_quantity").in("id", variantIds)
         : Promise.resolve({ data: [], error: null }),
       addonIds.length
         ? admin.from("addons").select("id, store_id, price").in("id", addonIds)
@@ -233,6 +233,18 @@ Deno.serve(async (req: Request) => {
       if (it.variantId && (!variant || variant.product_id !== product.id)) {
         return respond({ error: PRICE_CHANGED_MSG, code: "unknown_variant" }, 409);
       }
+      // Grade (cor × tamanho): a combinação precisa ter estoque para a quantidade pedida
+      if (variant?.attributes && variant.track_stock && variant.stock_quantity != null) {
+        const wanted = parsedItems
+          .filter((p: any) => p.variantId === variant.id)
+          .reduce((s: number, p: any) => s + Number(p.raw.quantity || 0), 0);
+        if (Number(variant.stock_quantity) < wanted) {
+          return respond({
+            error: `${product.name} (${variant.name}) não tem estoque suficiente. Disponível: ${Math.max(0, Number(variant.stock_quantity))}. Ajuste o carrinho.`,
+            code: "out_of_stock",
+          }, 409);
+        }
+      }
 
       let minBase: number;
       let flavors: unknown = null;
@@ -278,7 +290,7 @@ Deno.serve(async (req: Request) => {
         return respond({ error: PRICE_CHANGED_MSG, code: "price_mismatch" }, 409);
       }
 
-      validatedItems.push({ ...it.raw, price: clientUnit, quantity: Number(it.raw.quantity), product_id: product.id, category_id: product.category_id ?? null, flavors });
+      validatedItems.push({ ...it.raw, price: clientUnit, quantity: Number(it.raw.quantity), product_id: product.id, variant_id: variant?.id ?? null, category_id: product.category_id ?? null, flavors });
     }
 
     const serverSubtotal = round2(validatedItems.reduce((s, i) => s + i.price * i.quantity, 0));
@@ -449,6 +461,7 @@ Deno.serve(async (req: Request) => {
       order_id: order.id,
       store_id,
       product_id: item.product_id,
+      variant_id: item.variant_id ?? null,
       product_name: item.name,
       quantity: item.quantity,
       unit_price: item.price,

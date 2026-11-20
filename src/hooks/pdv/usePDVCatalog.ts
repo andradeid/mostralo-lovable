@@ -19,7 +19,7 @@ export interface PDVCatalogProduct {
   pdv_shortcut_order?: number | null;
 }
 
-const COLUMNS = 'id, name, price, image_url, barcode, sold_by_weight, pdv_shortcut, pdv_shortcut_order';
+const COLUMNS = 'id, name, price, image_url, barcode, sold_by_weight, pdv_shortcut, pdv_shortcut_order, grade';
 
 function normalize(rows: any[] | null): PDVCatalogProduct[] {
   return (rows ?? []).map((r) => ({ ...r, price: Number(r.price) || 0 }));

@@ -13,6 +13,7 @@ import {
   variantsFromRows,
 } from '@/lib/productPayload';
 import type { Category, ProductFormApi, ProductVariant } from './types';
+import { normalizeGrade } from '@/lib/grade/grade';
 
 export function useProductFormData(form: ProductFormApi, productId?: string) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -127,12 +128,13 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
         setUseRichEditor(true);
       }
 
-      const pdvRow = data as { barcode?: string | null; sold_by_weight?: boolean | null; pdv_shortcut?: boolean | null };
+      const pdvRow = data as { barcode?: string | null; sold_by_weight?: boolean | null; pdv_shortcut?: boolean | null; grade?: unknown };
       form.reset({
         ...values,
         barcode: pdvRow.barcode ?? '',
         sold_by_weight: !!pdvRow.sold_by_weight,
         pdv_shortcut: !!pdvRow.pdv_shortcut,
+        grade: normalizeGrade(pdvRow.grade),
       });
 
       // Garantir que a categoria seja setada após o reset
@@ -257,6 +259,7 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
 
   return {
     toast,
+    setVariants,
     categories,
     store,
     uploading,

@@ -28,6 +28,8 @@ export interface Product {
   is_on_offer?: boolean;
   original_price?: number;
   offer_price?: number;
+  /** Grade de estoque (cor × tamanho); null = sem grade. */
+  grade?: unknown;
   category?: {
     name: string;
   };
@@ -40,6 +42,9 @@ export interface ProductVariant {
   description?: string;
   is_available: boolean;
   is_default: boolean;
+  attributes?: Record<string, string> | null;
+  track_stock?: boolean | null;
+  stock_quantity?: number | null;
 }
 
 export interface Addon {

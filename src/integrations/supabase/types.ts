@@ -1754,6 +1754,7 @@ export type Database = {
       }
       comanda_items: {
         Row: {
+          variant_id: string | null
           added_at: string
           added_by: string | null
           addons: Json | null
@@ -1774,6 +1775,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          variant_id?: string | null
           added_at?: string
           added_by?: string | null
           addons?: Json | null
@@ -1794,6 +1796,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          variant_id?: string | null
           added_at?: string
           added_by?: string | null
           addons?: Json | null
@@ -6122,6 +6125,7 @@ export type Database = {
       }
       order_items: {
         Row: {
+          variant_id: string | null
           created_at: string
           id: string
           notes: string | null
@@ -6137,6 +6141,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          variant_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -6152,6 +6157,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          variant_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -7585,6 +7591,8 @@ export type Database = {
       }
       product_variants: {
         Row: {
+          attributes: Json | null
+          barcode: string | null
           created_at: string
           description: string | null
           display_order: number
@@ -7599,6 +7607,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attributes?: Json | null
+          barcode?: string | null
           created_at?: string
           description?: string | null
           display_order?: number
@@ -7613,6 +7623,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attributes?: Json | null
+          barcode?: string | null
           created_at?: string
           description?: string | null
           display_order?: number
@@ -7630,6 +7642,7 @@ export type Database = {
       }
       products: {
         Row: {
+          grade: Json | null
           button_text: string | null
           category_id: string | null
           created_at: string
@@ -7655,6 +7668,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          grade?: Json | null
           button_text?: string | null
           category_id?: string | null
           created_at?: string
@@ -7680,6 +7694,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          grade?: Json | null
           button_text?: string | null
           category_id?: string | null
           created_at?: string

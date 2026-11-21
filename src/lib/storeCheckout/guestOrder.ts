@@ -118,6 +118,8 @@ export interface GuestOrderPayload {
   gift_product_id?: string | null;
   is_outside_delivery_zone?: boolean;
   requires_zone_approval?: boolean;
+  /** Envio por transportadora (o servidor refaz a cotação e cobra o preço dela) */
+  shipping?: { service_id: string; address: import('@/lib/shipping/shippingClient').ShippingAddress };
   items: GuestOrderItem[];
 }
 

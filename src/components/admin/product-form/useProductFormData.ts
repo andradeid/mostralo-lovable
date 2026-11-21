@@ -128,13 +128,22 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
         setUseRichEditor(true);
       }
 
-      const pdvRow = data as { barcode?: string | null; sold_by_weight?: boolean | null; pdv_shortcut?: boolean | null; grade?: unknown };
+      const pdvRow = data as {
+        barcode?: string | null; sold_by_weight?: boolean | null; pdv_shortcut?: boolean | null; grade?: unknown;
+        shipping_weight_kg?: number | string | null; shipping_height_cm?: number | string | null;
+        shipping_width_cm?: number | string | null; shipping_length_cm?: number | string | null;
+      };
+      const dim = (v: number | string | null | undefined) => (v == null || v === '' ? null : Number(v));
       form.reset({
         ...values,
         barcode: pdvRow.barcode ?? '',
         sold_by_weight: !!pdvRow.sold_by_weight,
         pdv_shortcut: !!pdvRow.pdv_shortcut,
         grade: normalizeGrade(pdvRow.grade),
+        shipping_weight_kg: dim(pdvRow.shipping_weight_kg),
+        shipping_height_cm: dim(pdvRow.shipping_height_cm),
+        shipping_width_cm: dim(pdvRow.shipping_width_cm),
+        shipping_length_cm: dim(pdvRow.shipping_length_cm),
       });
 
       // Garantir que a categoria seja setada após o reset

@@ -29,6 +29,7 @@ import { printOrder, executePrint } from "@/utils/printOrder";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
 import { isIfoodTestOrder } from "@/utils/ifoodHelpers";
 import { updateOrderStatus } from "@/lib/orderStatus";
+import { OrderShippingCard } from "./OrderShippingCard";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Database['public']['Tables']['order_items']['Row'];
@@ -742,8 +743,22 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
               <Separator />
 
-              {/* Entregador - APENAS PARA DELIVERY */}
-              {order.delivery_type === 'delivery' && (
+              {/* Envio por transportadora (Melhor Envio) */}
+              {order.shipping && (
+                <>
+                  <OrderShippingCard
+                    orderId={order.id}
+                    shipping={order.shipping}
+                    trackingCode={order.tracking_code ?? null}
+                    customerName={order.customer_name}
+                    onSaved={onStatusChange}
+                  />
+                  <Separator />
+                </>
+              )}
+
+              {/* Entregador - APENAS PARA DELIVERY (motoboy; envio por transportadora não tem) */}
+              {order.delivery_type === 'delivery' && !order.shipping && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-lg">Entregador Responsável</h3>
                   
@@ -913,7 +928,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
                 <div className="flex items-center gap-2 text-sm">
                   <Package className="h-4 w-4 text-muted-foreground" />
-                  <span>{order.delivery_type === 'delivery' ? 'Delivery' : 'Retirada no Balcão'}</span>
+                  <span>{order.shipping ? 'Envio por transportadora' : order.delivery_type === 'delivery' ? 'Delivery' : 'Retirada no Balcão'}</span>
                 </div>
               </div>
 

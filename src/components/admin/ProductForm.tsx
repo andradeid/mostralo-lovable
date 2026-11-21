@@ -19,6 +19,7 @@ import { AddonsSection } from './product-form/AddonsSection';
 import { UpsellSection } from './product-form/UpsellSection';
 import { SettingsSection } from './product-form/SettingsSection';
 import { CodeAndCostSection } from './product-form/CodeAndCostSection';
+import { ShippingDimensionsSection } from './product-form/ShippingDimensionsSection';
 import { useProductCost } from './product-form/useProductCost';
 import { DUPLICATE_BARCODE_MESSAGE, isDuplicateBarcodeError } from '@/lib/stock/stockEntry';
 
@@ -108,6 +109,9 @@ export function ProductForm({
 
             {/* Código de barras e custo */}
             <CodeAndCostSection form={form} cost={cost} />
+
+            {/* Peso e medidas para envio (só com o envio para todo o Brasil ligado) */}
+            <ShippingDimensionsSection form={form} storeId={d.store?.id} />
 
             <Separator />
 

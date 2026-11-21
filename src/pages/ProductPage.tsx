@@ -29,6 +29,7 @@ import { ProductGallery } from '@/components/store/product-page/ProductGallery';
 import { ProductSummary } from '@/components/store/product-page/ProductSummary';
 import { ProductVariantsList } from '@/components/store/product-page/ProductVariantsList';
 import { GradePicker } from '@/components/store/GradePicker';
+import { ShippingCalculator } from '@/components/store/ShippingCalculator';
 import { ProductAddonsList } from '@/components/store/product-page/ProductAddonsList';
 import { ProductBottomBar } from '@/components/store/product-page/ProductBottomBar';
 import { ProductPageDialogs } from '@/components/store/product-page/ProductPageDialogs';
@@ -147,6 +148,15 @@ const ProductPage = () => {
               addonCategories={addonCategories}
               selectedAddons={selectedAddons}
               handleAddonQuantityChange={handleAddonQuantityChange}
+            />
+
+            {/* Frete por CEP (loja com envio por transportadora) */}
+            <ShippingCalculator
+              storeId={store.id}
+              productId={product.id}
+              variantId={selectedVariant?.id ?? null}
+              quantity={quantity}
+              allowsPickup={!!deliveryConfig?.allows_pickup}
             />
 
             {/* Observações */}

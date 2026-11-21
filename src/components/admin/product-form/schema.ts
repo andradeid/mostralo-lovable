@@ -26,7 +26,12 @@ export const productSchema = z.object({
   sold_by_weight: z.boolean().optional(),
   pdv_shortcut: z.boolean().optional(),
   // Grade de estoque (cor × tamanho); null = produto sem grade
-  grade: z.custom<Grade | null>().optional()
+  grade: z.custom<Grade | null>().optional(),
+  // Envio por transportadora: peso e medidas da caixa (vazio = embalagem padrão da loja)
+  shipping_weight_kg: z.number().positive('Peso inválido').max(100, 'Peso máximo de 100 kg').nullable().optional(),
+  shipping_height_cm: z.number().positive('Medida inválida').max(200, 'Máximo 200 cm').nullable().optional(),
+  shipping_width_cm: z.number().positive('Medida inválida').max(200, 'Máximo 200 cm').nullable().optional(),
+  shipping_length_cm: z.number().positive('Medida inválida').max(200, 'Máximo 200 cm').nullable().optional()
 }).refine((data) => {
   if (data.is_on_offer) {
     return data.offer_price && data.offer_price < data.price;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Bike, Store, UtensilsCrossed, MapPin, Calendar as CalendarIcon, Clock, Zap } from 'lucide-react';
+import { Bike, Store, UtensilsCrossed, MapPin, Calendar as CalendarIcon, Clock, Zap, Truck } from 'lucide-react';
 import { CustomerLocationPicker } from '../CustomerLocationPicker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -53,6 +53,14 @@ interface DeliveryStepProps {
   /** Tempo de retirada configurado pela loja */
   pickupTimeText?: string | null;
   scheduledConfig?: ScheduledOrdersSettings | null;
+  /** Envio por transportadora (Melhor Envio) ligado na loja */
+  shippingEnabled?: boolean;
+  isShipping?: boolean;
+  onShippingSelect?: (on: boolean) => void;
+  /** CEP, endereço e opções de frete (mostrado com o envio escolhido) */
+  shippingPicker?: ReactNode;
+  /** Preço do frete escolhido (null = ainda não cotado) */
+  shippingFee?: number | null;
 }
 
 export const DeliveryStep = ({
@@ -87,7 +95,12 @@ export const DeliveryStep = ({
   allowedDeliveryTypes = { does_delivery: true, allows_pickup: true, allows_table: true },
   deliveryTimeText = null,
   pickupTimeText = null,
-  scheduledConfig = null
+  scheduledConfig = null,
+  shippingEnabled = false,
+  isShipping = false,
+  onShippingSelect,
+  shippingPicker,
+  shippingFee = null
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
@@ -108,7 +121,12 @@ export const DeliveryStep = ({
   // Ref para rolar até o calendário no celular (loja só por encomenda)
   const scheduleRef = useRef<HTMLDivElement | null>(null);
 
-  const handleDeliveryTypeSelect = (type: DeliveryType) => {
+  const handleDeliveryTypeSelect = (type: DeliveryType | 'shipping') => {
+    if (type === 'shipping') {
+      onShippingSelect?.(true);
+      return;
+    }
+    onShippingSelect?.(false);
     onDeliveryTypeChange(type);
     if (hideAsap && scheduledOrdersEnabled && (type === 'delivery' || type === 'pickup')) {
       setTimeout(() => {
@@ -121,12 +139,12 @@ export const DeliveryStep = ({
 
   // Piscar botão de endereço quando delivery selecionado sem endereço
   useEffect(() => {
-    if (deliveryType === 'delivery' && !customerAddress) {
+    if (deliveryType === 'delivery' && !isShipping && !customerAddress) {
       setPulseAddress(true);
     } else {
       setPulseAddress(false);
     }
-  }, [deliveryType, customerAddress]);
+  }, [deliveryType, customerAddress, isShipping]);
   
   const finalDeliveryFee = deliveryType === 'delivery' 
     ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee) 
@@ -162,7 +180,20 @@ export const DeliveryStep = ({
     }
   ];
 
-  const deliveryOptions = allDeliveryOptions.filter(opt => opt.visible);
+  const deliveryOptions: { value: DeliveryType | 'shipping'; icon: typeof Bike; title: string; subtitle: string; fee: number; time: string; visible: boolean }[] =
+    allDeliveryOptions.filter(opt => opt.visible);
+  if (shippingEnabled) {
+    deliveryOptions.push({
+      value: 'shipping',
+      icon: Truck,
+      title: 'Receber em casa',
+      subtitle: 'Correios ou transportadora, todo o Brasil',
+      fee: shippingFee ?? 0,
+      time: '',
+      visible: true,
+    });
+  }
+  const selectedValue: DeliveryType | 'shipping' = isShipping ? 'shipping' : deliveryType;
 
   return (
     <>
@@ -172,7 +203,7 @@ export const DeliveryStep = ({
           <div className="space-y-3">
             {deliveryOptions.map((option) => {
               const Icon = option.icon;
-              const isSelected = deliveryType === option.value;
+              const isSelected = selectedValue === option.value;
               
               return (
                 <Card
@@ -233,7 +264,11 @@ export const DeliveryStep = ({
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      {option.value === 'delivery' && !customerAddress ? (
+                      {option.value === 'shipping' ? (
+                        <p className="text-xs text-muted-foreground max-w-[120px]">
+                          {isShipping && shippingFee !== null ? (shippingFee > 0 ? formatBRL(shippingFee) : 'Grátis') : 'Calculado pelo CEP'}
+                        </p>
+                      ) : option.value === 'delivery' && !customerAddress ? (
                         <p className="text-xs text-muted-foreground max-w-[120px]">
                           Calculada após informar o endereço
                         </p>
@@ -268,7 +303,9 @@ export const DeliveryStep = ({
             })}
           </div>
           
-          {deliveryType === 'delivery' && !customerAddress && (
+          {isShipping && <div className="mt-3">{shippingPicker}</div>}
+
+          {deliveryType === 'delivery' && !isShipping && !customerAddress && (
             <Button
               type="button"
               variant="outline"
@@ -290,7 +327,7 @@ export const DeliveryStep = ({
         </div>
 
         {/* Agendamento - sempre visível quando habilitado */}
-        {scheduledOrdersEnabled && (
+        {scheduledOrdersEnabled && !isShipping && (
           <div className="space-y-3" ref={scheduleRef}>
             {/* Modo "Somente Agendado" - calendário inline direto */}
             {hideAsap ? (

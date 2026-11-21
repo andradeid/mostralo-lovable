@@ -23,6 +23,9 @@ import {
   saveCustomerProfile,
 } from '@/lib/storeCheckout/guestOrder';
 import { CheckoutDialogHeader, type CheckoutDialogStep } from './CheckoutDialogHeader';
+import { ShippingPicker, type ShippingSelection } from './ShippingPicker';
+import { useStoreShippingSettings } from '@/hooks/storeCheckout/useStoreShippingSettings';
+import { addressLine, optionLabel, deliveryDaysText } from '@/lib/shipping/shippingClient';
 
 // Import step components
 import { DeliveryStep } from './steps/DeliveryStep';
@@ -116,6 +119,12 @@ export const CheckoutDialog = ({
   // Entrega
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
   const [deliveryZoneInfo, setDeliveryZoneInfo] = useState<ZoneValidationResult | null>(null);
+  // Envio por transportadora (Melhor Envio): vai como delivery_type 'delivery' + shipping
+  const shippingSettings = useStoreShippingSettings(storeId, open);
+  const shippingEnabled = !!shippingSettings?.enabled;
+  const [isShipping, setIsShipping] = useState(false);
+  const [shippingSel, setShippingSel] = useState<ShippingSelection>({ address: null, option: null });
+  const [shippingRefreshKey, setShippingRefreshKey] = useState(0);
 
   // Pagamento
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
@@ -150,9 +159,15 @@ export const CheckoutDialog = ({
   });
 
   const subtotal = getTotalPrice();
-  const finalDeliveryFee = deliveryType === 'delivery'
-    ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee)
-    : 0;
+  const finalDeliveryFee = isShipping
+    ? (shippingSel.option?.price ?? 0)
+    : deliveryType === 'delivery'
+      ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee)
+      : 0;
+  const shippingAddressText = isShipping && shippingSel.address ? addressLine(shippingSel.address) : '';
+  const shippingSummary = isShipping && shippingSel.option
+    ? `${optionLabel(shippingSel.option)} · chega em ${deliveryDaysText(shippingSel.option.delivery_days)}`
+    : '';
 
   const promo = useCheckoutPromotion({
     open,
@@ -161,7 +176,7 @@ export const CheckoutDialog = ({
     subtotal,
     deliveryType,
     deliveryFee: finalDeliveryFee,
-    zoneKey: deliveryZoneInfo,
+    zoneKey: isShipping ? shippingSel.option?.service_id ?? null : deliveryZoneInfo,
   });
   const { appliedPromotion, promotionDiscount, promotionTotalSavings } = promo;
   const checkoutGift = promo.giftOptions.length > 0
@@ -179,6 +194,7 @@ export const CheckoutDialog = ({
   useEffect(() => {
     if (!open) return;
     const t = deliveryType as string;
+    if (isShipping) return;
     if (
       (t === 'delivery' && !allowedDeliveryTypes.does_delivery) ||
       (t === 'pickup' && !allowedDeliveryTypes.allows_pickup) ||
@@ -253,6 +269,19 @@ export const CheckoutDialog = ({
     } catch { /* armazenamento indisponível — manter apenas em memória */ }
   }, [notes, open, storeId]);
 
+  // Envio por transportadora: entrega sem mapa nem agendamento
+  const handleShippingSelect = useCallback((on: boolean) => {
+    setIsShipping(on);
+    if (on) {
+      setDeliveryType('delivery');
+      setDeliveryZoneInfo(null);
+      setIsScheduled(false);
+      setSelectedDate(undefined);
+      setSelectedTime("");
+      setSelectedSlotAt(null);
+    }
+  }, []);
+
   // Trocar entrega/retirada limpa o agendamento escolhido
   const handleDeliveryTypeChange = useCallback((type: DeliveryType) => {
     setDeliveryType(type);
@@ -267,6 +296,17 @@ export const CheckoutDialog = ({
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 0: // Entrega
+        if (isShipping) {
+          if (!shippingSel.address) {
+            toast.error('Informe CEP, número e endereço completo');
+            return false;
+          }
+          if (!shippingSel.option) {
+            toast.error('Escolha o frete');
+            return false;
+          }
+          return true;
+        }
         if (deliveryType === 'delivery' && !customerAddress.trim()) {
           toast.error('Informe o endereço de entrega');
           return false;
@@ -290,7 +330,7 @@ export const CheckoutDialog = ({
           customerName: customerName.trim(),
           customerPhone: normalizePhone(customerPhone),
           customerEmail: customerEmail.trim(),
-          customerAddress: customerAddress.trim(),
+          customerAddress: (isShipping ? shippingAddressText : customerAddress).trim(),
           notes: notes.trim(),
         });
         if (!validation.success) {
@@ -369,7 +409,7 @@ export const CheckoutDialog = ({
         return;
       }
       saveCustomerProfile(storeId, customer, {
-        address: deliveryType === 'delivery' ? customerAddress : customer.address,
+        address: deliveryType === 'delivery' && !isShipping ? customerAddress : customer.address,
         latitude,
         longitude,
       });
@@ -392,7 +432,7 @@ export const CheckoutDialog = ({
         customer_name: customerName,
         customer_phone: normalizedPhone,
         customer_email: customerEmail || null,
-        customer_address: deliveryType === 'delivery' ? customerAddress : null,
+        customer_address: isShipping ? shippingAddressText : deliveryType === 'delivery' ? customerAddress : null,
         delivery_type: deliveryType,
         payment_method: paymentMethod,
         payment_details: paymentDetails,
@@ -406,8 +446,11 @@ export const CheckoutDialog = ({
         promotion_code: finalPromo.promotion?.code || null,
         promotion_discount: finalPromo.discount > 0 ? finalPromo.discount : null,
         gift_product_id: finalPromo.giftProductId,
-        is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
-        requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+        is_outside_delivery_zone: !isShipping && deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+        requires_zone_approval: !isShipping && deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+        ...(isShipping && shippingSel.address && shippingSel.option
+          ? { shipping: { service_id: shippingSel.option.service_id, address: shippingSel.address } }
+          : {}),
         items: items.map((item) => ({
           id: item.id,
           name: item.name,
@@ -419,7 +462,11 @@ export const CheckoutDialog = ({
 
       if (result.kind === 'rejected') {
         toast.error(result.message);
-        if (isPromotionRejection(result)) {
+        if (/^shipping_/.test(result.code ?? '')) {
+          // Frete mudou ou opção sumiu: cotar de novo e voltar para a entrega
+          setShippingRefreshKey((k) => k + 1);
+          setCurrentStep(0);
+        } else if (isPromotionRejection(result)) {
           // Servidor recusou a promoção (ex.: não é o primeiro pedido): tirar e voltar ao Pagamento
           promo.dropPromotion();
           setCurrentStep(2);
@@ -447,7 +494,8 @@ export const CheckoutDialog = ({
 
   // Botão "Continuar" desabilitado enquanto falta algo obrigatório na etapa
   const isNextDisabled =
-    (currentStep === 0 && deliveryType === 'delivery' && (!customerAddress || !latitude || !longitude)) ||
+    (currentStep === 0 && isShipping && (!shippingSel.address || !shippingSel.option)) ||
+    (currentStep === 0 && !isShipping && deliveryType === 'delivery' && (!customerAddress || !latitude || !longitude)) ||
     (currentStep === 0 && isScheduled && (!selectedDate || !selectedTime || !selectedSlotAt)) ||
     (currentStep === 2 && !paymentMethod);
 
@@ -509,6 +557,19 @@ export const CheckoutDialog = ({
               hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}
               allowedDeliveryTypes={allowedDeliveryTypes}
               scheduledConfig={scheduledConfig}
+              shippingEnabled={shippingEnabled}
+              isShipping={isShipping}
+              onShippingSelect={handleShippingSelect}
+              shippingFee={shippingSel.option ? shippingSel.option.price : null}
+              shippingPicker={
+                <ShippingPicker
+                  storeId={storeId}
+                  items={items}
+                  primaryColor={primaryColor}
+                  onChange={setShippingSel}
+                  refreshKey={shippingRefreshKey}
+                />
+              }
             />
           )}
 
@@ -575,7 +636,7 @@ export const CheckoutDialog = ({
               customerName={customerName}
               customerPhone={customerPhone}
               customerEmail={customerEmail}
-              customerAddress={customerAddress}
+              customerAddress={isShipping ? `${shippingAddressText} — ${shippingSummary}` : customerAddress}
               deliveryType={deliveryType}
               paymentMethod={paymentMethod}
               paymentDetails={paymentDetails}

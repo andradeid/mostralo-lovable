@@ -42,7 +42,16 @@ export function buildProductPayload(data: ProductFormData, storeId: string) {
     // Grade: o estoque fica nas combinações (o banco soma no produto). Sem grade na tela, o campo nem vai.
     ...(data.grade !== undefined ? { grade: (data.grade ?? null) as unknown as Json } : {}),
     ...(data.grade ? { track_stock: true, stock_quantity: data.stock_quantity ?? 0, stock_alert_threshold: data.stock_alert_threshold ?? 5 } : {}),
+    ...productShippingFields(data),
   };
+}
+
+/** Peso e medidas para envio: só vão quando a tela trouxe os campos (null = usar a embalagem padrão). */
+export function productShippingFields(data: Pick<ProductFormData, 'shipping_weight_kg' | 'shipping_height_cm' | 'shipping_width_cm' | 'shipping_length_cm'>) {
+  const keys = ['shipping_weight_kg', 'shipping_height_cm', 'shipping_width_cm', 'shipping_length_cm'] as const;
+  if (keys.every((k) => data[k] === undefined)) return {};
+  const clean = (v: number | null | undefined) => (typeof v === 'number' && v > 0 ? v : null);
+  return Object.fromEntries(keys.map((k) => [k, clean(data[k])])) as Record<(typeof keys)[number], number | null>;
 }
 
 /** Linhas de `product_variants` (a ordem da tela vira display_order). */

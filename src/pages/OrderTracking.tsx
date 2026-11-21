@@ -1,5 +1,6 @@
 import { scheduledLabel, formatBRL, paymentLabel } from '@/lib/scheduledOrders';
 import { storePath } from '@/lib/storePath';
+import { trackingUrl } from '@/lib/shipping/shippingClient';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -437,6 +438,24 @@ export default function OrderTracking() {
               <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <span>{order.customer_address}</span>
+              </div>
+            )}
+            {/* Envio por transportadora: serviço e rastreio */}
+            {order.shipping && (
+              <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                <p>Envio: {(order.shipping as { service_name?: string }).service_name ?? 'transportadora'}</p>
+                {order.tracking_code ? (
+                  <a
+                    href={trackingUrl(order.tracking_code)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium text-foreground"
+                  >
+                    Rastrear: {order.tracking_code}
+                  </a>
+                ) : (
+                  <p>O código de rastreio aparece aqui quando a loja postar.</p>
+                )}
               </div>
             )}
             {order.notes && (

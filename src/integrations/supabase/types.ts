@@ -6275,6 +6275,8 @@ export type Database = {
       }
       orders: {
         Row: {
+          shipping: Json | null
+          tracking_code: string | null
           assigned_driver_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -6313,6 +6315,8 @@ export type Database = {
           whatsapp_notified_at: string | null
         }
         Insert: {
+          shipping?: Json | null
+          tracking_code?: string | null
           assigned_driver_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -6351,6 +6355,8 @@ export type Database = {
           whatsapp_notified_at?: string | null
         }
         Update: {
+          shipping?: Json | null
+          tracking_code?: string | null
           assigned_driver_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -7642,6 +7648,10 @@ export type Database = {
       }
       products: {
         Row: {
+          shipping_height_cm: number | null
+          shipping_length_cm: number | null
+          shipping_weight_kg: number | null
+          shipping_width_cm: number | null
           grade: Json | null
           button_text: string | null
           category_id: string | null
@@ -7668,6 +7678,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          shipping_height_cm?: number | null
+          shipping_length_cm?: number | null
+          shipping_weight_kg?: number | null
+          shipping_width_cm?: number | null
           grade?: Json | null
           button_text?: string | null
           category_id?: string | null
@@ -7694,6 +7708,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          shipping_height_cm?: number | null
+          shipping_length_cm?: number | null
+          shipping_weight_kg?: number | null
+          shipping_width_cm?: number | null
           grade?: Json | null
           button_text?: string | null
           category_id?: string | null

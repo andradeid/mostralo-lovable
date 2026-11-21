@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { mergeScheduledOrders, type OrderScheduleSettings } from '@/lib/orderScheduleSettings';
 import { OrderScheduleFields } from '../OrderScheduleFields';
 import { brl } from '@/lib/brl';
+import { ShippingSettingsCard } from '../ShippingSettingsCard';
 
 interface DeliveryStepProps {
   formData: any;
@@ -639,6 +640,9 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
           </div>
         </CardContent>
       </Card>
+
+      {/* Envio por transportadora (Melhor Envio) */}
+      {storeId && <ShippingSettingsCard storeId={storeId} />}
 
       {/* Pedidos Agendados */}
       <fieldset disabled={!canManageSchedule} className="min-w-0">

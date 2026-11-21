@@ -1,6 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { evaluatePromotion, isPricedInPromotion, pricedInUnitPrice, type CorePromotion } from "../_shared/promotion-core.ts";
 import { checkFlavors, splitFlavorsFromId } from "../_shared/pizza-flavors.ts";
+import { addressLine, optionLabel, parseShippingAddress } from "../_shared/shipping.ts";
+import { quoteForStore } from "../_shared/shipping-quote.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -97,6 +99,7 @@ Deno.serve(async (req: Request) => {
       is_outside_delivery_zone,
       requires_zone_approval,
       items,
+      shipping,
     } = body;
 
     // Validação rápida (zero DB)
@@ -297,7 +300,40 @@ Deno.serve(async (req: Request) => {
 
     // ── TAXA DE ENTREGA: não pode ficar abaixo da menor taxa configurada ──
     let serverDeliveryFee = delivery_type === "delivery" ? round2(Math.max(0, num(delivery_fee))) : 0;
-    if (delivery_type === "delivery") {
+    // ── ENVIO POR TRANSPORTADORA (Melhor Envio): o servidor refaz a cotação e cobra o preço dela ──
+    let shippingRecord: Record<string, unknown> | null = null;
+    let shippingAddressText: string | null = null;
+    if (shipping) {
+      if (delivery_type !== "delivery") return respond({ error: "Envio inválido.", code: "invalid_shipping" }, 400);
+      const addr = parseShippingAddress(shipping.address);
+      if (!addr) return respond({ error: "Confira o endereço de entrega (CEP, rua, número, cidade e UF).", code: "invalid_shipping_address" }, 400);
+      const quote = await quoteForStore(admin, store_id, addr.postal_code, validatedItems.map((i: any) => ({
+        product_id: i.product_id, variant_id: i.variant_id ?? null, quantity: i.quantity,
+      })));
+      if (!quote.ok) return respond({ error: quote.error, code: quote.code }, quote.status);
+      const opt = quote.options.find((o) => o.service_id === String(shipping.service_id ?? ""));
+      if (!opt) return respond({ error: "Essa opção de frete não está mais disponível. Escolha o frete de novo.", code: "shipping_option_unavailable" }, 409);
+      if (round2(num(delivery_fee)) + TOLERANCE < opt.price) {
+        console.warn("[create-guest-order-v3] FRETE ABAIXO DA COTAÇÃO", JSON.stringify({ store_id, client: delivery_fee, quoted: opt.price }));
+        return respond({ error: "O valor do frete mudou. Confira e confirme de novo.", code: "shipping_price_changed", shipping_price: opt.price }, 409);
+      }
+      serverDeliveryFee = opt.price;
+      shippingAddressText = addressLine(addr);
+      shippingRecord = {
+        provider: "melhor_envio",
+        environment: quote.settings.environment,
+        service_id: opt.service_id,
+        service_name: optionLabel(opt),
+        company: opt.company,
+        price: opt.price,
+        carrier_price: opt.carrier_price,
+        free: opt.free,
+        delivery_days: opt.delivery_days,
+        address: addr,
+        quoted_at: new Date().toISOString(),
+      };
+    }
+    if (delivery_type === "delivery" && !shipping) {
       const zones = ((configRes.data as any)?.delivery_zones || []).filter((z: any) => z && z.isActive !== false);
       const acceptsOutside = !!(configRes.data as any)?.accept_outside_delivery_zone;
       if (zones.length && !acceptsOutside) {
@@ -424,7 +460,7 @@ Deno.serve(async (req: Request) => {
         customer_name,
         customer_phone,
         customer_email: customer_email || null,
-        customer_address: delivery_type === "delivery" ? customer_address : null,
+        customer_address: delivery_type === "delivery" ? (shippingAddressText ?? customer_address) : null,
         delivery_type,
         payment_method,
         payment_details: payment_details || null,
@@ -440,7 +476,8 @@ Deno.serve(async (req: Request) => {
         promotion_code: validPromotion?.code || null,
         promotion_discount: serverDiscount > 0 ? serverDiscount : null,
         is_outside_delivery_zone: is_outside_delivery_zone || false,
-        requires_zone_approval: requires_zone_approval || false,
+        requires_zone_approval: shippingRecord ? false : (requires_zone_approval || false),
+        ...(shippingRecord ? { shipping: shippingRecord, is_outside_delivery_zone: false } : {}),
       })
       .select("id, order_number, status")
       .single();

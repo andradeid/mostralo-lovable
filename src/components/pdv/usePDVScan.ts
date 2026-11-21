@@ -42,12 +42,13 @@ export function usePDVScan({ storeId, comandasTabActive, addScannedToCart, clear
       }
       if (product.variant && onVariant) {
         const v = product.variant;
-        if (v.track_stock && v.stock_quantity != null && Number(v.stock_quantity) <= 0) {
-          toast.error(`${product.name} — ${v.name} está sem estoque`, { id: SCAN_TOAST_ID });
-          return;
-        }
         onVariant(product, v);
-        toast.success(scanAddedMessage(`${product.name} — ${v.name}`), { id: SCAN_TOAST_ID, duration: 1500 });
+        // Igual ao produto simples: o par está na mão do caixa, então vende e avisa que o estoque está errado
+        if (v.track_stock && v.stock_quantity != null && Number(v.stock_quantity) <= 0) {
+          toast.warning(`${product.name} — ${v.name}: estoque zerado`, { id: SCAN_TOAST_ID });
+        } else {
+          toast.success(scanAddedMessage(`${product.name} — ${v.name}`), { id: SCAN_TOAST_ID, duration: 1500 });
+        }
         return;
       }
       if (product.grade && onGrade) {

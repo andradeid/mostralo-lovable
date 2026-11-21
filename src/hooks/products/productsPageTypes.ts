@@ -23,6 +23,8 @@ export interface ProductData {
   track_stock: boolean | null;
   stock_quantity: number | null;
   stock_alert_threshold: number | null;
+  /** Grade cor × tamanho (null = produto simples). */
+  grade?: unknown;
   // Adicionais associados
   addon_category_names?: string[];
   addon_category_ids?: string[];

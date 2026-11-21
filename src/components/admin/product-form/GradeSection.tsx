@@ -177,8 +177,8 @@ export function GradeSection({ form, variants, setVariants }: Props) {
                     </Button>
                   </div>
                   {!color && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">Numeração de</span>
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      <span className="text-muted-foreground whitespace-nowrap">Numeração de</span>
                       <Input aria-label="Tamanho inicial" value={range.from} onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} className="h-8 w-16" inputMode="numeric" />
                       <span className="text-muted-foreground">a</span>
                       <Input aria-label="Tamanho final" value={range.to} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} className="h-8 w-16" inputMode="numeric" />

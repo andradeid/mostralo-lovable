@@ -53,7 +53,7 @@ export function useProductsCatalog({ user, validatedStoreId, storeAccessLoading,
       // Construir query de produtos com apenas colunas necessárias
       let productsQuery = supabase
         .from('products')
-        .select('id, name, description, price, image_url, image_gallery, button_text, is_available, is_featured, show_in_menu, display_order, created_at, updated_at, store_id, category_id, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold')
+        .select('id, name, description, price, image_url, image_gallery, button_text, is_available, is_featured, show_in_menu, display_order, created_at, updated_at, store_id, category_id, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, grade')
         .eq('store_id', storeId);
 
       if (debouncedSearch.trim()) {

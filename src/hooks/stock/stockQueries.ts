@@ -79,18 +79,26 @@ export async function findStockProductByBarcode(storeId: string, code: string): 
     .maybeSingle();
   if (error) throw error;
   if (data) return data as StockProduct;
-  // Código de uma combinação da grade (cor × tamanho)
-  const { data: vrow, error: vError } = await db()
+  // Código de uma combinação da grade (cor × tamanho). product_variants não tem FK para products,
+  // então são duas buscas: as combinações com o código e o produto delas na loja.
+  const { data: vrows, error: vError } = await db()
     .from('product_variants')
-    .select(`${STOCK_VARIANT_COLUMNS}, products!inner(${STOCK_PRODUCT_COLUMNS}, store_id)`)
+    .select(`${STOCK_VARIANT_COLUMNS}, product_id`)
     .eq('barcode', c)
-    .eq('products.store_id', storeId)
+    .limit(10);
+  if (vError) throw vError;
+  if (!vrows?.length) return null;
+  const { data: prod, error: pError } = await db()
+    .from('products')
+    .select(STOCK_PRODUCT_COLUMNS)
+    .eq('store_id', storeId)
+    .in('id', vrows.map((v: { product_id: string }) => v.product_id))
     .limit(1)
     .maybeSingle();
-  if (vError) throw vError;
-  if (!vrow) return null;
-  const { products: product, ...variant } = vrow;
-  return { ...product, variant } as StockProduct;
+  if (pError) throw pError;
+  if (!prod) return null;
+  const { product_id: _pid, ...variant } = vrows.find((v: { product_id: string }) => v.product_id === prod.id);
+  return { ...prod, variant } as StockProduct;
 }
 
 /** Combinações da grade de um produto (equipe da loja). */

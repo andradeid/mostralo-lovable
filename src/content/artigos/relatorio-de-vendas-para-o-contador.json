@@ -1,0 +1,380 @@
+{
+  "slug": "relatorio-de-vendas-para-o-contador",
+  "title": "Relatório de vendas para o contador: o que mandar todo mês",
+  "h1": "Relatório de vendas para o contador: o que mandar todo mês, em PDF ou planilha (2026)",
+  "description": "Relatório de vendas para o contador: o que mandar todo mês, PDF ou planilha CSV, como conferir com o extrato e o cuidado com os dados dos clientes.",
+  "excerpt": "Todo começo de mês o contador pede o faturamento e você junta print, caderno e extrato. Veja o que mandar, quando usar PDF ou planilha, como conferir antes de enviar e o que o MEI precisa guardar.",
+  "date": "2026-11-22",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "relatório de vendas para o contador",
+    "relatório de faturamento mensal",
+    "o que mandar para o contador",
+    "relatório de vendas em pdf",
+    "exportar vendas para planilha",
+    "relatório mensal de receitas brutas mei"
+  ],
+  "image": "/images/guias/relatorio-de-vendas-para-o-contador.jpg",
+  "imageAlt": "Dona de loja no balcão conferindo no celular o relatório de vendas do mês para mandar ao contador, com caderno e calculadora ao lado",
+  "audio": {
+    "src": "/audio/guias/relatorio-de-vendas-para-o-contador.mp3",
+    "duration": 620.47,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0,
+        "target": "intro"
+      },
+      {
+        "t": 47.39,
+        "target": "s1"
+      },
+      {
+        "t": 121.78,
+        "target": "s2"
+      },
+      {
+        "t": 180.33,
+        "target": "s3"
+      },
+      {
+        "t": 265.16,
+        "target": "s4"
+      },
+      {
+        "t": 361.71,
+        "target": "s5"
+      },
+      {
+        "t": 455.91,
+        "target": "s6"
+      },
+      {
+        "t": 512.46,
+        "target": "s7"
+      },
+      {
+        "t": 568.25,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Relatório de vendas para o contador é o resumo do que o negócio vendeu no mês, com o total, as formas de pagamento e a lista de vendas, enviado logo no começo do mês seguinte. Com ele, o contador calcula o imposto sem precisar de print, caderno nem áudio explicando o que aconteceu.",
+    "Neste guia você vai ver o que o contador precisa receber todo mês, quando mandar em PDF e quando mandar em planilha, como tirar o relatório do sistema em poucos cliques, uma conferência com o extrato que fecha, o que muda para o MEI com o novo limite e o cuidado com os dados dos clientes antes de enviar."
+  ],
+  "sections": [
+    {
+      "h2": "O que o contador precisa receber todo mês",
+      "blocks": [
+        {
+          "p": "Cada escritório tem o seu jeito, mas a lista de um pequeno comércio costuma ser a mesma. Pergunte ao seu contador o que ele usa e combine um dia fixo para mandar."
+        },
+        {
+          "table": {
+            "head": [
+              "O que mandar",
+              "Para que o contador usa"
+            ],
+            "rows": [
+              [
+                "Total vendido no mês",
+                "Calcular o imposto do mês (o DAS no Simples Nacional e no MEI)."
+              ],
+              [
+                "Vendas por forma de pagamento",
+                "Bater com o extrato do banco, do Pix e da maquininha."
+              ],
+              [
+                "Lista de vendas e cancelamentos",
+                "Conferir se o total está certo e tirar o que foi cancelado."
+              ],
+              [
+                "Notas fiscais emitidas e recebidas",
+                "Escrituração e compras do mês, quando o negócio emite nota."
+              ],
+              [
+                "Extratos do banco e da maquininha",
+                "Conferir o que entrou de verdade na conta."
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O relatório de vendas não é nota fiscal. Se o seu negócio emite nota, ela continua saindo pelo emissor que você já usa; o relatório mostra o que foi vendido, com ou sem nota, e ajuda o contador a achar diferença."
+        },
+        {
+          "p": "Se você ainda não acompanha os números da semana, comece pelo guia de [relatório de vendas para pequeno negócio](/guia/relatorio-de-vendas-pequeno-negocio). Aqui o foco é o fechamento do mês para o contador."
+        }
+      ]
+    },
+    {
+      "h2": "Relatório de vendas em PDF ou em planilha: qual mandar",
+      "blocks": [
+        {
+          "p": "Os dois têm uso. O PDF é para ler e guardar; a planilha é para o contador fazer contas."
+        },
+        {
+          "table": {
+            "head": [
+              "Formato",
+              "Melhor para",
+              "Cuidado"
+            ],
+            "rows": [
+              [
+                "PDF",
+                "Ler no celular, guardar o fechamento do mês, mostrar a um sócio",
+                "Não dá para somar nem filtrar."
+              ],
+              [
+                "Planilha CSV",
+                "O contador filtrar, somar por forma de pagamento e importar no sistema dele",
+                "Abre no Excel e no Google Planilhas; confira se os valores vieram como número."
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Na dúvida, mande os dois. No Mostralo, a planilha sai com os valores no formato brasileiro (vírgula nos centavos, sem ponto de milhar), que o Excel em português entende como número."
+        },
+        {
+          "tip": "Dê um nome que diga o período, como relatorio-minha-loja-2026-11-01-a-2026-11-30. O Mostralo já sugere esse nome ao exportar. Assim ninguém manda o mês errado."
+        }
+      ]
+    },
+    {
+      "h2": "Como tirar o relatório de vendas do mês no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "Antes de exportar, marque como concluídos os pedidos que já foram entregues e feche as comandas do PDV: o total de vendas soma só pedidos concluídos e comandas fechadas.",
+            "No painel, abra Relatórios.",
+            "No seletor de período, escolha Mês passado (ou marque no calendário do dia 1 ao último dia do mês).",
+            "Toque em PDF: abre a janela de impressão; escolha Salvar como PDF.",
+            "Toque em CSV: a planilha é baixada na hora.",
+            "Mande os dois arquivos ao contador e guarde uma cópia numa pasta do ano."
+          ]
+        },
+        {
+          "p": "O arquivo traz, nesta ordem: resumo do período (total de vendas, pedidos online, comandas, taxa de serviço, ticket médio e a comparação com o período anterior), vendas por dia, vendas por origem (online e PDV), pedidos por status, vendas por dia da semana, tipo de entrega, forma de pagamento, os 10 produtos mais vendidos, clientes e o histórico com cada venda (tipo, número, canal, cliente, valor, status, pagamento e data e hora)."
+        },
+        {
+          "img": "/images/guias/relatorio-de-vendas-para-o-contador-2.jpg",
+          "alt": "Passo a passo do relatório de vendas para o contador: fechar pedidos, escolher o mês, exportar PDF e CSV, conferir com o extrato e enviar",
+          "caption": "O fechamento do mês em cinco passos: do pedido concluído ao relatório de vendas para o contador."
+        }
+      ]
+    },
+    {
+      "h2": "Conferir antes de mandar: a conta que fecha com o extrato",
+      "blocks": [
+        {
+          "p": "Mandar o relatório sem conferir passa o problema para o contador. A conferência é rápida: na planilha, filtre a coluna Status e tire os cancelados; depois filtre a coluna Pagamento e some a coluna Valor de cada forma. Compare cada total com o extrato."
+        },
+        {
+          "table": {
+            "head": [
+              "Forma de pagamento (exemplo)",
+              "No relatório",
+              "No extrato",
+              "Diferença"
+            ],
+            "rows": [
+              [
+                "Pix",
+                "R$ 18.400,00",
+                "R$ 18.400,00",
+                "nenhuma"
+              ],
+              [
+                "Cartão (maquininha)",
+                "R$ 12.300,00",
+                "R$ 11.931,00",
+                "R$ 369,00"
+              ],
+              [
+                "Dinheiro",
+                "R$ 3.100,00",
+                "R$ 3.100,00 no caixa",
+                "nenhuma"
+              ],
+              [
+                "Total",
+                "R$ 33.800,00",
+                "R$ 33.431,00",
+                "R$ 369,00"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "No exemplo, a diferença do cartão é a taxa da maquininha: R$ 12.300,00 × 3% = R$ 369,00. O faturamento é o valor vendido (R$ 33.800,00), não o que caiu depois da taxa. Diferença que não se explica por taxa, cancelamento ou venda que caiu no mês seguinte é sinal de pedido não concluído ou de venda que não passou pelo sistema."
+        },
+        {
+          "p": "Para o dinheiro, use o fechamento de caixa do dia. Veja os guias de [abertura e fechamento de caixa](/guia/abertura-e-fechamento-de-caixa) e de [sangria de caixa](/guia/sangria-de-caixa)."
+        }
+      ]
+    },
+    {
+      "h2": "MEI: relatório mensal de receitas e o novo limite",
+      "blocks": [
+        {
+          "p": "O MEI não entrega relatório ao contador por obrigação, mas precisa preencher todo mês o Relatório Mensal de Receitas Brutas, com o que faturou no mês anterior, até o dia 20. O modelo está no gov.br e fica guardado junto com as notas fiscais, para mostrar numa fiscalização."
+        },
+        {
+          "p": "O relatório de vendas do sistema é a base para preencher esse modelo sem adivinhar. Ele também ajuda a acompanhar o limite de faturamento:"
+        },
+        {
+          "table": {
+            "head": [
+              "Ano",
+              "Limite do MEI no ano",
+              "Média por mês"
+            ],
+            "rows": [
+              [
+                "2026",
+                "R$ 81.000,00",
+                "R$ 6.750,00"
+              ],
+              [
+                "2027",
+                "R$ 110.000,00",
+                "R$ 9.166,67"
+              ],
+              [
+                "2028",
+                "R$ 140.000,00",
+                "R$ 11.666,67"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Os novos limites vêm da Lei Complementar 238/2026, sancionada em 21 de outubro de 2026. Some os meses do ano e veja se você está perto do teto antes de dezembro. Mais detalhes no guia do [novo limite do MEI em 2027](/guia/novo-limite-do-mei-2027)."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui o seu contador. Ele é quem diz o que entra no faturamento do seu caso, como venda parcelada e encomenda paga antes da entrega."
+        }
+      ]
+    },
+    {
+      "h2": "Dados dos clientes: mande só o que o contador precisa",
+      "blocks": [
+        {
+          "p": "A planilha completa traz nome e telefone de clientes no histórico de vendas e na lista dos maiores compradores. Na maioria dos casos o contador precisa só dos totais e dos valores de cada venda."
+        },
+        {
+          "ul": [
+            "Pergunte ao contador se ele precisa do nome do cliente. Se não precisa, apague as colunas Cliente e Telefone e a parte de clientes antes de enviar.",
+            "Mande pelo canal combinado com o escritório (e-mail ou o portal dele), não em grupo de WhatsApp.",
+            "Guarde o arquivo original na sua pasta; o que vai para fora pode ser a versão sem dados de cliente."
+          ]
+        },
+        {
+          "p": "A Lei Geral de Proteção de Dados (artigo 6º) pede que se use só o dado necessário para cada finalidade. Mandar menos dado é mais seguro para você e para o cliente."
+        }
+      ]
+    },
+    {
+      "h2": "A rotina do fechamento do mês em 15 minutos",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Quando",
+              "O que fazer"
+            ],
+            "rows": [
+              [
+                "Último dia do mês",
+                "Concluir os pedidos entregues e fechar as comandas."
+              ],
+              [
+                "Dia 1 ou 2",
+                "Exportar o relatório do mês em PDF e CSV."
+              ],
+              [
+                "Dia 2 ou 3",
+                "Conferir com o extrato do banco, do Pix e da maquininha."
+              ],
+              [
+                "Até o dia 5",
+                "Mandar ao contador, com as notas fiscais e os extratos."
+              ],
+              [
+                "Até o dia 20",
+                "Pagar o DAS; se for MEI, preencher o relatório mensal de receitas."
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Com o fechamento em dia, o relatório também serve para você: o mesmo arquivo mostra o ticket médio, os dias mais fortes e os produtos que mais vendem. Veja como usar a margem no guia de [como calcular a margem de lucro](/guia/como-calcular-margem-de-lucro) e outras dicas na categoria [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o fechamento do mês pronto para o contador",
+    "p": [
+      "No Mostralo, as vendas do delivery próprio, da loja virtual, do PDV e das comandas ficam no mesmo lugar. No fim do mês, você escolhe o período e exporta o relatório em PDF ou planilha, com o resumo, as formas de pagamento e o histórico de cada venda. A gente deixa tudo pronto para você, com garantia de 7 dias. Veja as [funcionalidades](/funcionalidades), acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Relatórios com período livre ou Mês passado, em PDF e CSV",
+      "Vendas online e do PDV somadas no mesmo total",
+      "Forma de pagamento e status em cada venda do histórico",
+      "Delivery próprio sem comissão por pedido, PDV e comandas no mesmo sistema"
+    ]
+  },
+  "faq": [
+    [
+      "O que mandar para o contador todo mês?",
+      "Em geral: o total vendido no mês, as vendas por forma de pagamento, a lista de vendas com os cancelamentos, as notas fiscais emitidas e recebidas e os extratos do banco e da maquininha. Combine a lista com o seu contador."
+    ],
+    [
+      "Relatório de vendas substitui nota fiscal?",
+      "Não. O relatório mostra o que foi vendido; a nota fiscal continua sendo emitida pelo emissor que o seu negócio já usa, quando a atividade exige."
+    ],
+    [
+      "É melhor mandar em PDF ou em planilha?",
+      "O PDF é para ler e guardar; a planilha CSV é para o contador filtrar e somar. Na dúvida, mande os dois."
+    ],
+    [
+      "O MEI precisa fazer relatório de vendas?",
+      "O MEI precisa preencher o Relatório Mensal de Receitas Brutas até o dia 20 de cada mês e guardá-lo com as notas. O relatório do sistema ajuda a preencher sem erro."
+    ],
+    [
+      "Por que o total do relatório é maior que o extrato?",
+      "Porque o faturamento é o valor vendido e o extrato mostra o que caiu depois das taxas da maquininha. Também entram na diferença cancelamentos e vendas que caem no mês seguinte."
+    ]
+  ],
+  "sources": [
+    [
+      "gov.br — Baixar Relatório Mensal de Receitas Brutas (MEI)",
+      "https://www.gov.br/pt-br/servicos/baixar-relatorio-mensal-de-receitas-brutas"
+    ],
+    [
+      "Fenacon — Sancionada lei que amplia limite de faturamento do MEI (LC 238/2026)",
+      "https://fenacon.org.br/?p=55815"
+    ],
+    [
+      "Jornal Contábil — MEI poderá faturar R$ 110 mil em 2027",
+      "https://jornalcontabil.com.br/noticia/mei-podera-faturar-r-110-mil-em-2027-e-contratar-mais-funcionarios/amp/"
+    ],
+    [
+      "Planalto — Lei Geral de Proteção de Dados (Lei 13.709/2018)",
+      "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2018/lei/l13709.htm"
+    ]
+  ],
+  "related": [
+    "relatorio-de-vendas-pequeno-negocio",
+    "abertura-e-fechamento-de-caixa",
+    "sangria-de-caixa",
+    "novo-limite-do-mei-2027",
+    "pdv-para-pequeno-negocio",
+    "como-calcular-margem-de-lucro"
+  ]
+}

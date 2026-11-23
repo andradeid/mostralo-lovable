@@ -72,3 +72,8 @@
 - Telas: seção `product-form/GradeSection.tsx` (com grade, somem Controle de Estoque e Variações); loja `components/store/GradePicker.tsx` (página e janela do produto); PDV `components/pdv/GradePickDialog.tsx` (clique no produto abre a tabela; o leitor com código da combinação entra direto; o carrinho só soma a mesma combinação); entrada `admin/stock/GradeEntryGrid.tsx`; etiquetas `utils/printGradeLabels.ts`.
 - `product_variants` não tem FK para `products`: não use embed (`products!inner(...)`) a partir de variações; faça duas consultas (ver `findStockProductByBarcode`). No PDV, combinação lida com estoque zerado entra com aviso, como o produto simples. Em produção desde 21/11/2026 (admin-create-order v3 grava `variant_id`).
 - Servidor: `create-guest-order-v3` grava `variant_id` e recusa combinação sem estoque (`out_of_stock`); `admin-create-order` grava `variant_id` (no repositório; publicar junto da próxima mudança da função).
+
+## Prévia de link de loja fora do Google (23/11/2026)
+- `stores.seo_hidden = true` (lojas de teste e lojas novas ainda não aprovadas) tira a loja do sitemap, do feed e põe `X-Robots-Tag: noindex`, **mas a página continua com título, descrição e foto da loja** (`functions/_lib/seo.ts`, `withStorePage`/`withProductPage` → `hide(rewrite(...))`).
+- Antes, a loja oculta devolvia o HTML genérico do Mostralo e a prévia do WhatsApp mostrava a imagem do Mostralo. Não volte a retornar `noindex(res)` sem o `rewrite`.
+- WhatsApp guarda a prévia de um endereço por um tempo: para testar, use um endereço ainda não compartilhado (ex.: `?v=2`).

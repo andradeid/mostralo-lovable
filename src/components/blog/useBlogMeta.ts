@@ -19,7 +19,7 @@ export function useBlogMeta(meta: BlogMeta | null) {
   useEffect(() => {
     if (!meta) return;
     const url = `${SITE}${meta.path}`;
-    const image = meta.image ? (meta.image.startsWith("http") ? meta.image : `${SITE}${meta.image}`) : `${SITE}/og-image.png`;
+    const image = meta.image ? (meta.image.startsWith("http") ? meta.image : `${SITE}${meta.image}`) : `${SITE}/og-image.jpg`;
     document.title = meta.title;
     setMeta("name", "description", meta.description);
     setMeta("property", "og:title", meta.title);

@@ -169,7 +169,7 @@ ${rel.length ? `<h2>Leia também</h2><ul>${rel.map((r) => `<li><a href="/guia/${
 ${start}${catNav}<ul>${slice.map((i) => `<li><a href="${i.path}">${esc(i.title)}</a> — ${esc(i.excerpt)}</li>`).join("")}</ul>${pager}
 <p><a href="${SIGNUP}">Começar no ${BRAND}</a></p>`;
       page({
-        path, title, description, image: `${SITE}${hub.image ?? "/og-image.png"}`, body,
+        path, title, description, image: `${SITE}${hub.image ?? "/og-image.jpg"}`, body,
         jsonLd: [
           {
             "@context": "https://schema.org", "@type": "CollectionPage", name: title.replace(` | ${BRAND}`, ""), description, url, inLanguage: "pt-BR",

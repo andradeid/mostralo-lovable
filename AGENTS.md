@@ -77,3 +77,5 @@
 - `stores.seo_hidden = true` (lojas de teste e lojas novas ainda não aprovadas) tira a loja do sitemap, do feed e põe `X-Robots-Tag: noindex`, **mas a página continua com título, descrição e foto da loja** (`functions/_lib/seo.ts`, `withStorePage`/`withProductPage` → `hide(rewrite(...))`).
 - Antes, a loja oculta devolvia o HTML genérico do Mostralo e a prévia do WhatsApp mostrava a imagem do Mostralo. Não volte a retornar `noindex(res)` sem o `rewrite`.
 - WhatsApp guarda a prévia de um endereço por um tempo: para testar, use um endereço ainda não compartilhado (ex.: `?v=2`).
+- Imagem da prévia (og:image/twitter:image) das lojas sai por `https://mostralo.com.br/og-img/<caminho no bucket store-images>` (`previewImageUrl` em `functions/_lib/seo.ts` + proxy `functions/og-img/[[path]].ts`, rota em `public/_routes.json`). Com a imagem em supabase.co o Facebook montava a prévia e o WhatsApp não. JSON-LD e feed continuam com o endereço do Supabase.
+- Imagem padrão do Mostralo: `public/og-image.jpg` (1200×630, ~40 KB). O WhatsApp ignora imagem acima de ~300 KB (a antiga og-image.png tinha 781 KB).

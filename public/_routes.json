@@ -11,7 +11,8 @@
     "/robots.txt",
     "/sitemaps/*",
     "/feed.xml",
-    "/seja-vendedor"
+    "/seja-vendedor",
+    "/og-img/*"
   ],
   "exclude": []
 }

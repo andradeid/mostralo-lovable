@@ -297,6 +297,16 @@ interface PageMeta {
   body?: string;
 }
 
+const STORE_IMAGES_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/store-images/`;
+
+/**
+ * Imagem da prévia de link servida pelo próprio domínio (/og-img/…), não pelo Supabase.
+ * O WhatsApp não montava a prévia com a imagem em supabase.co (o Facebook montava).
+ */
+export function previewImageUrl(u: string): string {
+  return u.startsWith(STORE_IMAGES_PREFIX) ? `https://mostralo.com.br/og-img/${u.slice(STORE_IMAGES_PREFIX.length)}` : u;
+}
+
 function rewrite(res: Response, m: PageMeta, tag: string): Response {
   const ct = res.headers.get('content-type') ?? '';
   if (!ct.includes('text/html') || typeof HTMLRewriter === 'undefined') return res;
@@ -337,8 +347,8 @@ function rewrite(res: Response, m: PageMeta, tag: string): Response {
       });
     if (m.image) {
       rw = rw
-        .on('meta[property="og:image"]', set(m.image))
-        .on('meta[name="twitter:image"]', set(m.image))
+        .on('meta[property="og:image"]', set(previewImageUrl(m.image)))
+        .on('meta[name="twitter:image"]', set(previewImageUrl(m.image)))
         // as dimensões do index.html são da imagem do Mostralo (1200x630)
         .on('meta[property="og:image:width"]', drop)
         .on('meta[property="og:image:height"]', drop);

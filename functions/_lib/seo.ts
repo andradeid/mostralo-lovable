@@ -362,7 +362,9 @@ export async function withStorePage(
   const [res, store, seo] = await Promise.all([next(), loadStore(slug), storeSeo(slug)]);
   if (store === null) return notFound(res);
   if (!store) return res;
-  if (seo.hidden) return noindex(res);
+  // Loja fora do Google (seo_hidden): continua sem indexar, mas a prévia do link (WhatsApp,
+  // Instagram…) mostra o nome e a foto da loja, não a do Mostralo.
+  const hide = (r: Response) => (seo.hidden ? noindex(r) : r);
   const domain = knownDomain !== undefined ? knownDomain : seo.domain;
   const url = urlOverride ?? storeHome(store.slug, domain);
   const products = await loadProducts(store.id).catch(() => [] as SeoProduct[]);
@@ -370,7 +372,7 @@ export async function withStorePage(
   const description = (
     clean(store.description) || `Peça online na ${store.name}${local ? ` (${local})` : ''}.`
   ).slice(0, 200);
-  return rewrite(
+  return hide(rewrite(
     res,
     {
       title: local ? `${store.name} | ${local}` : store.name,
@@ -383,7 +385,7 @@ export async function withStorePage(
       body: storeBody(store, products, domain),
     },
     store.slug,
-  );
+  ));
 }
 
 /** Página de um produto da loja. */
@@ -396,7 +398,7 @@ export async function withProductPage(
   const [res, store, seo] = await Promise.all([next(), loadStore(slug), storeSeo(slug)]);
   if (store === null) return notFound(res);
   if (!store) return res;
-  if (seo.hidden) return noindex(res);
+  const hide = (r: Response) => (seo.hidden ? noindex(r) : r); // ver withStorePage
   const domain = knownDomain !== undefined ? knownDomain : seo.domain;
   const [p, others] = await Promise.all([loadProduct(store.id, productSlug), loadProducts(store.id)]);
   if (!p) {
@@ -405,14 +407,14 @@ export async function withProductPage(
     if (current && current !== productSlug) {
       return Response.redirect(productUrl(store.slug, domain, encodeURIComponent(current)), 301);
     }
-    return withStorePageFromResponse(res, store, domain);
+    return hide(withStorePageFromResponse(res, store, domain));
   }
   const url = productUrl(store.slug, domain, productSlug);
   const price = effectivePrice(p);
   const priceTxt = price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const description = (clean(p.description) || `${p.name} na ${store.name}.`).slice(0, 200);
   const home = storeHome(store.slug, domain);
-  return rewrite(
+  return hide(rewrite(
     res,
     {
       title: `${p.name} - ${priceTxt} | ${store.name}`,
@@ -435,7 +437,7 @@ export async function withProductPage(
       body: productBody(store, p, home, others, domain),
     },
     `${store.slug}/${productSlug}`,
-  );
+  ));
 }
 
 function withStorePageFromResponse(res: Response, store: SeoStore, domain: string | null): Response {

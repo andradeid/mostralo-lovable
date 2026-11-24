@@ -297,6 +297,22 @@ interface PageMeta {
   body?: string;
 }
 
+/** Versão curta da prévia (imagem + título + descrição). */
+function previewVersion(m: PageMeta): string {
+  let h = 5381;
+  for (const c of `${m.image ?? ''}|${m.title}|${m.description}`) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
+  return h.toString(36);
+}
+
+/**
+ * og:url com a versão da prévia. O WhatsApp guarda a prévia pelo og:url: com o canonical puro,
+ * uma prévia antiga (sem foto) ficava presa para todos os links da loja. Mudou logo/nome/descrição,
+ * muda a chave e o WhatsApp busca de novo. O canonical continua sem parâmetro.
+ */
+export function shareUrl(m: PageMeta): string {
+  return `${m.url}${m.url.includes('?') ? '&' : '?'}p=${previewVersion(m)}`;
+}
+
 function rewrite(res: Response, m: PageMeta, tag: string): Response {
   const ct = res.headers.get('content-type') ?? '';
   if (!ct.includes('text/html') || typeof HTMLRewriter === 'undefined') return res;
@@ -317,11 +333,11 @@ function rewrite(res: Response, m: PageMeta, tag: string): Response {
       .on('meta[property="og:type"]', set(m.type))
       .on('meta[property="og:title"]', set(m.title))
       .on('meta[property="og:description"]', set(m.description))
-      .on('meta[property="og:url"]', set(m.url))
+      .on('meta[property="og:url"]', set(shareUrl(m)))
       .on('meta[property="og:site_name"]', set(m.siteName))
       .on('meta[name="twitter:title"]', set(m.title))
       .on('meta[name="twitter:description"]', set(m.description))
-      .on('meta[name="twitter:url"]', set(m.url))
+      .on('meta[name="twitter:url"]', set(shareUrl(m)))
       // dados estruturados do Mostralo (empresa/software) não valem para a página da loja
       .on('script[type="application/ld+json"]', drop)
       .on('div#root', {

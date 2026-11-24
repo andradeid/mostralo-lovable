@@ -78,6 +78,7 @@
 - Antes, a loja oculta devolvia o HTML genérico do Mostralo e a prévia do WhatsApp mostrava a imagem do Mostralo. Não volte a retornar `noindex(res)` sem o `rewrite`.
 - WhatsApp guarda a prévia de um endereço por um tempo: para testar, use um endereço ainda não compartilhado (ex.: `?v=2`).
 - Imagem da prévia (og:image/twitter:image) das lojas fica no endereço do Supabase (storage público). Testado em 24/11/2026: com a imagem servida por `/og-img/...` (mesmo domínio) o WhatsApp lia o título mas nem buscava a imagem; com o endereço do Supabase a foto aparece. O proxy `functions/og-img/[[path]].ts` continua publicado (stores/ e products/) só por compatibilidade.
+- `og:url`/`twitter:url` levam `?p=<versão>` (hash de imagem+título+descrição, `shareUrl` em `functions/_lib/seo.ts`); o canonical continua limpo. O WhatsApp guarda a prévia pelo og:url, e com o canonical puro uma prévia antiga sem foto ficou presa para todos os links da loja (24/11/2026).
 - Imagem padrão do Mostralo: `public/og-image.jpg` (1200×630, ~40 KB). O WhatsApp ignora imagem acima de ~300 KB (a antiga og-image.png tinha 781 KB).
 
 # Pagamento online do pedido — Mercado Pago da loja (24/11/2026)

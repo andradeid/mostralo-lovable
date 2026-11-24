@@ -8,7 +8,7 @@ interface PagesContext {
   request: Request;
 }
 
-const PATH_RE = /^\/og-img\/(stores\/[A-Za-z0-9._\-/]+\.(?:jpe?g|png|webp))$/i;
+const PATH_RE = /^\/og-img\/((?:stores|products)\/[A-Za-z0-9._\-/]+\.(?:jpe?g|png|webp))$/i;
 
 export async function onRequest({ request }: PagesContext): Promise<Response> {
   if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Method not allowed', { status: 405 });

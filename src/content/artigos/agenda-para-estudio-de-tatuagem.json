@@ -1,0 +1,336 @@
+{
+  "slug": "agenda-para-estudio-de-tatuagem",
+  "title": "Agenda para estúdio de tatuagem: sinal e sessão longa",
+  "h1": "Agenda para estúdio de tatuagem: sinal na reserva, sessão longa e menos falta",
+  "description": "Agenda para estúdio de tatuagem com sinal pelo Pix: quanto cobrar por tamanho, política de cancelamento, sessão longa por tatuador e lembrete no WhatsApp.",
+  "excerpt": "Como montar a agenda do estúdio de tatuagem: sinal fixo por tamanho da peça, prazo para o Pix, regra de remarcação, menor de idade e passo a passo para o cliente reservar sozinho.",
+  "date": "2026-11-24",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "agenda para estúdio de tatuagem",
+    "sinal para tatuagem",
+    "agendamento de tatuagem online",
+    "cliente faltou na tatuagem",
+    "política de cancelamento tatuagem",
+    "agenda para tatuador"
+  ],
+  "image": "/images/guias/agenda-para-estudio-de-tatuagem.jpg",
+  "imageAlt": "Tatuador sentado na maca do estúdio de tatuagem conferindo a agenda no celular antes da próxima sessão",
+  "audio": {
+    "src": "/audio/guias/agenda-para-estudio-de-tatuagem.mp3",
+    "duration": 609.07,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 42.07,
+        "target": "s1"
+      },
+      {
+        "t": 114.38,
+        "target": "s2"
+      },
+      {
+        "t": 191.81,
+        "target": "s3"
+      },
+      {
+        "t": 272.96,
+        "target": "s4"
+      },
+      {
+        "t": 357.63,
+        "target": "s5"
+      },
+      {
+        "t": 442.54,
+        "target": "s6"
+      },
+      {
+        "t": 530.7,
+        "target": "s7"
+      },
+      {
+        "t": 559.49,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "A agenda para estúdio de tatuagem funciona melhor com três regras: cada tamanho de peça vira um serviço com a duração real da sessão, o cliente só garante o horário depois de pagar um sinal pelo Pix e a regra de remarcação fica escrita antes do pagamento. Assim, uma falta deixa de ser uma tarde inteira perdida.",
+    "Neste guia você vê quanto cobrar de sinal em cada tamanho de tatuagem, uma conta simples do que a falta custa, o caminho do orçamento até a sessão, os cuidados com menor de idade e a ficha do cliente, modelos de mensagem prontos e como configurar tudo no [Mostralo](/funcionalidades)."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a agenda do estúdio de tatuagem é diferente",
+      "blocks": [
+        {
+          "p": "Numa barbearia, uma falta custa trinta ou quarenta minutos. No estúdio de tatuagem, uma sessão pode ocupar a tarde toda, o desenho já foi feito e o material já foi separado. Por isso a agenda do tatuador precisa de alguns cuidados que outros negócios não têm."
+        },
+        {
+          "table": {
+            "head": [
+              "O que muda no estúdio",
+              "Como resolver na agenda"
+            ],
+            "rows": [
+              [
+                "Sessões de 1 a 6 horas",
+                "Um serviço por tamanho de peça, cada um com a duração real da sessão"
+              ],
+              [
+                "Cada tatuador tem o seu estilo",
+                "Agenda separada por tatuador e o cliente escolhe com quem vai fazer"
+              ],
+              [
+                "Limpeza e preparo entre clientes",
+                "Intervalo fixo depois de cada sessão, que não aparece como horário livre"
+              ],
+              [
+                "Preço só sai depois do orçamento",
+                "Preço mostrado como \"a partir de\" e valor final combinado no orçamento"
+              ],
+              [
+                "Falta custa caro",
+                "Sinal pelo Pix para garantir o horário"
+              ],
+              [
+                "Peça grande em várias sessões",
+                "Cada sessão marcada como uma reserva, com o próprio sinal ou abatendo do total combinado"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Se o estúdio também faz piercing ou micropigmentação, vale o mesmo raciocínio: cada procedimento com a sua duração. A lógica é parecida com a do [guia de agenda para nail designer](/guia/agenda-para-nail-designer), só que com sessões bem mais longas."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto cobrar de sinal para tatuagem",
+      "blocks": [
+        {
+          "p": "Como o preço da tatuagem muda de peça para peça, o sinal em **valor fixo por tamanho** costuma funcionar melhor do que uma porcentagem. O cliente entende na hora e você não precisa refazer conta. Uma faixa comum é algo entre 25% e 30% do preço de referência, e o sinal sempre abate do valor final."
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço (exemplo)",
+              "Duração",
+              "Preço de referência",
+              "Sinal fixo",
+              "Restante no dia"
+            ],
+            "rows": [
+              [
+                "Tatuagem pequena, até 10 cm",
+                "1h30",
+                "a partir de R$ 350",
+                "R$ 100",
+                "R$ 250"
+              ],
+              [
+                "Tatuagem média, até 20 cm",
+                "3h",
+                "a partir de R$ 800",
+                "R$ 200",
+                "R$ 600"
+              ],
+              [
+                "Sessão longa de fechamento",
+                "6h",
+                "a partir de R$ 1.500",
+                "R$ 400",
+                "R$ 1.100"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Os valores são só exemplo: use a sua tabela. Agora a conta da falta. Exemplo: um estúdio com 16 sessões médias de R$ 800 no mês tem R$ 12.800 previstos. Se 2 clientes somem sem avisar, são R$ 1.600 de agenda que não volta. Com sinal de R$ 200, cada falta deixa ao menos R$ 200 no caixa, e quem já pagou tem um bom motivo para avisar antes e remarcar."
+        },
+        {
+          "p": "A mesma ideia de prazo curto para o Pix e regra clara aparece no guia de [sinal na reserva de quadra](/guia/sinal-na-reserva-de-quadra), que vale a leitura se você quer comparar com outro segmento."
+        }
+      ]
+    },
+    {
+      "h2": "Do orçamento à sessão marcada: passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "**Orçamento primeiro.** O cliente manda a ideia, a referência, o local do corpo e o tamanho aproximado. Você responde com o valor e diz qual serviço ele deve escolher na agenda (pequena, média ou sessão longa).",
+            "**Reserva pelo link.** O cliente abre a sua página de agendamento, escolhe o tatuador, o serviço e um horário em que a sessão inteira cabe. No campo de observações ele pode resumir a ideia combinada.",
+            "**Sinal pelo Pix.** A reserva só fica garantida depois do sinal. Mande o prazo junto com a chave Pix para ninguém dizer que não sabia.",
+            "**Confirmação no WhatsApp.** Sinal conferido no extrato, a reserva é confirmada e o cliente recebe a mensagem com dia, hora e tatuador.",
+            "**Lembrete antes da sessão.** Um lembrete automático evita esquecimento e abre espaço para remarcar com antecedência.",
+            "**No dia.** Confira o documento com foto, preencha a ficha do cliente, combine o restante do pagamento e, depois, peça a avaliação no Google."
+          ]
+        },
+        {
+          "tip": "Confira o Pix do sinal no extrato do banco, não no print. Comprovante pode ser editado; dinheiro na conta, não."
+        }
+      ]
+    },
+    {
+      "h2": "Política de cancelamento e remarcação: o que combinar antes do sinal",
+      "blocks": [
+        {
+          "p": "Regra boa é a que o cliente lê antes de pagar. Escreva em poucas linhas e mande junto com o pedido do sinal. Um exemplo que costuma funcionar:"
+        },
+        {
+          "ul": [
+            "**Remarcou com 48 horas ou mais de antecedência:** o sinal passa para a nova data, uma vez.",
+            "**Cancelou com menos de 48 horas ou não apareceu:** o sinal fica com o estúdio, porque o horário e o desenho já foram reservados.",
+            "**Atraso:** até 20 minutos você atende no tempo que sobrou; passou disso, conta como remarcação.",
+            "**O estúdio precisou desmarcar:** o cliente escolhe nova data ou recebe o sinal de volta inteiro.",
+            "**Sessão seguinte de uma peça grande:** marque já no fim da sessão, com a pele ainda na sua frente para avaliar o intervalo."
+          ]
+        },
+        {
+          "tip": "O sinal (arras) está nos artigos 417 a 420 do Código Civil: se quem pagou desiste sem motivo, a outra parte pode ficar com ele. Na relação com o consumidor, o Código de Defesa do Consumidor proíbe regra que dê vantagem exagerada, então mantenha o sinal proporcional e a regra por escrito antes do pagamento. Este guia é informativo e não substitui a orientação de um advogado."
+        }
+      ]
+    },
+    {
+      "h2": "Menor de idade, ficha do cliente e vigilância sanitária",
+      "blocks": [
+        {
+          "p": "Antes de abrir a agenda para qualquer pessoa, combine o que vale para o seu estúdio:"
+        },
+        {
+          "ul": [
+            "**Menor de idade.** Em São Paulo, a Lei estadual 9.828/1997 proíbe aplicar tatuagem permanente em menores de idade, mesmo de graça, e prevê até o fechamento do estabelecimento. Outros estados e municípios têm regras próprias, então confira a do seu.",
+            "**Documento com foto no dia.** Peça na chegada e deixe isso escrito na mensagem de confirmação.",
+            "**Ficha do cliente.** A Anvisa orienta registrar nome, data de nascimento, endereço, documento, data, procedimento, local do corpo, intercorrências e o profissional que fez. Guarde a ficha onde você já guarda hoje.",
+            "**Licença.** Tatuagem é atividade de risco alto para a vigilância sanitária: o alvará sanitário é emitido pela vigilância do seu município ou estado, com inspeção antes de funcionar.",
+            "**Material.** Só tinta com registro válido na Anvisa. Em março de 2026 a Anvisa mandou recolher uma máquina e três tintas vendidas sem registro."
+          ]
+        },
+        {
+          "tip": "As regras sanitárias e de idade mudam de cidade para cidade. Antes de publicar a sua política, confirme com a vigilância sanitária local."
+        }
+      ]
+    },
+    {
+      "h2": "Como configurar a agenda do estúdio de tatuagem no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, cada tatuador tem a própria agenda e o cliente reserva pelo link do estúdio, que você coloca na bio do Instagram. No menu Agendamento:"
+        },
+        {
+          "ol": [
+            "Em **Serviços**, cadastre um serviço por tamanho de peça com a duração real da sessão, o preço com o tipo \"A partir de\" e um intervalo depois de cada atendimento para limpeza e preparo.",
+            "No mesmo serviço, ligue o sinal próprio e defina o valor fixo, como R$ 200 para a tatuagem média. Se preferir, use porcentagem do preço.",
+            "Em **Profissionais**, cadastre cada tatuador com os horários dele e marque quais serviços ele faz.",
+            "Em **Configurações**, na aba Pagamentos, ligue Exigir sinal para agendar e escolha como receber. No Pix da própria loja, o cliente vê a sua chave e o valor, e a reserva fica com Sinal pendente até você tocar em Confirmar sinal. No Pix pelo Mostralo, o Pix é gerado na hora, a reserva se confirma sozinha e o prazo para pagar vai de 5 a 60 minutos; esse pagamento online tem taxa à parte.",
+            "Na aba Regras, defina a antecedência mínima, para ninguém marcar uma sessão de 6 horas para daqui a uma hora.",
+            "Na aba Comunicação, ligue a confirmação, o lembrete de agendamento e o aviso de cancelamento no WhatsApp."
+          ]
+        },
+        {
+          "img": "/images/guias/agenda-para-estudio-de-tatuagem-2.jpg",
+          "alt": "Fluxo da agenda para estúdio de tatuagem: orçamento, reserva pelo link, sinal pelo Pix, reserva confirmada, lembrete no WhatsApp e sessão com o restante pago no dia",
+          "caption": "Agenda para estúdio de tatuagem: o horário só fica garantido depois do sinal."
+        },
+        {
+          "tip": "Com o Pix da própria loja, a reserva não cai sozinha: ela espera a sua confirmação. Para prazo automático, use o Pix pelo Mostralo ou cancele à mão as reservas com Sinal pendente fora do prazo."
+        },
+        {
+          "p": "Veja outros guias de [agendamento](/conteudos/categoria/agendamento), como a [agenda para salão de beleza](/guia/agenda-para-salao-de-beleza) com vários profissionais."
+        }
+      ]
+    },
+    {
+      "h2": "Modelos de mensagem para o cliente do estúdio",
+      "blocks": [
+        {
+          "p": "Copie, troque os campos entre colchetes e salve como resposta rápida."
+        },
+        {
+          "templates": [
+            {
+              "title": "Resposta ao orçamento",
+              "text": "Oi, [nome]. Pela referência e pelo tamanho que você mandou, a tatuagem fica em [valor] e leva uma sessão de [duração]. Para marcar, escolha o serviço [nome do serviço] com o [tatuador] no link: [link da agenda]. O horário fica garantido com o sinal de [valor do sinal], que abate do total."
+            },
+            {
+              "title": "Pedido do sinal com a regra",
+              "text": "Oi, [nome]. Separei [dia] às [hora] com o [tatuador]. Para confirmar, o sinal é de [valor do sinal] pelo Pix, chave [chave Pix], até [hora limite]. Remarcação com 48 horas de antecedência leva o sinal para a nova data. Cancelamento com menos de 48 horas ou falta: o sinal fica com o estúdio."
+            },
+            {
+              "title": "Sessão confirmada",
+              "text": "Oi, [nome]. Sinal recebido, sua sessão está confirmada: [dia] às [hora], com o [tatuador]. Venha alimentado e hidratado e traga documento com foto. O restante, [valor restante], é pago no dia."
+            },
+            {
+              "title": "Remarcação",
+              "text": "Oi, [nome]. Sem problema, como você avisou com antecedência o sinal passa para a nova data. Escolha o novo horário no link: [link da agenda]."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a agenda do estúdio de tatuagem com sinal na reserva",
+    "p": [
+      "Com o Mostralo, o cliente escolhe o tatuador e reserva pelo link do estúdio, só nos horários em que a sessão inteira cabe, paga o sinal pelo Pix e recebe confirmação e lembrete no WhatsApp. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Agenda por tatuador, com duração por serviço e intervalo para limpeza",
+      "Sinal fixo ou em porcentagem por serviço, pelo Pix da loja ou com confirmação automática",
+      "Confirmação, lembrete e aviso de cancelamento no WhatsApp",
+      "Pedido de avaliação no Google depois da sessão"
+    ]
+  },
+  "faq": [
+    [
+      "Quanto cobrar de sinal para tatuagem?",
+      "Um valor fixo por tamanho de peça, em geral entre 25% e 30% do preço de referência, que abate do valor final. Exemplo: R$ 200 de sinal numa tatuagem média de R$ 800."
+    ],
+    [
+      "O tatuador pode ficar com o sinal se o cliente faltar?",
+      "Pelo Código Civil, o sinal pode ficar com quem não desistiu, desde que a regra seja proporcional e combinada por escrito antes do pagamento. Na dúvida, consulte um advogado."
+    ],
+    [
+      "Qual a melhor agenda para estúdio de tatuagem?",
+      "Uma em que cada tamanho de peça tem a duração real da sessão, cada tatuador tem a própria agenda, o cliente reserva sozinho por um link e o horário só fica garantido com o sinal."
+    ],
+    [
+      "Pode fazer tatuagem em menor de idade com autorização dos pais?",
+      "Depende do estado. Em São Paulo, a Lei 9.828/1997 proíbe tatuagem permanente em menores de idade e não prevê autorização dos pais. Confira a regra do seu estado e do seu município."
+    ],
+    [
+      "Como evitar que o cliente falte na sessão de tatuagem?",
+      "Cobre sinal para garantir o horário, mande a regra de remarcação antes do pagamento e ligue o lembrete automático no WhatsApp antes da sessão."
+    ]
+  ],
+  "sources": [
+    [
+      "Assembleia Legislativa de SP — Lei nº 9.828, de 6 de novembro de 1997",
+      "https://www.al.sp.gov.br/repositorio/legislacao/lei/1997/lei-9828-06.11.1997.html"
+    ],
+    [
+      "Anvisa — Tatuagem e piercing: perguntas e respostas",
+      "https://www.gov.br/anvisa/pt-br/assuntos/servicosdesaude/saloes-tatuagens-creches/tatuagem-e-piercing"
+    ],
+    [
+      "Agência Gov — Anvisa proíbe máquina e tinta para tatuagens sem registro sanitário (27/03/2026)",
+      "https://agenciagov.ebc.com.br/noticias/202603/anvisa-proibe-maquina-e-tinta-para-tatuagens-sem-registro-sanitario"
+    ],
+    [
+      "Planalto — Código Civil, Lei nº 10.406/2002 (arras, artigos 417 a 420)",
+      "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm"
+    ]
+  ],
+  "related": [
+    "agenda-para-nail-designer",
+    "sinal-na-reserva-de-quadra",
+    "agenda-para-salao-de-beleza",
+    "agendamento-recorrente-cliente-fixo",
+    "como-conseguir-avaliacoes-no-google"
+  ]
+}

@@ -79,3 +79,10 @@
 - WhatsApp guarda a prévia de um endereço por um tempo: para testar, use um endereço ainda não compartilhado (ex.: `?v=2`).
 - Imagem da prévia (og:image/twitter:image) das lojas sai por `https://mostralo.com.br/og-img/<caminho no bucket store-images>` (`previewImageUrl` em `functions/_lib/seo.ts` + proxy `functions/og-img/[[path]].ts`, rota em `public/_routes.json`). Com a imagem em supabase.co o Facebook montava a prévia e o WhatsApp não. JSON-LD e feed continuam com o endereço do Supabase.
 - Imagem padrão do Mostralo: `public/og-image.jpg` (1200×630, ~40 KB). O WhatsApp ignora imagem acima de ~300 KB (a antiga og-image.png tinha 781 KB).
+
+# Pagamento online do pedido — Mercado Pago da loja (24/11/2026)
+- Loja com Mercado Pago ativo e validado (`store_payment_gateways`; o checkout só pergunta `store_online_payment(store_id)`, nunca lê a tabela) mostra "Pix ou cartão de crédito" em "Pagar online". A opção grava `payment_details = { gateway: 'mercado_pago' }`.
+- `create-guest-order-v3` confere o gateway (`payment_unavailable` se desligado) e grava o pedido como `aguardando_pagamento`. O checkout chama `order-pay-online` (cliente pelo `customer_token`; valor = `orders.total`) e manda o cliente para o Checkout Pro (Pix e cartão; boleto fora). Link reaproveitado por 24 h.
+- Baixa: `mercadopago-webhook` e a conferência `order-pay-online {action:'check'}` (volta do Mercado Pago em Meus pedidos, `?pedido=<id>`) usam `_shared/mercadopago-settle.ts`: só pagamento `approved`, mesma `external_reference` (`order_<id>`) e valor ≥ total. Pedido vai para `entrada` + `payment_status=paid` + `payment_method` (pix/card) + detalhes em `payment_details`. Regras puras e testes em `_shared/mercadopago-order.ts` / `src/lib/payments/mercadoPagoOrder.test.ts`.
+- Credencial `TEST-` usa `sandbox_init_point`; usuário de teste (`APP_USR-` de vendedor de teste) e produção usam `init_point`. Teste com vendedor de teste exige pagar logado com o comprador de teste (senão "uma das partes é de teste").
+- Meus pedidos: botão "Pagar agora" no pedido aguardando pagamento online (`components/store/orders/OnlinePayButton.tsx`).

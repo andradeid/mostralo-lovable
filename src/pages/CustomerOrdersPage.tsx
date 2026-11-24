@@ -187,6 +187,21 @@ export default function CustomerOrdersPage() {
     }
   })();
 
+  // Volta do Mercado Pago sem o cliente identificado neste navegador (ex.: outro app no celular):
+  // avisa que o pagamento foi aprovado; a baixa do pedido vem do aviso do Mercado Pago
+  const [paidNotice] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return !!p.get('pedido') && (p.get('collection_status') === 'approved' || p.get('status') === 'approved');
+  });
+  useEffect(() => {
+    if (!paidNotice || !storeId) return;
+    let logged = false;
+    try {
+      logged = !!JSON.parse(localStorage.getItem(`customer_${storeId}`) || '{}')?.token;
+    } catch { /* sem sessão */ }
+    if (!logged) toast.success('Pagamento aprovado! A loja já recebeu seu pedido.', { duration: 8000 });
+  }, [paidNotice, storeId]);
+
   // Volta do Mercado Pago (?pedido=<id>): confere o pagamento e atualiza a lista
   useEffect(() => {
     if (!storeId || !customerToken) return;

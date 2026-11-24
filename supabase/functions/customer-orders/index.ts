@@ -79,6 +79,8 @@ Deno.serve(async (req: Request) => {
         total,
         delivery_type,
         payment_method,
+        payment_status,
+        online_gateway:payment_details->>gateway,
         created_at,
         estimated_delivery_minutes,
         scheduled_for,

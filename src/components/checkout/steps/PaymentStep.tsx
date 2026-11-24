@@ -17,6 +17,10 @@ import { GiftPicker, type CheckoutGift } from '../GiftPicker';
 
 type PaymentMethod = Database['public']['Enums']['payment_method'];
 
+const MP_GATEWAY = 'mercado_pago';
+/** Detalhes gravados no pedido para a opção online escolhida. */
+const detailsForOnline = (optionId: string) => (optionId === 'mp_online' ? { gateway: MP_GATEWAY } : null);
+
 interface PaymentStepProps {
   paymentMethod: PaymentMethod | null;
   onPaymentMethodChange: (method: PaymentMethod) => void;
@@ -39,6 +43,8 @@ interface PaymentStepProps {
   primaryColor?: string;
   secondaryColor?: string;
   onlinePaymentEnabled?: boolean;
+  /** Pix e cartão online pelo Mercado Pago da loja */
+  mercadoPagoEnabled?: boolean;
   acceptsCash?: boolean;
   acceptsDebit?: boolean;
   acceptsCredit?: boolean;
@@ -83,6 +89,7 @@ export const PaymentStep = ({
   primaryColor = '#FF9500',
   secondaryColor,
   onlinePaymentEnabled = false,
+  mercadoPagoEnabled = false,
   acceptsCash = true,
   acceptsDebit = false,
   acceptsCredit = false,
@@ -102,6 +109,7 @@ export const PaymentStep = ({
   // para a tela sempre mostrar o que vai ser enviado (mesmo ao voltar de etapa)
   const [selectedMethodId, setSelectedMethodId] = useState<string>(() => {
     if (!paymentMethod) return '';
+    if (paymentDetails?.gateway === MP_GATEWAY) return 'mp_online';
     if (paymentMethod === 'card') {
       return paymentDetails?.card_type === 'debit' ? 'debit_card' : 'credit_card';
     }
@@ -119,6 +127,15 @@ export const PaymentStep = ({
 
   // Determinar o título do cartão baseado nas opções habilitadas
   const allPaymentMethods = [
+    {
+      id: 'mp_online',
+      value: 'pix' as PaymentMethod,
+      icon: CreditCard,
+      title: 'Pix ou cartão de crédito',
+      subtitle: 'Pague agora pelo Mercado Pago, com segurança',
+      category: 'online',
+      enabled: mercadoPagoEnabled
+    },
     {
       id: 'pix_online',
       value: 'pix' as PaymentMethod,
@@ -168,7 +185,7 @@ export const PaymentStep = ({
 
   // Filtrar apenas métodos habilitados
   const paymentMethods = useMemo(() => allPaymentMethods.filter(m => m.enabled), [
-    onlinePaymentEnabled, acceptsPix, acceptsCash, acceptsCredit, acceptsDebit
+    mercadoPagoEnabled, onlinePaymentEnabled, acceptsPix, acceptsCash, acceptsCredit, acceptsDebit
   ]);
   const onlineMethods = paymentMethods.filter(m => m.category === 'online');
   const deliveryMethods = paymentMethods.filter(m => m.category === 'delivery');
@@ -184,7 +201,7 @@ export const PaymentStep = ({
         if (onPaymentDetailsChange) {
           if (only.id === 'credit_card') onPaymentDetailsChange({ card_type: 'credit' });
           else if (only.id === 'debit_card') onPaymentDetailsChange({ card_type: 'debit' });
-          else onPaymentDetailsChange(null);
+          else onPaymentDetailsChange(detailsForOnline(only.id));
         }
       }
     } else if (selectedMethodId && !paymentMethods.some(m => m.id === selectedMethodId)) {
@@ -262,8 +279,8 @@ export const PaymentStep = ({
                   onClick={() => {
                     setSelectedMethodId(method.id);
                     onPaymentMethodChange(method.value);
-                    // Pix online não carrega detalhes de cartão
-                    if (onPaymentDetailsChange) onPaymentDetailsChange(null);
+                    // Online: Mercado Pago marca o gateway; Pix online (EFI) sem detalhes
+                    if (onPaymentDetailsChange) onPaymentDetailsChange(detailsForOnline(method.id));
                     if (onPaymentOptionChange) onPaymentOptionChange(method.id);
                   }}
                 >

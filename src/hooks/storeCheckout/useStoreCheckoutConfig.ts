@@ -7,6 +7,8 @@ export interface StorePaymentConfig {
   acceptsPix: boolean;
   acceptsCard: boolean;
   onlinePaymentEnabled: boolean;
+  /** Pix e cartão online pelo Mercado Pago da loja (store_online_payment) */
+  mercadoPagoEnabled?: boolean;
   /** true quando a busca terminou (sucesso ou falha) */
   loaded: boolean;
   /** true apenas quando a busca teve sucesso — libera pré-seleção automática */
@@ -67,10 +69,11 @@ export function useStoreCheckoutConfig({ open, storeId, deliveryConfig = null, b
     let cancelled = false;
     (async () => {
       try {
-        const [{ data, error }, { data: storeConfig }] = await Promise.all([
+        const [{ data, error }, { data: storeConfig }, { data: online }] = await Promise.all([
           supabase.from('public_stores').select('accepts_cash, accepts_card, accepts_pix').eq('id', storeId).single(),
           // online_payment_enabled fica em store_configurations
           (supabase as any).from('store_configurations').select('online_payment_enabled').eq('store_id', storeId).maybeSingle(),
+          (supabase as any).rpc('store_online_payment', { p_store_id: storeId }),
         ]);
         if (cancelled) return;
         if (error || !data) throw error ?? new Error('loja não encontrada');
@@ -79,6 +82,7 @@ export function useStoreCheckoutConfig({ open, storeId, deliveryConfig = null, b
           acceptsPix: data.accepts_pix === true,
           acceptsCard: data.accepts_card === true,
           onlinePaymentEnabled: storeConfig?.online_payment_enabled === true,
+          mercadoPagoEnabled: online?.mercado_pago === true,
           loaded: true,
           ok: true,
         });

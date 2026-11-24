@@ -176,3 +176,6 @@ verify_jwt = false
 
 [functions.admin-create-order]
 verify_jwt = true
+
+[functions.order-pay-online]
+verify_jwt = false

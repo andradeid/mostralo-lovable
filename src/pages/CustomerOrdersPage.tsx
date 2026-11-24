@@ -31,6 +31,8 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { scheduledLabel } from '@/lib/scheduledOrders';
+import { OnlinePayButton } from '@/components/store/orders/OnlinePayButton';
+import { checkOrderPayment, MP_GATEWAY } from '@/lib/storeCheckout/onlinePayment';
 
 const CustomerAuthDialog = lazy(
   () =>
@@ -50,6 +52,9 @@ interface OrderSummary {
   estimated_delivery_minutes: number | null;
   scheduled_for?: string | null;
   customer_name?: string | null;
+  payment_status?: string | null;
+  /** 'mercado_pago' quando o pedido é pago online */
+  online_gateway?: string | null;
   stores: {
     slug: string;
     name: string;
@@ -172,6 +177,34 @@ export default function CustomerOrdersPage() {
       fetchOrders(1);
     }
   }, [hasToken, storeId, fetchOrders]);
+
+  const customerToken = (() => {
+    if (!storeId || !hasToken) return null;
+    try {
+      return JSON.parse(localStorage.getItem(`customer_${storeId}`) || '{}')?.token ?? null;
+    } catch {
+      return null;
+    }
+  })();
+
+  // Volta do Mercado Pago (?pedido=<id>): confere o pagamento e atualiza a lista
+  useEffect(() => {
+    if (!storeId || !customerToken) return;
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('pedido');
+    if (!orderId) return;
+    params.delete('pedido');
+    ['collection_id', 'collection_status', 'payment_id', 'status', 'external_reference', 'payment_type', 'merchant_order_id', 'preference_id', 'site_id', 'processing_mode', 'merchant_account_id'].forEach((k) => params.delete(k));
+    const qs = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''));
+    (async () => {
+      const r = await checkOrderPayment({ storeId, orderId, customerToken });
+      if (r.kind === 'paid') toast.success('Pagamento confirmado! A loja já recebeu seu pedido.');
+      else if (r.kind === 'pending' && (r.status === 'in_process' || r.status === 'pending')) toast.info('Pagamento em análise. Avisaremos a loja assim que for aprovado.');
+      else if (r.kind === 'pending') toast.warning('O pagamento não foi concluído. Use o botão "Pagar agora" para tentar de novo.');
+      fetchOrders(1, true);
+    })();
+  }, [storeId, customerToken, fetchOrders]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -370,6 +403,9 @@ export default function CustomerOrdersPage() {
                           📅 {order.delivery_type === 'pickup' ? 'Retirada' : 'Entrega'}: {scheduledLabel(order.scheduled_for, order.stores?.timezone || undefined)}
                         </p>}
                         {order.customer_name && <p className="text-sm text-foreground">{order.customer_name}</p>}
+                        {order.status === 'aguardando_pagamento' && order.online_gateway === MP_GATEWAY && customerToken && storeId && (
+                          <OnlinePayButton storeId={storeId} orderId={order.id} customerToken={customerToken} onPaid={() => fetchOrders(1, true)} />
+                        )}
                         {canConfirm && (
                           <Button
                             size="sm"

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { settleOrderPayment } from "../_shared/mercadopago-settle.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -104,17 +105,9 @@ serve(async (req) => {
       const [module, referenceId] = externalRef.split("_");
 
       if (module === "order" && referenceId) {
-        // Atualizar pedido
-        await supabaseAdmin
-          .from("orders")
-          .update({ 
-            payment_status: "paid",
-            status: "confirmado",
-          })
-          .eq("id", referenceId)
-          .eq("store_id", storeId);
-        
-        console.log(`Pedido ${referenceId} marcado como pago`);
+        // Confere valor e referência; aguardando_pagamento → entrada (_shared/mercadopago-settle.ts)
+        const result = await settleOrderPayment(supabaseAdmin, storeId, referenceId, mpPayment);
+        console.log(`Pedido ${referenceId}: ${result}`);
       }
 
       if (module === "booking" && referenceId) {

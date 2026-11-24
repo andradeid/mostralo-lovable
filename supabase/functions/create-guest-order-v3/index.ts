@@ -130,6 +130,23 @@ Deno.serve(async (req: Request) => {
       return respond({ error: "Sessão do cliente expirada. Atualize a página e tente de novo.", code: "invalid_token" }, 401);
     }
 
+    // ── PAGAMENTO ONLINE (Mercado Pago): só com o gateway da loja ativo; o pedido nasce
+    //    "aguardando_pagamento" e vai para "entrada" quando o pagamento é aprovado ──
+    const payOnline = !!payment_details && typeof payment_details === "object" && payment_details.gateway === "mercado_pago";
+    if (payOnline) {
+      const { data: gw } = await admin
+        .from("store_payment_gateways")
+        .select("id")
+        .eq("store_id", store_id)
+        .eq("gateway", "mercado_pago")
+        .eq("is_active", true)
+        .eq("is_validated", true)
+        .maybeSingle();
+      if (!gw) {
+        return respond({ error: "A loja não está recebendo pagamento online agora. Escolha outra forma de pagamento.", code: "payment_unavailable" }, 409);
+      }
+    }
+
     // ── DEDUP: Verificar se já existe pedido do mesmo cliente nos últimos 30s ──
     const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
     const { data: recentOrder } = await admin
@@ -427,9 +444,9 @@ Deno.serve(async (req: Request) => {
         customer_address: delivery_type === "delivery" ? customer_address : null,
         delivery_type,
         payment_method,
-        payment_details: payment_details || null,
+        payment_details: payOnline ? { gateway: "mercado_pago" } : (payment_details || null),
         payment_status: "pending",
-        status: "entrada",
+        status: payOnline ? "aguardando_pagamento" : "entrada",
         source: "cardapio_digital",
         subtotal: serverSubtotal,
         delivery_fee: serverDeliveryFee,

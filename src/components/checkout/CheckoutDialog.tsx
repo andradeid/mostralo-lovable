@@ -15,6 +15,7 @@ import { useStoreCheckoutConfig } from '@/hooks/storeCheckout/useStoreCheckoutCo
 import { useCheckoutScheduling } from '@/hooks/storeCheckout/useCheckoutScheduling';
 import { useCheckoutPromotion } from '@/hooks/storeCheckout/useCheckoutPromotion';
 import { useFreeDeliveryProgress } from '@/hooks/useFreeDeliveryProgress';
+import { isOnlinePaymentOrder, startOrderPayment } from '@/lib/storeCheckout/onlinePayment';
 import {
   createGuestOrder,
   identifyCustomerByPhone,
@@ -423,6 +424,11 @@ export const CheckoutDialog = ({
           // Servidor recusou a promoção (ex.: não é o primeiro pedido): tirar e voltar ao Pagamento
           promo.dropPromotion();
           setCurrentStep(2);
+        } else if (result.code === 'payment_unavailable') {
+          // Loja parou de receber online: escolher outra forma
+          setPaymentMethod(null);
+          setPaymentDetails(null);
+          setCurrentStep(2);
         } else if (isScheduleRejection(result)) {
           // Limpar horário escolhido e recarregar dias/horários do banco
           setSelectedTime("");
@@ -437,6 +443,25 @@ export const CheckoutDialog = ({
 
       const ordersPageUrl = await buildStoreOrdersUrl({ storeId, candidates: [slug, storeSlug] });
       if (!ordersPageUrl) throw new Error('Não foi possível identificar a loja para abrir Meus Pedidos.');
+
+      // Pix ou cartão pelo Mercado Pago: abre a página de pagamento com o pedido já gravado
+      if (isOnlinePaymentOrder(paymentDetails)) {
+        const pay = await startOrderPayment({
+          storeId,
+          orderId: result.order.order_id,
+          customerToken: customer.token,
+          returnUrl: new URL(ordersPageUrl, window.location.origin).href,
+        });
+        if (pay.kind === 'redirect') {
+          localStorage.removeItem(`cart_${storeId}`);
+          clearCart();
+          window.location.href = pay.url;
+          return;
+        }
+        if (pay.kind === 'failed') {
+          toast.error(pay.message, { description: 'Seu pedido foi gravado. Pague pelo botão em Meus pedidos.', duration: 6000 });
+        }
+      }
       finishWithSuccess(result.order.order_number, ordersPageUrl);
     } catch (error: any) {
       console.error('Error creating order:', error?.message, error?.stack);
@@ -564,6 +589,7 @@ export const CheckoutDialog = ({
               acceptsCredit={storePaymentConfig.loaded ? storePaymentConfig.acceptsCard : true}
               acceptsDebit={storePaymentConfig.loaded ? storePaymentConfig.acceptsCard : true}
               onlinePaymentEnabled={storePaymentConfig.onlinePaymentEnabled}
+              mercadoPagoEnabled={storePaymentConfig.mercadoPagoEnabled === true}
               paymentDetails={paymentDetails}
               allowAutoSelect={storePaymentConfig.ok}
               deliveryType={deliveryType}

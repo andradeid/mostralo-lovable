@@ -543,7 +543,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
               <div>
                 <CardTitle className="text-lg">Mercado Pago</CardTitle>
                 <CardDescription>
-                  Receba pagamentos online via PIX, cartão de crédito e boleto
+                  Receba pagamentos online via Pix e cartão de crédito
                 </CardDescription>
               </div>
             </div>

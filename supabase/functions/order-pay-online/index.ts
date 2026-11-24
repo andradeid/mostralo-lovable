@@ -112,7 +112,10 @@ Deno.serve(async (req) => {
       console.error('[order-pay-online] erro MP', mpRes.status, JSON.stringify({ message: mp?.message, cause: mp?.cause }));
       return json({ error: 'Não foi possível abrir o pagamento agora. Tente de novo em instantes.', code: 'mp_error' }, 502);
     }
-    const checkoutUrl = gateway.environment === 'sandbox' ? mp.sandbox_init_point || mp.init_point : mp.init_point;
+    // Credencial antiga de teste (TEST-) usa o sandbox_init_point; a de usuário de teste (APP_USR-)
+    // e a de produção usam o init_point (com o comprador de teste logado, no caso do teste)
+    const legacyTest = String(gateway.access_token).startsWith('TEST-');
+    const checkoutUrl = legacyTest ? mp.sandbox_init_point || mp.init_point : mp.init_point;
 
     await admin.from('store_payment_transactions').insert({
       store_id,

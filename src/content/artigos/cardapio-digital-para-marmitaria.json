@@ -1,0 +1,373 @@
+{
+  "slug": "cardapio-digital-para-marmitaria",
+  "title": "Cardápio digital para marmitaria: almoço do dia e semana",
+  "h1": "Cardápio digital para marmitaria: pedido do almoço do dia e encomenda da semana na mesma loja",
+  "description": "Cardápio digital para marmitaria: prato do dia, quantas marmitas fazer, kit congelado da semana com data de entrega, limite por horário e pedido de empresa.",
+  "excerpt": "Como montar o cardápio digital da marmitaria com dois ritmos: o almoço do dia, com horário de entrega e menos sobra, e o kit congelado da semana, com data marcada e limite de encomendas.",
+  "date": "2026-11-25",
+  "readMinutes": 10,
+  "category": "Por segmento",
+  "keywords": [
+    "cardápio digital para marmitaria",
+    "sistema para marmitaria",
+    "marmitex delivery",
+    "encomenda de marmita congelada",
+    "cardápio do dia marmitaria",
+    "kit de marmitas da semana"
+  ],
+  "image": "/images/guias/cardapio-digital-para-marmitaria.jpg",
+  "imageAlt": "Dona de marmitaria conferindo os pedidos do cardápio digital no celular ao lado das marmitas de almoço prontas no balcão",
+  "audio": {
+    "src": "/audio/guias/cardapio-digital-para-marmitaria.mp3",
+    "duration": 754.99,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 46.11,
+        "target": "s1"
+      },
+      {
+        "t": 130.87,
+        "target": "s2"
+      },
+      {
+        "t": 208.26,
+        "target": "s3"
+      },
+      {
+        "t": 305.65,
+        "target": "s4"
+      },
+      {
+        "t": 431.49,
+        "target": "s5"
+      },
+      {
+        "t": 503.96,
+        "target": "s6"
+      },
+      {
+        "t": 573.19,
+        "target": "s7"
+      },
+      {
+        "t": 700.95,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um bom **cardápio digital para marmitaria** separa dois tipos de venda: o almoço do dia, que o cliente pede de manhã e quer receber entre 11h e 14h, e a encomenda da semana, com kits congelados entregues numa data marcada. Cada um tem horário, limite e produção diferentes, e os dois podem morar no mesmo link.",
+    "Neste guia você vê como organizar o prato do dia, fazer a conta de quantas marmitas produzir, abrir encomendas de kits sem passar do que o freezer aguenta e entregar o almoço no horário. No fim, o passo a passo para montar tudo no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a marmitaria precisa de dois cardápios: o do dia e o da semana",
+      "blocks": [
+        {
+          "p": "Almoçar fora ficou caro. O Índice Prato Feito da FAC-SP, com quase 900 restaurantes, mostrou o PF a R$ 31,90 em média em julho de 2026, alta de 7,2% no ano: R$ 638 por mês para quem almoça fora cinco dias por semana. Ao mesmo tempo, dados do iFood mostram que os pedidos de marmitas congeladas cresceram 13% no país no primeiro semestre de 2026."
+        },
+        {
+          "p": "Ou seja: tem cliente para o almoço quente de todo dia e tem cliente para o kit que fica no freezer. O erro é tratar os dois do mesmo jeito."
+        },
+        {
+          "table": {
+            "head": [
+              "",
+              "Almoço do dia",
+              "Kit da semana"
+            ],
+            "rows": [
+              [
+                "Quando o cliente pede",
+                "de manhã, até pouco antes do almoço",
+                "dias antes, com data marcada"
+              ],
+              [
+                "Quando entrega",
+                "entre 11h e 14h, com horário",
+                "um ou dois dias fixos na semana"
+              ],
+              [
+                "O que limita",
+                "fogão, equipe e motoboys no pico",
+                "freezer e dia de produção"
+              ],
+              [
+                "Risco principal",
+                "sobra no fim do dia ou atraso",
+                "aceitar mais kits do que cabe no freezer"
+              ],
+              [
+                "Regra que resolve",
+                "horário com limite de pedidos",
+                "data de corte e limite por dia"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/cardapio-digital-para-marmitaria-2.jpg",
+          "alt": "Diagrama do cardápio digital para marmitaria: almoço do dia com horários de entrega e limite por horário, kit congelado da semana com data de corte e limite por dia, e a conta da sobra",
+          "caption": "Cardápio digital para marmitaria: dois ritmos de venda no mesmo link, cada um com sua regra."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar o cardápio digital do dia",
+      "blocks": [
+        {
+          "p": "Cardápio de marmitaria funciona melhor com uma base fixa e um prato que muda. O cliente decide em segundos e a cozinha compra com previsão."
+        },
+        {
+          "ul": [
+            "**Base fixa:** arroz, feijão e salada, sempre iguais.",
+            "**Prato do dia:** uma ou duas proteínas que mudam por dia da semana.",
+            "**Tamanhos:** pequena, média e grande, com o peso ou o que vai em cada uma.",
+            "**Adicionais:** ovo, porção extra de proteína, farofa, suco, sobremesa.",
+            "**Opção fixa:** uma marmita que existe todo dia, para quem não gosta do prato do dia."
+          ]
+        },
+        {
+          "table": {
+            "head": [
+              "Dia",
+              "Prato do dia",
+              "Opção fixa"
+            ],
+            "rows": [
+              [
+                "Segunda",
+                "frango grelhado",
+                "bife acebolado"
+              ],
+              [
+                "Terça",
+                "carne de panela",
+                "bife acebolado"
+              ],
+              [
+                "Quarta",
+                "feijoada",
+                "bife acebolado"
+              ],
+              [
+                "Quinta",
+                "strogonoff de frango",
+                "bife acebolado"
+              ],
+              [
+                "Sexta",
+                "peixe empanado",
+                "bife acebolado"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo de semana. Foto real de cada prato vende mais do que a lista escrita, e o cliente que vê o prato do dia às 9h tem tempo de pedir antes do pico. Se você ainda recebe tudo por mensagem, veja como sair da comissão com [delivery próprio](/guia/delivery-proprio-sem-comissao)."
+        },
+        {
+          "tip": "Feche a semana inteira no domingo: cardápio, lista de compras e foto dos pratos. Na segunda de manhã é só ligar o prato do dia."
+        }
+      ]
+    },
+    {
+      "h2": "Quantas marmitas fazer por dia: a conta da sobra",
+      "blocks": [
+        {
+          "p": "Na marmitaria, a sobra é o lucro que vai para o lixo. A conta é simples e vale fazer uma vez por mês."
+        },
+        {
+          "p": "Exemplo: uma marmitaria vende em média 60 marmitas por dia, a R$ 22 a média, com custo de R$ 10 de comida e embalagem. Com medo de faltar, produz 70. Sobram 10 por dia, que custam R$ 100. Em 22 dias de trabalho, são R$ 2.200 por mês."
+        },
+        {
+          "p": "Agora a mesma marmitaria pede que o cliente marque o horário do almoço de manhã. Quando dois terços dos pedidos já estão marcados às 10h, a cozinha produz o que foi pedido mais uma folga pequena para quem pede na hora. A sobra cai para 4 marmitas por dia: R$ 40 por dia, R$ 880 por mês. São R$ 1.320 a menos de desperdício todo mês."
+        },
+        {
+          "ol": [
+            "Anote por duas semanas quantas marmitas vendeu e quantas sobraram em cada dia.",
+            "Veja a diferença entre os dias: segunda e sexta costumam ser diferentes do meio da semana.",
+            "Produza a média do dia mais uma folga de 10% para pedidos de última hora.",
+            "Quando um prato acabar, tire do cardápio na hora, para não vender o que não tem."
+          ]
+        },
+        {
+          "p": "Para saber se o preço cobre tudo, use a conta do guia de [margem de lucro](/guia/como-calcular-margem-de-lucro)."
+        }
+      ]
+    },
+    {
+      "h2": "Encomenda da semana: kit congelado com data de entrega",
+      "blocks": [
+        {
+          "p": "O kit congelado é outro negócio dentro da marmitaria: o cliente compra 5, 10 ou 20 marmitas de uma vez e recebe num dia combinado. A produção é feita em lote, fora do horário do almoço."
+        },
+        {
+          "ul": [
+            "**Dias fixos de entrega:** por exemplo, domingo e quarta. Fica mais fácil produzir e montar a rota.",
+            "**Data de corte:** pedido até dois dias antes da entrega, para dar tempo de comprar e congelar.",
+            "**Limite por dia:** o freezer manda. Se cabem 120 marmitas, são 12 kits de 10 por dia de entrega.",
+            "**Kits fechados e montados pelo cliente:** kit pronto vende rápido; o kit em que o cliente escolhe os pratos atende quem tem restrição."
+          ]
+        },
+        {
+          "p": "Exemplo: um kit de 10 marmitas a R$ 189 sai a R$ 18,90 cada. Com custo de R$ 9 por marmita congelada, sobram R$ 99 por kit para pagar mão de obra, energia do freezer, entrega e lucro. Com 12 kits no domingo e 12 na quarta, são 24 kits e R$ 2.376 de margem por semana."
+        },
+        {
+          "p": "A conservação tem regra. A RDC 216/2004 da Anvisa pede que o alimento preparado caia de 60 °C para 10 °C em até 2 horas e depois vá para a geladeira abaixo de 5 °C ou para o congelamento a -18 °C ou menos, com etiqueta que traga o nome do prato, a data de preparo e o prazo de validade. Marmita embalada antes e vendida pronta, sem o cliente presente, entra também na RDC 727/2022, a norma de rotulagem de alimentos embalados."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a vigilância sanitária da sua cidade, um nutricionista ou um contador. Antes de vender congelados, confira com a vigilância o que o rótulo precisa ter no seu caso."
+        }
+      ]
+    },
+    {
+      "h2": "Cliente fixo e pedido de empresa: como atender sem perder o controle",
+      "blocks": [
+        {
+          "p": "O cliente que almoça com você todo dia é o mais valioso, e o escritório que pede para a equipe inteira também. Os dois pedem organização, não desconto."
+        },
+        {
+          "ul": [
+            "**Cliente fixo:** ele pode marcar os almoços da semana com antecedência, um pedido por dia, escolhendo o horário. Você já sabe na véspera quanto produzir.",
+            "**Pedido de empresa:** um pedido só, com várias marmitas, e o nome de cada pessoa no campo de observações. Sai numa sacola só e numa entrega só.",
+            "**Kit da semana para quem não quer pedir todo dia:** para quem trabalha em casa, o kit congelado resolve a semana em um pedido."
+          ]
+        },
+        {
+          "p": "Seja claro sobre o que não existe: no Mostralo não há assinatura de marmita com entrega automática todo dia. O cliente fixo marca os dias que quer, ou leva o kit da semana."
+        },
+        {
+          "templates": [
+            {
+              "title": "Cardápio do dia",
+              "text": "Bom dia, [nome]! Hoje na [nome da marmitaria]: [prato do dia] ou [opção fixa]. Marque o horário do seu almoço até [horário limite] pelo link: [link da loja]."
+            },
+            {
+              "title": "Kits da semana abertos",
+              "text": "Oi, [nome]! Os kits congelados para [dia da entrega] estão abertos: kit de [quantidade] marmitas com [pratos]. Pedidos até [data de corte]. As vagas por dia são limitadas. Peça pelo link: [link da loja]."
+            },
+            {
+              "title": "Pedido de empresa",
+              "text": "Oi, [nome]! Para o almoço da equipe, faça um pedido só com todas as marmitas e escreva o nome de cada pessoa em observações. Entregamos tudo junto às [horário]. Link: [link da loja]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Entrega no horário do almoço sem atraso",
+      "blocks": [
+        {
+          "p": "O almoço tem janela curta. Atrasar meia hora é perder o cliente que tem uma hora de intervalo. A saída é espalhar os pedidos em horários com limite."
+        },
+        {
+          "p": "Exemplo: entrega das 11h às 14h, em horários de 30 em 30 minutos, com até 10 pedidos por horário. São 6 horários e até 60 pedidos, distribuídos de um jeito que os motoboys conseguem levar. Quando um horário enche, o cliente escolhe o seguinte."
+        },
+        {
+          "ul": [
+            "**Taxa pela distância:** cobre o que a entrega custa de verdade. Veja [como calcular a taxa de entrega](/guia/como-calcular-taxa-de-entrega).",
+            "**Retirada no balcão:** sem taxa, com horário marcado, para quem trabalha perto. Veja o guia de [retirada no balcão](/guia/pedido-para-retirada-no-balcao).",
+            "**Sacolas por horário:** separe e etiquete na ordem de saída, com nome e número do pedido."
+          ]
+        },
+        {
+          "p": "Muitas marmitarias ainda recebem o pedido em conversa. Se você quer que uma IA responda no WhatsApp e mande o cliente para o link, veja [delivery pelo WhatsApp com atendimento automático](https://siva.ia.br/guia/delivery-pelo-whatsapp)."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar o cardápio da marmitaria no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o almoço do dia e a encomenda da semana ficam na mesma loja, com o mesmo link. O caminho no painel:"
+        },
+        {
+          "ol": [
+            "Em **Categorias**, crie as categorias Almoço de hoje, Marmitas fixas e Kits congelados. Use **Categoria ativa (visível na loja)** para mostrar ou esconder cada uma.",
+            "Em **Produtos**, cadastre cada prato com foto, tamanhos e adicionais. Use o botão **Ativo** na lista para ligar o prato do dia de manhã e desligar quando acabar.",
+            "Em **Minha Loja**, abra a aba **Entrega** e, em **Pedidos Agendados**, marque **Sim** e escolha **Normal + Agendado**: o cliente pede para agora ou marca o horário do almoço ou a data do kit.",
+            "Em **Definições para entrega** e **Definições para retirar no local**, preencha o **Tempo mínimo de antecedência** e o **Tempo máximo de antecedência**, por exemplo 7 dias, para o cliente fixo marcar a semana. Na entrega, escolha o **Intervalo de tempo** de 30 minutos.",
+            "No bloco **Encomendas**, defina o **Limite de encomendas por dia** e o **Limite por horário**. Em **Entrar no Kanban quantas horas antes do horário**, escolha quando o pedido marcado aparece na tela de pedidos.",
+            "Ajuste o horário de funcionamento para os dias e horas de entrega. Em **Adicionar dias especiais / feriados**, feche os feriados. Toque em **Salvar Entrega**."
+          ]
+        },
+        {
+          "p": "Na finalização, o cliente escolhe o dia e o horário. Horário cheio aparece como esgotado e dia lotado fica bloqueado. No menu **Pedidos Agendados** você vê Hoje, Amanhã e Próximos 7 dias, um calendário com os dias que têm pedidos e a lista por horário, com **Aceitar**, **Remarcar**, **Cancelar** e **Imprimir**. Com a [impressora térmica](/guia/impressora-termica-para-pedidos), o papel de cada sacola sai na hora."
+        },
+        {
+          "tip": "O controle de estoque do produto desconta sozinho nas vendas do caixa, mas não nos pedidos online. Para o prato do dia, o jeito mais seguro é desligar o produto quando a panela acabar. Veja mais no guia de [controle de estoque para delivery](/guia/controle-de-estoque-para-delivery) e todos os recursos em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: almoço do dia e kits da semana no mesmo link, sem comissão por pedido",
+    "p": [
+      "Com o Mostralo, a sua marmitaria tem cardápio digital com foto, pedidos com horário marcado, kits congelados com data de entrega e limite por dia e por horário, tudo no seu link e sem comissão por pedido. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Cardápio do dia com categorias e pratos que você liga e desliga num toque",
+      "Pedidos agendados com horário de entrega ou retirada e limite por horário",
+      "Encomendas com antecedência mínima e máxima e limite por dia",
+      "Calendário de pedidos agendados com aceitar, remarcar e imprimir"
+    ]
+  },
+  "faq": [
+    [
+      "Qual o melhor cardápio digital para marmitaria?",
+      "O que separa o almoço do dia da encomenda da semana: horário marcado com limite por horário para o almoço e data de corte com limite por dia para os kits congelados, no mesmo link e sem comissão por pedido."
+    ],
+    [
+      "Como fazer o cliente pedir a marmita mais cedo?",
+      "Mande o cardápio do dia de manhã, com o link, e deixe o cliente marcar o horário do almoço. Com os pedidos marcados antes das 10h, a cozinha produz perto do que vai vender e a sobra cai."
+    ],
+    [
+      "Quantas marmitas devo fazer por dia?",
+      "Anote vendas e sobras por duas semanas, separe por dia da semana e produza a média do dia mais uma folga de cerca de 10%. Quando um prato acabar, tire do cardápio."
+    ],
+    [
+      "Dá para vender kit de marmita congelada pelo cardápio digital?",
+      "Sim. Crie uma categoria de kits, ligue os pedidos agendados, defina a data de corte pela antecedência mínima e o limite de encomendas por dia de acordo com o espaço do freezer."
+    ],
+    [
+      "Marmita congelada precisa de rótulo?",
+      "Pela RDC 216/2004, o alimento preparado guardado congelado precisa de etiqueta com nome, data de preparo e validade. Marmita embalada antes e vendida pronta também entra na RDC 727/2022. Confirme com a vigilância sanitária da sua cidade."
+    ],
+    [
+      "O Mostralo tem assinatura de marmita com entrega automática?",
+      "Não. O cliente fixo marca os almoços da semana com antecedência, um pedido por dia, ou compra o kit congelado da semana em um pedido só."
+    ]
+  ],
+  "sources": [
+    [
+      "Correio — Preço do prato feito já subiu 7,2% em 2026 e chega a R$ 31,90 no país (17/07/2026)",
+      "https://www.correio24horas.com.br/economia/preco-do-prato-feito-ja-subiu-72-em-2026-e-chega-a-r-3190-no-pais-0726"
+    ],
+    [
+      "O Hoje — Marmitas ganham novo público e pedidos crescem 25,2% em Goiás (26/08/2026)",
+      "https://ohoje.com/2026/08/26/marmitas-ganham-novo-publico-e-pedidos-crescem-252-em-goias/"
+    ],
+    [
+      "Anvisa — RDC nº 216/2004, boas práticas para serviços de alimentação (LegisWeb)",
+      "https://www.legisweb.com.br/legislacao/?id=100899"
+    ],
+    [
+      "Anvisa — RDC nº 727/2022, rotulagem dos alimentos embalados",
+      "https://antigo.anvisa.gov.br/documents/10181/6503668/(1)RDC_727_2022_COMP.pdf/8167fbac-395a-4189-ab43-024e4d3aa667"
+    ]
+  ],
+  "related": [
+    "encomenda-de-ceia-de-natal",
+    "delivery-proprio-sem-comissao",
+    "como-calcular-taxa-de-entrega",
+    "pedido-para-retirada-no-balcao",
+    "controle-de-estoque-para-delivery",
+    "como-calcular-margem-de-lucro"
+  ]
+}

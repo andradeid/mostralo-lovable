@@ -5,11 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Globe, CheckCircle2, Clock, Copy, Loader2, ShieldCheck, Trash2, Info } from "lucide-react";
+import { Globe, CheckCircle2, Clock, Copy, Loader2, ShieldCheck, Trash2, Info, MessageCircle } from "lucide-react";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CustomDomainHomeSelect } from "./CustomDomainHomeSelect";
+import { CNAME_TARGET, domainHelpLink, isManagedDomain, rootOf } from "@/lib/customDomain";
 
 interface CustomDomainConfigProps {
   customDomain: string;
@@ -30,7 +31,6 @@ interface VerifyResponse {
   error?: string;
 }
 
-const CNAME_TARGET = "lojas.mostralo.com.br";
 const POLL_MS = 60_000;
 const POLL_MAX_MS = 30 * 60_000;
 
@@ -127,7 +127,9 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
     toast({ title: "Copiado!", description: text });
   };
 
-  const rootDomain = (domain || "www.lojadele.com.br").replace(/^www\./, "");
+  const rootDomain = rootOf(domain) || "sualoja.com.br";
+  // Domínio inteiro configurado pela equipe (abre com e sem www): sem instrução de DNS nem "Verificar"
+  const managed = isManagedDomain(customDomain, verified);
 
   const badge = {
     idle: null,
@@ -156,18 +158,30 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
               value={domain}
               onChange={(e) => setDomain(e.target.value.toLowerCase().trim())}
               className="flex-1 min-w-[200px]"
+              readOnly={managed}
             />
             {badge}
           </div>
-          <p className="text-xs text-muted-foreground">Use o endereço com www</p>
+          <p className="text-xs text-muted-foreground">
+            {managed ? "Abre com e sem www." : "Digite o endereço com www (ex.: www.sualoja.com.br)."}
+          </p>
         </div>
 
         <CustomDomainHomeSelect storeId={storeId} />
 
+        {managed ? (
+          <Alert>
+            <ShieldCheck className="h-4 w-4" />
+            <AlertDescription>
+              Domínio configurado pela equipe Mostralo. A loja abre em {rootDomain} e em www.{rootDomain}.
+              Não é preciso criar nenhum registro.
+            </AlertDescription>
+          </Alert>
+        ) : (
         <div className="space-y-3 p-3 rounded-lg border bg-muted/50">
           <p className="text-sm">
             Crie este registro no painel onde você comprou o domínio (Registro.br, Hostinger, GoDaddy…).
-            A ativação leva de alguns minutos a algumas horas.
+            A ativação leva de alguns minutos a algumas horas. Com ele, a loja abre em www.{rootDomain}.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {records.map(([label, value]) => (
@@ -183,8 +197,9 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
             ))}
           </div>
         </div>
+        )}
 
-        {message && (
+        {message && !managed && (
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
@@ -194,16 +209,29 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
           </Alert>
         )}
 
-        <p className="text-xs text-muted-foreground">
-          Dica: para que {rootDomain} (sem www) também abra a loja, configure no seu registrador um
-          redirecionamento para www.{rootDomain}.
-        </p>
+        {!managed && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
+            <p className="flex-1">
+              Sem www: só com o registro acima, {rootDomain} (sem www) não abre a loja. No Registro.br não dá
+              para ter as duas coisas pelo painel simples. Se quiser que abra com e sem www, a equipe Mostralo
+              configura para você.
+            </p>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href={domainHelpLink(domain)} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Pedir ajuda
+              </a>
+            </Button>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button type="button" onClick={() => { setManualChecked(true); void verify(false); }} disabled={busy || !storeId || !domain} className="flex-1">
-            {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-            Verificar agora
-          </Button>
+          {!managed && (
+            <Button type="button" onClick={() => { setManualChecked(true); void verify(false); }} disabled={busy || !storeId || !domain} className="flex-1">
+              {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+              Verificar agora
+            </Button>
+          )}
           {(customDomain || state !== "idle") && (
             <Button type="button" variant="outline" onClick={remove} disabled={busy || !storeId}>
               <Trash2 className="w-4 h-4 mr-2" />

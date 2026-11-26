@@ -441,8 +441,8 @@ export const CheckoutDialog = ({
       }
       if (result.kind === 'failed') throw new Error(result.message);
 
-      const ordersPageUrl = await buildStoreOrdersUrl({ storeId, candidates: [slug, storeSlug] });
-      if (!ordersPageUrl) throw new Error('Não foi possível identificar a loja para abrir Meus Pedidos.');
+      // O pedido já está gravado: nunca mostrar erro aqui (o cliente tentaria de novo e duplicaria o pedido)
+      const ordersPageUrl = (await buildStoreOrdersUrl({ storeId, candidates: [slug, storeSlug] })) ?? window.location.pathname;
 
       // Pix ou cartão pelo Mercado Pago: abre a página de pagamento com o pedido já gravado
       if (isOnlinePaymentOrder(paymentDetails)) {

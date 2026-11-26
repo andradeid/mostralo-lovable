@@ -1,4 +1,4 @@
-import { storePath } from '@/lib/storePath';
+import { isCustomDomainHost, storePath } from '@/lib/storePath';
 import { supabase } from "@/integrations/supabase/client";
 
 const UUID_PATTERN =
@@ -73,6 +73,8 @@ export async function resolveStoreSlug({
 export async function buildStoreOrdersUrl(
   options: ResolveStoreSlugOptions,
 ): Promise<string | null> {
+  // Domínio próprio da loja: o caminho não leva o slug (e o visitante não lê a tabela stores)
+  if (isCustomDomainHost()) return storePath(null, `/meus-pedidos`);
   const storeSlug = await resolveStoreSlug(options);
 
   return storeSlug ? storePath(storeSlug, `/meus-pedidos`) : null;

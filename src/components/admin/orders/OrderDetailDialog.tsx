@@ -1017,6 +1017,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         scheduledFor={order?.scheduled_for}
         orderId={order.id}
         storeId={order.store_id}
+        createdAt={order.created_at}
       />
 
       {/* Seletor para EDITAR tempo estimado */}
@@ -1029,6 +1030,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         scheduledFor={order?.scheduled_for}
         orderId={order.id}
         storeId={order.store_id}
+        createdAt={order.created_at}
       />
     </>
   );

@@ -13,6 +13,7 @@ import { OrderStatusTimeline } from '@/components/customer/OrderStatusTimeline';
 import { OrderConfettiAnimation } from '@/components/customer/OrderConfettiAnimation';
 import { formatDistanceToNow, addMinutes, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { deadlineLabel, estimateDeadline, isLongEstimate } from '@/lib/leadTime';
 
 export default function OrderTracking() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -46,8 +47,8 @@ export default function OrderTracking() {
       return;
     }
 
-    // Don't show countdown for completed or cancelled orders
-    if (order.status === 'concluido' || order.status === 'cancelado') {
+    // Don't show countdown for completed or cancelled orders (nem para encomenda com prazo em dias)
+    if (order.status === 'concluido' || order.status === 'cancelado' || (!order.scheduled_for && isLongEstimate(order.estimated_delivery_minutes))) {
       setRemainingSeconds(null);
       return;
     }
@@ -135,6 +136,9 @@ export default function OrderTracking() {
   // Calculate estimated arrival time
   const getEstimatedArrival = () => {
     if (order.scheduled_for || !order.estimated_delivery_minutes) return null;
+    if (isLongEstimate(order.estimated_delivery_minutes)) {
+      return `até ${deadlineLabel(estimateDeadline(order.created_at, order.estimated_delivery_minutes), timezone)}`;
+    }
     const estimatedTime = addMinutes(new Date(order.created_at), order.estimated_delivery_minutes);
     return format(estimatedTime, 'HH:mm', { locale: ptBR });
   };
@@ -275,6 +279,7 @@ export default function OrderTracking() {
                   </div>
                 </div>
                 
+                {!isLongEstimate(order.estimated_delivery_minutes) && (
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Tempo estimado</p>
                   <p className="text-lg font-semibold text-primary">
@@ -283,6 +288,7 @@ export default function OrderTracking() {
                       : `${order.estimated_delivery_minutes} min`}
                   </p>
                 </div>
+                )}
               </div>
               
               {/* Countdown Display */}

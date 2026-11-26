@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { leadDaysFromConfig } from '@/lib/leadTime';
 import { useSellsProducts } from '@/hooks/useSellsProducts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,8 @@ interface FormData {
   show_delivery_time: boolean;
   delivery_time: string;
   pickup_time: string;
+  /** Prazo de produção em dias úteis (encomendas); vazio = não usa */
+  lead_time_business_days: number | null;
   auto_accept_orders: boolean;
   // Pedidos Agendados
   scheduled_orders: ReturnType<typeof mergeScheduledOrders>;
@@ -231,6 +234,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       show_delivery_time: store.delivery_config?.show_delivery_time ?? false,
       delivery_time: store.delivery_config?.delivery_time || '',
       pickup_time: store.delivery_config?.pickup_time || '',
+      lead_time_business_days: leadDaysFromConfig(store.delivery_config),
       auto_accept_orders: store.delivery_config?.auto_accept_orders ?? false,
       // Pedidos Agendados
       scheduled_orders: mergeScheduledOrders(store.delivery_config?.scheduled_orders),
@@ -484,6 +488,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
           show_delivery_time: formData.show_delivery_time,
           delivery_time: formData.delivery_time,
           pickup_time: formData.pickup_time,
+          lead_time_business_days: leadDaysFromConfig({ lead_time_business_days: formData.lead_time_business_days }),
           auto_accept_orders: formData.auto_accept_orders,
           scheduled_orders: canManageSchedule ? {
             ...storedScheduled,

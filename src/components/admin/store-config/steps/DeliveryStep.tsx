@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone, AlertTriangle, CheckCircle2, XCircle, Loader2, Send, Plus, X } from "lucide-react";
+import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone, AlertTriangle, CheckCircle2, XCircle, Loader2, Send, Plus, X, CalendarDays } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DeliveryZonesPicker, DeliveryZone } from "../DeliveryZonesPicker";
 import { MapLocationPicker } from "../MapLocationPicker";
@@ -424,6 +424,40 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
                 </div>
               </div>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Prazo de produção em dias úteis (encomendas) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <CalendarDays className="w-4 h-4 mr-2" />
+            Prazo de produção (encomendas)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
+            Para quem trabalha sob encomenda. Com o prazo preenchido, ao aceitar o pedido o sistema não pergunta
+            minutos: calcula a data limite contando só dias úteis (segunda a sexta) e mostra essa data para o cliente.
+            No checkout aparece "Pronto em até X dias úteis após a confirmação do pagamento". Deixe vazio para usar
+            o tempo em minutos.
+          </p>
+          <div className="flex items-center gap-2 max-w-xs">
+            <Input
+              id="lead_time_business_days"
+              type="number"
+              min={1}
+              max={60}
+              inputMode="numeric"
+              value={formData.lead_time_business_days ?? ''}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                updateFormData({ lead_time_business_days: Number.isInteger(n) && n > 0 ? Math.min(n, 60) : null });
+              }}
+              placeholder="Ex.: 5"
+            />
+            <span className="text-sm text-muted-foreground whitespace-nowrap">dias úteis</span>
           </div>
         </CardContent>
       </Card>

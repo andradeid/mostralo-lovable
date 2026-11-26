@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { leadDaysFromConfig, leadTimeCheckoutText } from '@/lib/leadTime';
 import { supabase } from '@/integrations/supabase/client';
 import type { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
 
@@ -104,8 +105,11 @@ export function useStoreCheckoutConfig({ open, storeId, deliveryConfig = null, b
       const config = configData as Record<string, any> | null;
       const showTimes = config ? parseConfigBoolean(config.show_delivery_time, true) : false;
       const textOrNull = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
-      setDeliveryTimeText(showTimes ? textOrNull(config?.delivery_time) : null);
-      setPickupTimeText(showTimes ? textOrNull(config?.pickup_time) : null);
+      // Loja sob encomenda (prazo em dias úteis): o prazo vale para entrega e retirada
+      const leadDays = leadDaysFromConfig(config);
+      const leadText = leadDays ? leadTimeCheckoutText(leadDays) : null;
+      setDeliveryTimeText(leadText ?? (showTimes ? textOrNull(config?.delivery_time) : null));
+      setPickupTimeText(leadText ?? (showTimes ? textOrNull(config?.pickup_time) : null));
       if (!config) {
         setScheduledConfig(null);
         setAllowedDeliveryTypes(ALL_TYPES);

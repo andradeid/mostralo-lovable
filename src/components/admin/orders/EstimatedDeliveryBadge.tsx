@@ -18,7 +18,7 @@ export const EstimatedDeliveryBadge = ({
   deliveryType = 'delivery',
   onEdit
 }: EstimatedDeliveryBadgeProps) => {
-  const { hasEstimate, displayText, color, status, estimatedTime, remainingMinutes } = 
+  const { hasEstimate, displayText, color, status, estimatedTime, remainingMinutes, isLong } = 
     useEstimatedDeliveryTimer(createdAt, estimatedMinutes);
 
   if (!hasEstimate) return null;
@@ -61,7 +61,7 @@ export const EstimatedDeliveryBadge = ({
       >
         <Clock className="h-3 w-3" />
         <span className="whitespace-nowrap">
-          {remainingMinutes > 0 ? `${remainingMinutes}m` : `${Math.abs(remainingMinutes)}m`}
+          {isLong ? `até ${estimatedTime}` : remainingMinutes > 0 ? `${remainingMinutes}m` : `${Math.abs(remainingMinutes)}m`}
         </span>
         <StatusIcon className={cn("h-3 w-3", colors.icon)} />
       </div>
@@ -69,7 +69,7 @@ export const EstimatedDeliveryBadge = ({
   }
 
   // Variante expandida para o OrderDetailDialog
-  const title = deliveryType === 'pickup' ? 'Tempo de Preparo' : 'Tempo de Entrega';
+  const title = isLong ? 'Prazo da encomenda' : deliveryType === 'pickup' ? 'Tempo de Preparo' : 'Tempo de Entrega';
   
   return (
     <div 

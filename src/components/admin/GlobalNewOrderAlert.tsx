@@ -228,6 +228,7 @@ export function GlobalNewOrderAlert() {
         scheduledFor={currentOrder?.scheduled_for}
         orderId={currentOrder.id}
         storeId={currentOrder.store_id}
+        createdAt={currentOrder.created_at}
       />
     </>
   );

@@ -1,0 +1,394 @@
+{
+  "slug": "agenda-para-clinica-de-estetica",
+  "title": "Agenda para clínica de estética com várias salas",
+  "h1": "Agenda para clínica de estética: várias salas, várias profissionais e nenhum horário encavalado",
+  "description": "Agenda para clínica de estética com várias salas e profissionais: escala que cabe nas salas, quem faz cada procedimento, pacote de sessões e lembrete.",
+  "excerpt": "Como montar a agenda da clínica de estética quando há mais profissionais do que salas: a conta da escala, quem faz cada procedimento, aparelho dividido, pacote de sessões e falta.",
+  "date": "2026-11-26",
+  "readMinutes": 9,
+  "category": "Por segmento",
+  "keywords": [
+    "agenda para clínica de estética",
+    "sistema de agendamento para clínica de estética",
+    "agenda com várias salas",
+    "agenda por profissional estética",
+    "pacote de sessões estética",
+    "cliente faltou na estética"
+  ],
+  "image": "/images/guias/agenda-para-clinica-de-estetica.jpg",
+  "imageAlt": "Esteticista no corredor da clínica de estética, entre duas salas de atendimento, conferindo a agenda do dia no celular",
+  "audio": {
+    "src": "/audio/guias/agenda-para-clinica-de-estetica.mp3",
+    "duration": 762.05,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 45.39,
+        "target": "s1"
+      },
+      {
+        "t": 130.62,
+        "target": "s2"
+      },
+      {
+        "t": 220.65,
+        "target": "s3"
+      },
+      {
+        "t": 318.04,
+        "target": "s4"
+      },
+      {
+        "t": 389.99,
+        "target": "s5"
+      },
+      {
+        "t": 452.66,
+        "target": "s6"
+      },
+      {
+        "t": 541.01,
+        "target": "s7"
+      },
+      {
+        "t": 627.6,
+        "target": "s8"
+      },
+      {
+        "t": 709.95,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "A agenda para clínica de estética com várias salas funciona quando a escala das profissionais cabe no número de salas: nunca pode haver mais gente atendendo ao mesmo tempo do que salas livres. Com essa regra, cada profissional tem a própria agenda, só aparece nos procedimentos que faz e o cliente marca sozinho sem encavalar horário.",
+    "Neste guia você vê a conta da escala com um exemplo de três salas e quatro profissionais, como separar quem faz cada procedimento, o que fazer com o aparelho que fica numa sala só, como marcar um pacote de sessões, como reduzir faltas e como configurar tudo no [Mostralo](/funcionalidades)."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a agenda da clínica de estética encavala",
+      "blocks": [
+        {
+          "p": "No salão, quase todo horário depende só da profissional. Na clínica de estética, o horário depende de três coisas ao mesmo tempo: a profissional, a sala e, muitas vezes, o aparelho. Uma agenda que olha só a profissional deixa marcar quatro clientes às 10h numa clínica que tem três salas."
+        },
+        {
+          "table": {
+            "head": [
+              "O que trava na clínica",
+              "Como resolver na agenda"
+            ],
+            "rows": [
+              [
+                "Mais profissionais do que salas",
+                "Escala por turno: em cada horário, no máximo uma profissional por sala"
+              ],
+              [
+                "Aparelho que fica numa sala só",
+                "O procedimento do aparelho só aparece para quem atende naquela sala"
+              ],
+              [
+                "Cada profissional tem formação diferente",
+                "Cada procedimento ligado só a quem é habilitada e treinada para ele"
+              ],
+              [
+                "Higienização da sala entre clientes",
+                "Intervalo fixo depois de cada procedimento, que não vira horário livre"
+              ],
+              [
+                "Tratamento em várias sessões",
+                "Série de sessões semanais marcada de uma vez"
+              ],
+              [
+                "Falta em procedimento longo",
+                "Lembrete no WhatsApp e sinal nos serviços mais caros"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Se a clínica nasceu de um salão, vale ler também o guia de [agenda para salão de beleza](/guia/agenda-para-salao-de-beleza), que trata de encaixe e comissão. Aqui o foco é o que a clínica tem de diferente: salas e aparelhos."
+        }
+      ]
+    },
+    {
+      "h2": "A conta da escala: horas de sala e horas de profissional",
+      "blocks": [
+        {
+          "p": "A conta é simples: multiplique as salas pelas horas abertas. Esse é o máximo de horas de atendimento que a clínica comporta por dia. A soma das horas das profissionais escaladas não pode passar disso."
+        },
+        {
+          "p": "Exemplo: uma clínica com três salas, aberta das 9h às 19h, tem 3 x 10 = 30 horas de sala por dia. Se as quatro profissionais trabalharem o dia inteiro, são 4 x 10 = 40 horas. Sobram 10 horas de atendimento sem sala, e é aí que o cliente chega e encontra a sala ocupada."
+        },
+        {
+          "p": "A saída é dividir uma sala em dois turnos. Ana fica com a sala 1 o dia todo, Bia com a sala 2 o dia todo, Carla usa a sala 3 de manhã e Duda usa a sala 3 à tarde. A soma fecha: 10 + 10 + 5 + 5 = 30 horas, exatamente as 30 horas de sala."
+        },
+        {
+          "table": {
+            "head": [
+              "Sala",
+              "Das 9h às 14h",
+              "Das 14h às 19h",
+              "Horas"
+            ],
+            "rows": [
+              [
+                "Sala 1",
+                "Ana",
+                "Ana",
+                "10"
+              ],
+              [
+                "Sala 2 (aparelho)",
+                "Bia",
+                "Bia",
+                "10"
+              ],
+              [
+                "Sala 3",
+                "Carla",
+                "Duda",
+                "10"
+              ],
+              [
+                "Total",
+                "3 profissionais",
+                "3 profissionais",
+                "30"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/agenda-para-clinica-de-estetica-2.jpg",
+          "alt": "Agenda para clínica de estética com três salas: Ana na sala 1, Bia na sala 2 com o aparelho e a sala 3 dividida entre Carla de manhã e Duda à tarde, somando 30 horas de profissional para 30 horas de sala",
+          "caption": "Agenda para clínica de estética: a escala das profissionais tem que caber nas horas de sala."
+        },
+        {
+          "p": "O horário de almoço de cada profissional entra como intervalo no horário dela. Nesse tempo a sala dela fica parada, e tudo bem: o importante é que nunca haja duas pessoas escaladas para a mesma sala no mesmo horário."
+        }
+      ]
+    },
+    {
+      "h2": "Quem faz cada procedimento (e quanto tempo ocupa a sala)",
+      "blocks": [
+        {
+          "p": "Cadastre cada procedimento com a duração real e o intervalo de higienização depois dele. Em seguida, ligue o procedimento só às profissionais que podem fazê-lo. Quando o cliente escolhe o procedimento, só essas profissionais aparecem para ele."
+        },
+        {
+          "table": {
+            "head": [
+              "Procedimento (exemplo)",
+              "Duração",
+              "Intervalo depois",
+              "Quem faz",
+              "Sala ocupada"
+            ],
+            "rows": [
+              [
+                "Avaliação",
+                "30 min",
+                "nenhum",
+                "Ana, Bia, Carla e Duda",
+                "a da profissional"
+              ],
+              [
+                "Limpeza de pele",
+                "60 min",
+                "15 min",
+                "Ana e Carla",
+                "a da profissional"
+              ],
+              [
+                "Drenagem linfática",
+                "50 min",
+                "10 min",
+                "Carla e Duda",
+                "a da profissional"
+              ],
+              [
+                "Massagem modeladora",
+                "50 min",
+                "10 min",
+                "Ana e Duda",
+                "a da profissional"
+              ],
+              [
+                "Radiofrequência facial",
+                "40 min",
+                "10 min",
+                "Bia",
+                "sala 2, onde fica o aparelho"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A limpeza de pele, por exemplo, ocupa a sala por 75 minutos: 60 de atendimento e 15 para trocar o lençol, limpar a maca e arejar. Se o intervalo não estiver cadastrado, a agenda oferece o horário seguinte colado no anterior e a próxima cliente espera na recepção."
+        },
+        {
+          "tip": "A Lei 13.643/2018 regulamenta o esteticista e o técnico em estética e não abrange a estética médica. Procedimento injetável e de estética médica segue a regra do conselho de cada profissão, e só quem é habilitado pode fazer. Ligue cada procedimento apenas a quem pode executá-lo."
+        }
+      ]
+    },
+    {
+      "h2": "Aparelho numa sala só: três jeitos de não encavalar",
+      "blocks": [
+        {
+          "p": "O aparelho é o recurso mais disputado da clínica. Como ele fica numa sala, quem decide quando ele está livre é a escala daquela sala. Veja os três casos mais comuns."
+        },
+        {
+          "ol": [
+            "**Uma profissional usa o aparelho:** ligue o procedimento só a ela e deixe o aparelho na sala dela. A agenda dela já é a agenda do aparelho.",
+            "**Duas profissionais dividem o aparelho:** cada uma fica com o aparelho num turno, como manhã e tarde, e os horários de cada uma na semana não se cruzam.",
+            "**Manutenção ou dia sem o aparelho:** bloqueie o horário da profissional do aparelho naquele dia, para ninguém marcar o procedimento que depende dele."
+          ]
+        },
+        {
+          "p": "O Mostralo organiza a agenda por profissional e não tem cadastro de sala nem de aparelho. Por isso a escala por sala, como no exemplo acima, é o que garante que dois atendimentos não caiam na mesma sala. Feita a escala, o resto é automático: cada profissional só recebe reserva no horário dela."
+        }
+      ]
+    },
+    {
+      "h2": "Pacote de sessões: marcar a série inteira de uma vez",
+      "blocks": [
+        {
+          "p": "Drenagem, massagem modeladora e muitos tratamentos faciais são vendidos em pacote. O erro comum é marcar sessão por sessão: na quarta semana o horário de sempre já foi para outra cliente e o tratamento perde o ritmo."
+        },
+        {
+          "p": "Exemplo: um pacote de 10 sessões de drenagem, toda terça às 18h com a Duda. Na agenda, você marca a primeira sessão, liga a repetição semanal e escolhe 10 semanas. As datas livres viram reservas na hora; as que caírem em folga ou bloqueio aparecem como puladas e você remarca só essas. O passo a passo completo está no guia de [agendamento recorrente](/guia/agendamento-recorrente-cliente-fixo)."
+        },
+        {
+          "p": "O controle de quantas sessões do pacote já foram pagas e feitas fica com a clínica. Um jeito prático é usar uma etiqueta no cadastro da cliente, como Pacote drenagem, e conferir no histórico de atendimentos. Veja como usar [etiquetas de clientes](/guia/etiquetas-de-clientes)."
+        }
+      ]
+    },
+    {
+      "h2": "Falta e atraso: lembrete, sinal e regra escrita",
+      "blocks": [
+        {
+          "p": "Na clínica, a falta custa a sala parada e a profissional sem atender. Exemplo: uma clínica que faz 20 atendimentos por dia, 22 dias por mês, tem 440 atendimentos. Se 8% faltam, são cerca de 35 horários perdidos. Com ticket médio de R$ 180, são R$ 6.300 por mês que não entram."
+        },
+        {
+          "ul": [
+            "**Lembrete no WhatsApp:** escolha de 1 a 48 horas antes. Para procedimento longo, 24 horas antes dá tempo de oferecer a vaga a outra cliente.",
+            "**Limite para cancelar:** defina até quantas horas antes a cliente pode cancelar sozinha pelo link.",
+            "**Sinal nos procedimentos caros:** valor fixo ou porcentagem por procedimento, pelo Pix. Nos curtos, como a avaliação, o lembrete costuma bastar.",
+            "**Atraso:** combine por escrito que, passados 15 minutos, o atendimento é encurtado ou remarcado, para não atrasar a sala inteira."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Confirmação do pacote",
+              "text": "Oi, [nome]. Seu pacote de [quantidade] sessões de [procedimento] ficou marcado toda [dia da semana] às [horário] com a [profissional], de [primeira data] até [última data]. Você recebe um lembrete no WhatsApp antes de cada sessão. Se precisar remarcar, avise com [horas] horas de antecedência."
+            },
+            {
+              "title": "Vaga aberta por cancelamento",
+              "text": "Oi, [nome]. Abriu um horário de [procedimento] amanhã às [horário] com a [profissional]. Se quiser, é só reservar pelo link: [link da agenda]. A vaga fica com quem reservar primeiro."
+            },
+            {
+              "title": "Remarcação de uma sessão do pacote",
+              "text": "Oi, [nome]. Recebemos seu aviso. A sessão de [data] foi cancelada e as outras do pacote continuam iguais. Para repor, escolha um horário com a [profissional] neste link: [link da agenda]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Regras da vigilância sanitária que mexem na agenda",
+      "blocks": [
+        {
+          "p": "A agenda também ajuda a cumprir regra. Intervalo de higienização cadastrado é tempo real para limpar a sala e trocar o material de uso único. Procedimento ligado só a quem é habilitada evita que uma recepcionista marque um procedimento com a profissional errada."
+        },
+        {
+          "p": "Em setembro de 2026, a Anvisa suspendeu temporariamente a Nota Técnica 2/2024, que orientava a fiscalização dos serviços de estética, enquanto um grupo de trabalho reavalia o tema. A própria decisão diz que nada foi liberado: as leis, as normas sanitárias e a fiscalização das vigilâncias estaduais e municipais continuam valendo, e produto injetável segue como medicamento ou dispositivo médico, não como cosmético."
+        },
+        {
+          "p": "A fiscalização existe de verdade. Na operação Estética com Segurança, de fevereiro de 2025, a Anvisa e as vigilâncias locais vistoriaram 19 serviços de estética no primeiro dia e encontraram alguma irregularidade em todos, de produto sem registro a falta de responsável técnico."
+        },
+        {
+          "tip": "As exigências de alvará e de responsável técnico mudam de cidade para cidade. Confirme com a vigilância sanitária do seu município e com o conselho da profissão. Este guia é informativo e não substitui a orientação de um advogado ou de um consultor sanitário."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a agenda da clínica de estética no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "Na área de Agendamento, cadastre cada procedimento com duração, intervalo depois do atendimento, preço fixo ou a partir de e, se quiser, sinal.",
+            "Cadastre as profissionais e marque em cada uma os procedimentos que ela faz.",
+            "Monte o horário de cada profissional pela escala das salas: dias, entrada, saída e almoço. Confira que a soma em cada turno não passa do número de salas.",
+            "Lance folgas, férias e manutenção do aparelho como bloqueio no horário da profissional.",
+            "Ligue a confirmação e o lembrete no WhatsApp e escolha quantas horas antes o lembrete sai.",
+            "Decida se a cliente pode escolher qualquer profissional disponível. Para procedimento com aparelho, deixe só a profissional da sala do aparelho ligada a ele.",
+            "Divulgue o link de agendamento no Instagram, no Google e no WhatsApp. Pacotes você marca pela agenda com a repetição semanal."
+          ]
+        },
+        {
+          "p": "Depois do atendimento concluído, o Mostralo pode pedir a avaliação no Google e mandar uma [pesquisa de satisfação](/guia/pesquisa-de-satisfacao-do-cliente). Outros guias de agenda estão em [Agendamento](/conteudos/categoria/agendamento)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a agenda da clínica de estética que respeita cada sala",
+    "p": [
+      "Com o Mostralo, cada profissional tem a própria agenda, cada procedimento aparece só para quem faz e já conta o intervalo de higienização. A cliente marca sozinha pelo link da clínica, recebe confirmação e lembrete no WhatsApp, e você marca o pacote inteiro de uma vez. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Agenda por profissional, com horário, almoço, folgas e bloqueios",
+      "Procedimento com duração, intervalo e lista de quem faz",
+      "Série semanal para pacotes de sessões, com cancelamento desta e das próximas",
+      "Confirmação, lembrete, sinal pelo Pix e pedido de avaliação no Google"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a melhor agenda para clínica de estética com várias salas?",
+      "Uma em que cada profissional tem a própria agenda, cada procedimento tem duração e intervalo de higienização e a escala das profissionais nunca coloca mais gente atendendo do que salas livres no mesmo horário."
+    ],
+    [
+      "Como dividir as salas entre as profissionais?",
+      "Multiplique as salas pelas horas abertas. A soma das horas das profissionais escaladas não pode passar disso. Quando passa, divida uma sala em turnos, como manhã para uma e tarde para outra."
+    ],
+    [
+      "O Mostralo controla sala e aparelho?",
+      "Não. O Mostralo organiza a agenda por profissional. A sala e o aparelho ficam garantidos pela escala: cada profissional atende numa sala no turno dela e o procedimento do aparelho só fica ligado a quem atende na sala dele."
+    ],
+    [
+      "Como marcar um pacote de 10 sessões na agenda?",
+      "Marque a primeira sessão, ligue a repetição semanal e escolha 10 semanas. As datas livres viram reservas na hora e as que caem em folga ou bloqueio aparecem como puladas para você remarcar."
+    ],
+    [
+      "Como diminuir faltas na clínica de estética?",
+      "Ligue o lembrete no WhatsApp com antecedência suficiente para oferecer a vaga, defina o limite para cancelar e cobre sinal nos procedimentos mais longos e caros."
+    ]
+  ],
+  "sources": [
+    [
+      "Planalto — Lei nº 13.643, de 3 de abril de 2018 (esteticista e técnico em estética)",
+      "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13643.htm"
+    ],
+    [
+      "Anvisa — Decisão nº 1, de 23/09/2026, que suspende temporariamente a Nota Técnica 2/2024 sobre serviços de estética",
+      "https://www.gov.br/anvisa/pt-br/assuntos/noticias-anvisa/2026/anvisa-suspende-temporariamente-nota-tecnica-sobre-servicos-de-estetica/sei_4496020_decisao.pdf/@@display-file/file"
+    ],
+    [
+      "Conass — Estética com segurança: operação fiscaliza clínicas de estética (13/02/2025)",
+      "https://www.conass.org.br/estetica-com-seguranca-operacao-fiscaliza-clinicas-de-estetica/"
+    ]
+  ],
+  "related": [
+    "agenda-para-salao-de-beleza",
+    "agendamento-recorrente-cliente-fixo",
+    "agenda-para-nail-designer",
+    "etiquetas-de-clientes",
+    "pesquisa-de-satisfacao-do-cliente",
+    "como-conseguir-avaliacoes-no-google"
+  ]
+}

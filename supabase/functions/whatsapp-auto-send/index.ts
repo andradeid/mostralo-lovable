@@ -275,6 +275,12 @@ function replaceVariables(template: string, data: {
   return message;
 }
 
+const deny = (status: number, reason: string) =>
+  new Response(JSON.stringify({ success: false, reason }), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -300,7 +306,31 @@ serve(async (req) => {
       timeContext = null
     } = await req.json();
 
-    console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}, isTest: ${isTest}, isKnownCustomer: ${isKnownCustomer}`);
+    // ── Acesso (26/11/2026): antes era aberta a qualquer chamador ──
+    // Chamada interna (service role) segue como antes. Usuário logado só pode mandar TESTE da loja que
+    // administra e só para o número de teste salvo na configuração. Sem login: recusado.
+    const authHeader = req.headers.get('Authorization') || '';
+    const bearer = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : '';
+    const isInternal = !!bearer && bearer === supabaseServiceKey;
+    if (!isInternal) {
+      if (!bearer) return deny(401, 'unauthorized');
+      const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: userData } = await userClient.auth.getUser();
+      if (!userData?.user) return deny(401, 'unauthorized');
+      if (typeof storeId !== 'string' || !/^[0-9a-f-]{36}$/i.test(storeId)) return deny(400, 'bad_request');
+      const { data: canOperate } = await userClient.rpc('_can_operate_store', { p_store_id: storeId });
+      if (canOperate !== true) return deny(403, 'forbidden');
+      if (!isTest) return deny(403, 'only_test_allowed');
+      const { data: testCfg } = await supabase.from('whatsapp_auto_messages').select('test_phone_number').eq('store_id', storeId).maybeSingle();
+      const digits = (v: unknown) => String(v ?? '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+      if (!testCfg?.test_phone_number || digits(testCfg.test_phone_number) !== digits(phoneNumber)) return deny(403, 'test_phone_only');
+      if (orderId) return deny(403, 'forbidden');
+    }
+
+    console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}, isTest: ${isTest}, isKnownCustomer: ${isKnownCustomer}, internal: ${isInternal}`);
 
     // Buscar configuração de mensagens automáticas
     const { data: autoConfig, error: configError } = await supabase

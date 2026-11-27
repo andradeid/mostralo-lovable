@@ -21,9 +21,9 @@ test('texto no singular e plural', () => {
 });
 
 test('5 dias úteis a partir de quinta pula o fim de semana', () => {
-  // qui 26/11/2026 19:00 em São Paulo (22:00 UTC) → qui 03/12 23:59:59 local
+  // qui 26/11/2026 19:00 em São Paulo (22:00 UTC) → qui 03/12 23:59 local
   const d = businessDeadline(new Date('2026-11-26T22:00:00Z'), 5, TZ);
-  assert.equal(d.toISOString(), '2026-12-04T02:59:59.000Z');
+  assert.equal(d.toISOString(), '2026-12-04T02:59:00.000Z');
   assert.equal(deadlineLabel(d, TZ), 'qui. 03/12');
 });
 
@@ -42,8 +42,8 @@ test('minutos contam desde a criação do pedido', () => {
   const created = '2026-11-26T12:00:00Z';
   const now = new Date('2026-11-26T22:00:00Z');
   const min = leadMinutesFromCreation(created, 5, now, TZ);
-  // até 04/12 02:59:59 UTC
-  assert.equal(min, Math.round((Date.parse('2026-12-04T02:59:59Z') - Date.parse(created)) / 60000));
+  // até 04/12 02:59 UTC
+  assert.equal(min, Math.floor((Date.parse('2026-12-04T02:59:00Z') - Date.parse(created)) / 60000));
   assert.ok(isLongEstimate(min));
   assert.equal(isLongEstimate(90), false);
   assert.equal(isLongEstimate(null), false);

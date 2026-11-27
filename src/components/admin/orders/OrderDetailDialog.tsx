@@ -304,8 +304,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     setIsLoading(false);
     isLoadingRef.current = false;
     
-    // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização do banco
-    // TODO: Reativar quando o banco estiver estável
+    // Aviso ao cliente pelo WhatsApp: sai do banco (gatilho trg_order_status_whatsapp → order-status-whatsapp),
+    // não daqui. Ver AGENTS.md "Avisos de status do pedido".
     
     toast.success(
       newStatus === 'em_preparo' && order.scheduled_for
@@ -373,7 +373,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     setIsLoading(false);
     setCancelDialogOpen(false);
 
-    // ⚠️ Notificações WhatsApp de cancelamento DESATIVADAS para estabilização
+    // Aviso de cancelamento ao cliente: gatilho trg_order_status_whatsapp (se a loja ligou)
 
     if (order.source === 'ifood') {
       toast.success('Pedido cancelado e sincronizado com iFood');

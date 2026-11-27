@@ -44,7 +44,7 @@ function tzOffsetMs(d: Date, timeZone: string): number {
 }
 
 /**
- * Data limite: fim (23:59:59) do N-ésimo dia útil depois de `from`, no fuso da loja.
+ * Data limite: fim (23:59) do N-ésimo dia útil depois de `from`, no fuso da loja.
  * Sábado e domingo não contam (feriados não são considerados).
  */
 export function businessDeadline(from: Date, days: number, timeZone: string = DEFAULT_TZ): Date {
@@ -56,14 +56,15 @@ export function businessDeadline(from: Date, days: number, timeZone: string = DE
     const wd = cursor.getUTCDay();
     if (wd !== 0 && wd !== 6) left--;
   }
-  const localEnd = Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), cursor.getUTCDate(), 23, 59, 59);
+  const localEnd = Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), cursor.getUTCDate(), 23, 59, 0);
   return new Date(localEnd - tzOffsetMs(new Date(localEnd), timeZone));
 }
 
 /** Minutos entre a criação do pedido e a data limite contada a partir do aceite (`now`). */
 export function leadMinutesFromCreation(createdAt: string | Date, days: number, now: Date = new Date(), timeZone: string = DEFAULT_TZ): number {
   const deadline = businessDeadline(now, days, timeZone);
-  return Math.max(1, Math.round((deadline.getTime() - new Date(createdAt).getTime()) / 60000));
+  // para baixo: arredondar para cima podia passar da meia-noite e mostrar o dia seguinte
+  return Math.max(1, Math.floor((deadline.getTime() - new Date(createdAt).getTime()) / 60000));
 }
 
 /** Estimativa longa (1 dia ou mais): mostrar como data, não como contagem em minutos. */

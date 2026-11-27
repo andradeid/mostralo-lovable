@@ -1,0 +1,435 @@
+{
+  "slug": "grade-de-estoque-cor-e-tamanho",
+  "title": "Grade de estoque por cor e tamanho: como controlar",
+  "h1": "Grade de estoque por cor e tamanho: saiba quantas peças tem de cada combinação, sem contar na prateleira",
+  "description": "Grade de estoque por cor e tamanho para loja de roupas e calçados: como montar, quanto comprar de cada tamanho e vender na loja e no caixa sem errar.",
+  "excerpt": "Como montar a grade de estoque por cor e tamanho na loja de roupas e calçados: a tabela de combinações, quanto comprar de cada tamanho, a conta da venda perdida e a troca.",
+  "date": "2026-11-27",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "grade de estoque cor e tamanho",
+    "controle de estoque por tamanho",
+    "grade de tamanhos loja de roupas",
+    "estoque de calçados por numeração",
+    "sistema para loja de roupas",
+    "código de barras por tamanho"
+  ],
+  "image": "/images/guias/grade-de-estoque-cor-e-tamanho.jpg",
+  "imageAlt": "Dona de loja de roupas e calçados diante da prateleira de camisetas separadas por cor, conferindo a grade de estoque por cor e tamanho no celular",
+  "audio": {
+    "src": "/audio/guias/grade-de-estoque-cor-e-tamanho.mp3",
+    "duration": 638.3,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 43.47,
+        "target": "s1"
+      },
+      {
+        "t": 109.98,
+        "target": "s2"
+      },
+      {
+        "t": 191.09,
+        "target": "s3"
+      },
+      {
+        "t": 260.08,
+        "target": "s4"
+      },
+      {
+        "t": 336.0,
+        "target": "s5"
+      },
+      {
+        "t": 403.79,
+        "target": "s6"
+      },
+      {
+        "t": 494.78,
+        "target": "s7"
+      },
+      {
+        "t": 577.73,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Grade de estoque por cor e tamanho é a tabela que mostra quantas peças você tem de cada combinação, por exemplo, tênis preto número 37 ou camiseta branca tamanho M. Com ela, o estoque deixa de ser um número total que engana e passa a dizer o que realmente dá para vender, na loja, no site e no caixa.",
+    "Neste guia você vê como montar a grade, quanto comprar de cada tamanho com base no que já vendeu, a conta do dinheiro que se perde quando a combinação acaba sem ninguém perceber, como tratar a troca de tamanho e o passo a passo para deixar tudo funcionando no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "O que é grade de estoque por cor e tamanho (e por que o total engana)",
+      "blocks": [
+        {
+          "p": "Numa loja de roupas ou calçados, o mesmo modelo vira várias peças diferentes. Um tênis em 3 cores e 6 numerações são **18 combinações**, e cada uma tem o próprio estoque. Se o sistema só guarda o total do modelo, ele diz que tem tênis quando o cliente pede justamente a combinação que acabou."
+        },
+        {
+          "p": "Exemplo: uma loja tem 36 pares de um tênis casual. Parece estoque de sobra. Olhando a grade, duas combinações estão zeradas:"
+        },
+        {
+          "table": {
+            "head": [
+              "Cor",
+              "34",
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "Total"
+            ],
+            "rows": [
+              [
+                "Preto",
+                "1",
+                "2",
+                "3",
+                "0",
+                "3",
+                "2",
+                "11"
+              ],
+              [
+                "Branco",
+                "2",
+                "3",
+                "0",
+                "3",
+                "4",
+                "2",
+                "14"
+              ],
+              [
+                "Caramelo",
+                "1",
+                "2",
+                "2",
+                "2",
+                "2",
+                "2",
+                "11"
+              ],
+              [
+                "Total",
+                "4",
+                "7",
+                "5",
+                "5",
+                "9",
+                "6",
+                "36"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Quem procura o preto 37 ou o branco 36 sai sem comprar, mesmo com 36 pares na loja. A grade mostra isso antes do cliente chegar, e o total do modelo passa a ser só a soma das combinações."
+        },
+        {
+          "img": "/images/guias/grade-de-estoque-cor-e-tamanho-2.jpg",
+          "alt": "Diagrama da grade de estoque por cor e tamanho: tabela de um tênis em 3 cores e 6 numerações com duas combinações zeradas e a conta da compra por tamanho",
+          "caption": "Grade de estoque por cor e tamanho: o total diz 36 pares, a grade mostra as combinações que acabaram."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a grade: características, valores e combinações",
+      "blocks": [
+        {
+          "p": "A grade tem até duas características. Na maioria das lojas, são cor e tamanho. Cada característica tem os seus valores, e as combinações saem da multiplicação:"
+        },
+        {
+          "table": {
+            "head": [
+              "Produto",
+              "Característica 1",
+              "Característica 2",
+              "Combinações"
+            ],
+            "rows": [
+              [
+                "Camiseta básica",
+                "Cor: preto, branco",
+                "Tamanho: P, M, G, GG",
+                "2 × 4 = 8"
+              ],
+              [
+                "Tênis casual",
+                "Cor: preto, branco, caramelo",
+                "Numeração: 34 a 39",
+                "3 × 6 = 18"
+              ],
+              [
+                "Calça jeans",
+                "Lavagem: clara, escura",
+                "Numeração: 36 a 46 (pares)",
+                "2 × 6 = 12"
+              ],
+              [
+                "Boné",
+                "Cor: preto, azul, bege",
+                "não tem",
+                "3"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Use os mesmos nomes em todos os produtos (sempre \"Preto\", nunca \"preto\" num e \"Pto\" no outro) e a mesma ordem de tamanhos. Assim a equipe acha a peça rápido e o cliente entende a página do produto."
+        },
+        {
+          "ul": [
+            "Roupa adulta costuma ir de P a GG ou do 36 ao 46; calçado, por numeração.",
+            "Grade muito larga (do 34 ao 44, por exemplo) exige comprar mais peças para cobrir todos os tamanhos. Comece pelos tamanhos que você mais vende.",
+            "Modelo com preço diferente por tamanho (o GG mais caro, por exemplo) fica melhor como produto separado, porque a grade tem um preço só."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Quanto comprar de cada tamanho: a conta pelo que você já vendeu",
+      "blocks": [
+        {
+          "p": "Não existe proporção certa para todo mundo. A melhor referência é a sua própria venda. Pegue os últimos três meses de um modelo parecido e veja quanto saiu de cada tamanho."
+        },
+        {
+          "p": "Exemplo: uma loja vendeu 80 camisetas básicas em três meses: 12 P, 28 M, 24 G e 16 GG. Isso dá 15%, 35%, 30% e 20%. Na próxima compra de 60 peças, a divisão fica assim:"
+        },
+        {
+          "table": {
+            "head": [
+              "Tamanho",
+              "Vendeu em 3 meses",
+              "Parte da venda",
+              "Compra de 60 peças"
+            ],
+            "rows": [
+              [
+                "P",
+                "12",
+                "15%",
+                "9"
+              ],
+              [
+                "M",
+                "28",
+                "35%",
+                "21"
+              ],
+              [
+                "G",
+                "24",
+                "30%",
+                "18"
+              ],
+              [
+                "GG",
+                "16",
+                "20%",
+                "12"
+              ],
+              [
+                "Total",
+                "80",
+                "100%",
+                "60"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Com duas cores, divida cada tamanho entre elas pela venda de cada cor. Se não tem histórico ainda, compre menos e reponha mais vezes: a grade mostra o que acabou primeiro, e essa é a sua proporção."
+        },
+        {
+          "p": "Para saber o custo de cada compra e a margem depois de várias reposições, veja o guia de [entrada de mercadoria e custo médio](/guia/entrada-de-mercadoria-e-custo-medio)."
+        }
+      ]
+    },
+    {
+      "h2": "A conta da venda perdida e da peça parada",
+      "blocks": [
+        {
+          "p": "Errar a grade custa dinheiro dos dois lados: falta do tamanho que vende e sobra do que não sai. Exemplo de uma camiseta vendida por R$ 79,90 que custa R$ 32,00 para a loja:"
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "Conta",
+              "Resultado"
+            ],
+            "rows": [
+              [
+                "Margem por peça",
+                "R$ 79,90 − R$ 32,00",
+                "R$ 47,90"
+              ],
+              [
+                "Venda perdida por combinação zerada",
+                "5 por semana × R$ 47,90",
+                "R$ 239,50 por semana"
+              ],
+              [
+                "Venda perdida no mês",
+                "R$ 239,50 × 4 semanas",
+                "R$ 958,00"
+              ],
+              [
+                "Peça parada",
+                "12 camisetas GG × R$ 32,00",
+                "R$ 384,00 sem girar"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A venda perdida quase nunca aparece no relatório, porque o cliente simplesmente vai embora. Com a grade, você vê a combinação zerada no mesmo dia e repõe antes do fim de semana. A peça parada também fica visível: dá para fazer uma promoção daquele tamanho em vez de liquidar a coleção inteira."
+        },
+        {
+          "tip": "Olhe a grade dos modelos que mais vendem toda semana, de preferência antes do dia da compra com o fornecedor. Em datas fortes como Natal e Dia das Mães, faça isso duas vezes por semana."
+        }
+      ]
+    },
+    {
+      "h2": "Vender pela loja virtual e no caixa sem errar a peça",
+      "blocks": [
+        {
+          "p": "A grade só funciona se a venda baixa a combinação certa, em todos os lugares onde você vende. No Mostralo, é assim:"
+        },
+        {
+          "ul": [
+            "**Na loja virtual:** o cliente escolhe a cor e o tamanho. Combinação esgotada aparece riscada, sem sumir, e quando restam até 3 peças a página avisa \"Últimas 3 unidades\". Se duas pessoas tentam comprar a última, o pedido de quem chegou depois é recusado por falta de estoque.",
+            "**No caixa (PDV):** ao clicar no produto, abre a tabela com o estoque de cada combinação. Com leitor de código de barras, passar a etiqueta da peça já coloca a cor e o tamanho certos no carrinho.",
+            "**Baixa e devolução:** cada venda baixa só a combinação vendida, e o pedido cancelado devolve a peça para a combinação dela.",
+            "**Total do modelo:** é sempre a soma das combinações, então não existe o total que diz uma coisa e a prateleira outra."
+          ]
+        },
+        {
+          "p": "Cada combinação pode ter o código de barras da fábrica ou um código interno gerado pelo sistema, e dá para imprimir uma etiqueta por peça. Se você ainda não usa leitor no caixa, veja como funciona o [leitor de código de barras no PDV](/guia/leitor-de-codigo-de-barras)."
+        }
+      ]
+    },
+    {
+      "h2": "Entrada de mercadoria e troca de tamanho",
+      "blocks": [
+        {
+          "p": "Quando o fornecedor entrega, lance quantas peças chegaram de cada combinação, não só o total da caixa. No Mostralo, a entrada de um produto com grade abre a mesma tabela de cor e tamanho para você preencher. Se ler a etiqueta de uma peça, a combinação dela já começa marcada."
+        },
+        {
+          "p": "Na troca de tamanho, o estoque muda em duas combinações: a peça que volta e a que sai. Exemplo: cliente troca a camiseta preta M pela preta G. Some 1 no M e tire 1 no G na tabela da grade do produto. Se a troca tem diferença de preço, cobre a diferença no caixa."
+        },
+        {
+          "p": "Sobre a obrigação de trocar, o Código de Defesa do Consumidor separa três casos:"
+        },
+        {
+          "table": {
+            "head": [
+              "Caso",
+              "O que a lei diz"
+            ],
+            "rows": [
+              [
+                "Loja física, peça sem defeito (tamanho, cor, gosto)",
+                "A loja não é obrigada a trocar, a menos que tenha prometido. Troca prometida em etiqueta, cartaz ou nota vale como oferta e precisa ser cumprida (arts. 30 e 35)."
+              ],
+              [
+                "Compra pela internet ou fora da loja",
+                "O cliente pode desistir em até 7 dias do recebimento, mesmo sem defeito (art. 49)."
+              ],
+              [
+                "Peça com defeito aparente",
+                "O cliente tem 30 dias (produto não durável) ou 90 dias (durável) para reclamar (art. 26), e a loja tem até 30 dias para resolver (art. 18)."
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Escreva a sua política de troca (prazo, etiqueta presa, nota) e mostre antes da venda, no caixa e na página da loja. Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a grade de estoque por cor e tamanho no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "Abra **Produtos**, edite o modelo e ligue **Produto com grade** na seção Grade (cor e tamanho).",
+            "Na característica Cor, digite as cores separadas por vírgula (Preto, Branco) e escolha a bolinha de cor de cada uma. É ela que o cliente toca na loja virtual.",
+            "Na característica Tamanho, digite P, M, G, GG ou use \"Numeração de 34 a 39\" e toque em Adicionar.",
+            "Preencha o estoque de cada célula da tabela ou use \"Estoque de todas\" para dar a mesma quantidade a todas as combinações.",
+            "Leia com o leitor o código da fábrica de cada combinação ou toque em **Gerar códigos** para criar códigos internos.",
+            "Se quiser, toque em **Imprimir etiquetas**: sai uma etiqueta por peça em estoque, com o nome, a cor e o tamanho, o código e o preço.",
+            "Salve. O rodapé da tabela mostra quantas combinações existem, quantas estão sem estoque (essas aparecem esgotadas na loja) e o estoque total."
+          ]
+        },
+        {
+          "p": "O preço é o mesmo para toda a grade (o preço do produto ou da oferta). Produto com grade usa a tabela no lugar do controle de estoque simples e das variações comuns. Veja mais recursos de caixa e estoque em [funcionalidades](/funcionalidades) e outros guias em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: grade de cor e tamanho na loja virtual e no caixa",
+    "p": [
+      "Com o Mostralo, cada combinação de cor e tamanho tem estoque e código de barras próprios, e a mesma grade vale na loja virtual, no caixa e na entrada de mercadoria. O cliente vê o que tem antes de pedir, o caixa passa a peça certa no leitor e você sabe o que repor sem contar prateleira. A gente deixa tudo pronto para você, com garantia de 7 dias."
+    ],
+    "bullets": [
+      "Grade com até duas características (cor, tamanho, numeração, lavagem) e estoque por combinação",
+      "Loja virtual com cores e tamanhos para escolher, esgotado riscado e aviso de últimas unidades",
+      "PDV com tabela da grade e leitor de código de barras por combinação",
+      "Códigos internos e etiquetas com nome, cor, tamanho e preço"
+    ]
+  },
+  "faq": [
+    [
+      "O que é grade de estoque por cor e tamanho?",
+      "É a tabela que mostra quantas peças a loja tem de cada combinação de um modelo, como camiseta preta M ou tênis branco 37. Cada combinação tem estoque próprio e o total do modelo é a soma delas."
+    ],
+    [
+      "Como saber quanto comprar de cada tamanho?",
+      "Pegue a venda dos últimos três meses de um modelo parecido, calcule a parte de cada tamanho e aplique na próxima compra. Exemplo: se o M foi 35% da venda, numa compra de 60 peças vêm 21 no tamanho M."
+    ],
+    [
+      "Dá para usar o código de barras da fábrica em cada tamanho?",
+      "Sim. No Mostralo, cada combinação aceita o código da fábrica, lido com o leitor, ou um código interno gerado pelo sistema. O código não pode se repetir entre produtos e combinações da mesma loja."
+    ],
+    [
+      "A loja física é obrigada a trocar roupa que não serviu?",
+      "Pelo Código de Defesa do Consumidor, não, se a peça não tem defeito, a menos que a loja tenha prometido a troca. Na compra pela internet, o cliente pode desistir em até 7 dias do recebimento."
+    ],
+    [
+      "Posso ter preço diferente para o tamanho GG?",
+      "No Mostralo, a grade tem um preço só para todas as combinações. Se o GG custa mais, cadastre esse tamanho como um produto separado."
+    ]
+  ],
+  "sources": [
+    [
+      "Planalto — Código de Defesa do Consumidor (Lei nº 8.078/1990), texto compilado",
+      "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm"
+    ],
+    [
+      "Jornal do Brasil — Loja física não é obrigada a trocar produto sem defeito (12/10/2026)",
+      "https://www.jb.com.br/editorias/2026/10/12/troca-loja-fisica-sem-defeito-cdc.html"
+    ],
+    [
+      "Bling — Vantagens de definir uma grade de tamanhos na loja",
+      "https://blog.bling.com.br/grade-tamanhos-loja-roupa/"
+    ]
+  ],
+  "related": [
+    "leitor-de-codigo-de-barras",
+    "entrada-de-mercadoria-e-custo-medio",
+    "pdv-para-pequeno-negocio",
+    "catalogo-whatsapp-para-loja-virtual",
+    "controle-de-estoque-para-delivery",
+    "o-que-vender-no-natal"
+  ]
+}

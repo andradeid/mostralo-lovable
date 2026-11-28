@@ -313,7 +313,7 @@
           ]
         },
         {
-          "p": "Cada combinação pode ter o código de barras da fábrica ou um código interno gerado pelo sistema, e dá para imprimir uma etiqueta por peça. Se você ainda não usa leitor no caixa, veja como funciona o [leitor de código de barras no PDV](/guia/leitor-de-codigo-de-barras)."
+          "p": "Cada combinação pode ter o código de barras da fábrica ou um código interno gerado pelo sistema, e dá para imprimir uma etiqueta por peça (veja como fazer a [etiqueta de código de barras para roupas](/guia/etiqueta-de-codigo-de-barras-para-roupas)). Se você ainda não usa leitor no caixa, veja como funciona o [leitor de código de barras no PDV](/guia/leitor-de-codigo-de-barras)."
         }
       ]
     },

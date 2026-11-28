@@ -1,0 +1,386 @@
+{
+  "slug": "etiqueta-de-codigo-de-barras-para-roupas",
+  "title": "Etiqueta de código de barras para roupas: como fazer",
+  "h1": "Etiqueta de código de barras para roupas: vender no caixa sem errar a peça",
+  "description": "Etiqueta de código de barras para roupas: código da fábrica ou interno, o que vai na etiqueta, impressora, rotina do caixa e como imprimir por cor e tamanho.",
+  "excerpt": "Como fazer etiqueta de código de barras para roupas e calçados: um código por cor e tamanho, o que a etiqueta precisa ter, qual impressora usar e a rotina do caixa para não errar a peça.",
+  "date": "2026-11-28",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "etiqueta de código de barras para roupas",
+    "código de barras por tamanho",
+    "etiqueta para loja de roupas",
+    "como fazer etiqueta de roupa com código de barras",
+    "impressora de etiqueta para loja de roupas",
+    "código de barras interno"
+  ],
+  "image": "/images/guias/etiqueta-de-codigo-de-barras-para-roupas.jpg",
+  "imageAlt": "Atendente de loja de roupas passando o leitor na etiqueta de código de barras de uma camiseta preta no caixa",
+  "audio": {
+    "src": "/audio/guias/etiqueta-de-codigo-de-barras-para-roupas.mp3",
+    "duration": 693.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 43.19,
+        "target": "s1"
+      },
+      {
+        "t": 132.26,
+        "target": "s2"
+      },
+      {
+        "t": 227.77,
+        "target": "s3"
+      },
+      {
+        "t": 317.89,
+        "target": "s4"
+      },
+      {
+        "t": 397.48,
+        "target": "s5"
+      },
+      {
+        "t": 483.99,
+        "target": "s6"
+      },
+      {
+        "t": 557.74,
+        "target": "s7"
+      },
+      {
+        "t": 634.37,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "**Etiqueta de código de barras para roupas** é a etiqueta presa em cada peça com um código próprio para cada cor e tamanho. No caixa, o leitor lê esse código e a peça certa entra na venda, com o preço certo e a baixa na combinação certa do estoque.",
+    "Sem ela, o caixa procura \"camiseta preta\" na lista e escolhe o tamanho no olho. Funciona num dia calmo e falha no sábado de movimento. Este guia mostra quando usar o código da fábrica ou um código interno, o que a etiqueta precisa ter, qual impressora usar, a rotina do caixa e como imprimir as etiquetas por cor e tamanho no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o caixa erra a peça sem etiqueta de código de barras",
+      "blocks": [
+        {
+          "p": "Numa loja de roupas, o erro do caixa quase nunca aparece na hora. O cliente leva a peça certa e paga. O problema fica no estoque: cada tamanho trocado deixa **duas combinações erradas**, a que o sistema baixou e a que realmente saiu."
+        },
+        {
+          "table": {
+            "head": [
+              "Erro no caixa",
+              "O que acontece no estoque",
+              "O que o cliente sente depois"
+            ],
+            "rows": [
+              [
+                "Lançou M no lugar de G",
+                "O M fica com 1 a menos e o G com 1 a mais",
+                "A loja virtual vende um G que não existe"
+              ],
+              [
+                "Escolheu grafite no lugar de preto",
+                "As duas cores ficam erradas",
+                "Alguém pede o preto e ouve que acabou, mas tem na arara"
+              ],
+              [
+                "Duas peças iguais lançadas uma vez",
+                "Sobra 1 no sistema",
+                "Venda a menos no caixa e estoque que não fecha"
+              ],
+              [
+                "Digitou o preço à mão",
+                "Estoque certo, valor errado",
+                "Diferença no fechamento do caixa"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo: uma loja vende 25 peças por dia, 26 dias por mês, ou seja, 650 peças. Se 2% saem com cor ou tamanho errado, são 13 erros no mês e 26 combinações com saldo errado. Em três meses, 78. A grade de estoque deixa de mostrar a verdade, e é ela que diz o que repor (veja como funciona a [grade de estoque por cor e tamanho](/guia/grade-de-estoque-cor-e-tamanho))."
+        },
+        {
+          "p": "Com uma etiqueta por peça, o caixa não escolhe nada: passa o leitor e o sistema já sabe o modelo, a cor e o tamanho."
+        }
+      ]
+    },
+    {
+      "h2": "Código da fábrica ou código interno: qual usar",
+      "blocks": [
+        {
+          "p": "Cada combinação de cor e tamanho precisa de um código diferente. Esse código pode vir da fábrica ou ser criado pela própria loja:"
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "Que código usar",
+              "Por quê"
+            ],
+            "rows": [
+              [
+                "A fábrica já manda etiqueta com código por tamanho",
+                "O da fábrica",
+                "É só ler com o leitor no cadastro. Não precisa imprimir outra etiqueta."
+              ],
+              [
+                "Fornecedor pequeno, confecção própria ou peça sem código",
+                "Código interno",
+                "A loja cria um código para cada combinação e imprime a etiqueta."
+              ],
+              [
+                "A fábrica usa o mesmo código para todos os tamanhos",
+                "Código interno",
+                "Com um código só, o caixa não sabe qual tamanho baixar."
+              ],
+              [
+                "Você vende para outras lojas ou em canais que pedem código oficial",
+                "Código registrado na GS1 (GTIN)",
+                "O código interno só vale dentro da sua loja."
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O código interno tem 13 dígitos e começa com 2. É uma faixa que a GS1, organização que cuida dos códigos de barras do varejo, reserva para números de circulação restrita: o código serve para o seu caixa e o seu estoque, não para identificar o produto fora da loja. Para vender só na sua loja física e na sua loja virtual, ele resolve."
+        },
+        {
+          "tip": "Nunca use o mesmo código em duas peças diferentes. No Mostralo, o sistema recusa um código que já está em outro produto ou combinação da loja, justamente para o leitor nunca ficar em dúvida."
+        }
+      ]
+    },
+    {
+      "h2": "O que precisa ter na etiqueta (e o que a lei pede do preço)",
+      "blocks": [
+        {
+          "p": "Uma etiqueta de 40 × 25 mm cabe na tag de papel e no adesivo da caixa de calçado. Ela precisa de quatro informações:"
+        },
+        {
+          "ul": [
+            "**Nome curto do modelo**, para a equipe achar a peça na arara.",
+            "**Cor e tamanho em letra maior**, porque é o que o caixa e o cliente conferem.",
+            "**Código de barras com o número embaixo**, para digitar se o leitor falhar.",
+            "**Preço à vista**, legível para o cliente."
+          ]
+        },
+        {
+          "p": "Sobre o preço, a Lei 10.962/2004 diz que, no comércio em geral, ele deve estar em etiqueta afixada no produto ou na vitrine, em caracteres legíveis. O Decreto 5.903/2006 pede o preço na face voltada ao cliente e proíbe letras borradas, apagadas ou de tamanho que dificulte a leitura."
+        },
+        {
+          "p": "O leitor de consulta para o cliente, a no máximo 15 metros de qualquer produto, é exigido quando o preço é informado só pelo código de barras, como no supermercado. Com o preço impresso na etiqueta, a própria etiqueta informa o cliente."
+        },
+        {
+          "p": "Se o preço da etiqueta for diferente do preço do caixa, a lei manda cobrar o menor (art. 5º da Lei 10.962). Por isso, mudou o preço, troque as etiquetas antes de expor. Em liquidação, veja também as regras de [Black Friday e o Código do Consumidor](/guia/black-friday-e-o-codigo-do-consumidor)."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "Impressora, papel e onde prender a etiqueta",
+      "blocks": [
+        {
+          "p": "Não precisa de equipamento caro para começar. As três opções mais comuns:"
+        },
+        {
+          "table": {
+            "head": [
+              "Opção",
+              "Como imprime",
+              "Boa para",
+              "Cuidado"
+            ],
+            "rows": [
+              [
+                "Impressora comum com folha de etiquetas adesivas",
+                "Tinta ou toner na folha",
+                "Poucas peças por semana",
+                "Alinhar a folha e imprimir em escala de 100%"
+              ],
+              [
+                "Térmica direta",
+                "Calor no papel, sem fita",
+                "Muitas peças que vendem rápido",
+                "O papel escurece com sol e calor"
+              ],
+              [
+                "Transferência térmica (com ribbon)",
+                "Uma fita de cera ou resina passa a tinta para a etiqueta",
+                "Peça que fica meses na arara ou no estoque",
+                "Custo da fita"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/etiqueta-de-codigo-de-barras-para-roupas-2.jpg",
+          "alt": "Diagrama da etiqueta de código de barras para roupas: o que vai na etiqueta de 40 por 25 mm e o caminho da peça do cadastro ao caixa",
+          "caption": "Etiqueta de código de barras para roupas: um código por cor e tamanho, do cadastro ao caixa."
+        },
+        {
+          "p": "Para o leitor ler de primeira:"
+        },
+        {
+          "ul": [
+            "Barras pretas em fundo branco. A GS1 não recomenda barras em vermelho, laranja ou amarelo claro.",
+            "Deixe espaço livre em volta das barras. Etiqueta cortada na lateral não lê.",
+            "Não prenda o adesivo sobre costura, dobra ou parte curva da peça.",
+            "Calçado: etiqueta na lateral menor da caixa, que fica à vista na prateleira.",
+            "Antes de etiquetar o lote, teste a primeira folha no leitor do caixa."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como vender no caixa sem errar a peça",
+      "blocks": [
+        {
+          "p": "Com as peças etiquetadas, a rotina do caixa fica assim:"
+        },
+        {
+          "ol": [
+            "Passe o leitor na etiqueta. A peça entra no carrinho com o nome, a cor e o tamanho, por exemplo \"Camiseta básica, Preto / M\".",
+            "Confira na tela a cor e o tamanho, principalmente em cores parecidas.",
+            "Duas peças iguais: leia as duas. Cada leitura soma 1.",
+            "Peça sem etiqueta: clique no produto e escolha a combinação na tabela de cor e tamanho. As esgotadas não podem ser escolhidas.",
+            "Peça na mão que o sistema mostra zerada: ela entra com o aviso de estoque zerado. Venda e corrija a grade no fim do dia, porque o estoque está errado.",
+            "Código que não está cadastrado: aparece o aviso. O dono ou o administrador pode cadastrar na hora."
+          ]
+        },
+        {
+          "p": "Exemplo de venda que fecha: camiseta preta M por R$ 79,90, calça jeans escura 40 por R$ 159,90 e tênis branco 37 por R$ 229,90. Três leituras, total de R$ 469,70, e o estoque baixa 1 em cada uma das três combinações, sem ninguém escolher tamanho em lista."
+        },
+        {
+          "p": "Se você ainda vai comprar o leitor, veja como escolher no guia do [leitor de código de barras no PDV](/guia/leitor-de-codigo-de-barras)."
+        }
+      ]
+    },
+    {
+      "h2": "Rotina das etiquetas: entrada, reposição, troca e remarcação",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Momento",
+              "O que fazer"
+            ],
+            "rows": [
+              [
+                "Chegou mercadoria nova",
+                "Lance a entrada por combinação. Ler a etiqueta da fábrica de uma peça já marca a cor e o tamanho dela. Depois imprima as etiquetas das peças sem código."
+              ],
+              [
+                "Reposição de modelo já etiquetado",
+                "A impressão sai com uma etiqueta por peça do estoque atual, em sequência por combinação. Separe só as das peças que chegaram."
+              ],
+              [
+                "Troca de tamanho",
+                "A peça que volta mantém a etiqueta, porque o código é da combinação. Ajuste as duas combinações na grade."
+              ],
+              [
+                "Mudou o preço",
+                "Imprima e troque as etiquetas antes de expor. Se ficar diferente do caixa, vale o menor."
+              ],
+              [
+                "Etiqueta rasgou ou caiu",
+                "Imprima de novo. O código da combinação não muda."
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Para lançar o custo de cada compra e acompanhar a margem, veja o guia de [entrada de mercadoria e custo médio](/guia/entrada-de-mercadoria-e-custo-medio)."
+        },
+        {
+          "tip": "Uma vez por semana, conte na arara os três modelos que mais vendem e compare com a grade. Diferença repetida no mesmo tamanho costuma ser peça vendida sem passar o leitor."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer etiqueta de código de barras para roupas no Mostralo",
+      "blocks": [
+        {
+          "ol": [
+            "Abra **Produtos**, edite o modelo e ligue **Produto com grade** na seção Grade (cor e tamanho).",
+            "Monte as cores e os tamanhos e preencha o estoque de cada combinação.",
+            "Se a peça tem código da fábrica, clique no campo de código da combinação e leia a etiqueta com o leitor.",
+            "Para as combinações sem código, toque em **Gerar códigos**. O sistema cria um código interno de 13 dígitos começando com 2 só para as que estão vazias, sem repetir nenhum código da loja.",
+            "Salve o produto.",
+            "Toque em **Imprimir etiquetas**. Abre a janela de impressão com uma etiqueta de 40 × 25 mm por peça em estoque, com o nome, a cor e o tamanho, o código e o preço (o preço de oferta, se o produto estiver em oferta). Serve em impressora comum ou térmica de etiqueta.",
+            "Leia uma etiqueta no PDV para testar antes de etiquetar o lote todo."
+          ]
+        },
+        {
+          "p": "O preço é o mesmo para toda a grade. As etiquetas existem para os produtos com grade; produto simples usa o código de barras do próprio produto. Veja outros recursos de caixa e estoque em [funcionalidades](/funcionalidades) e mais guias em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: código por cor e tamanho do cadastro ao caixa",
+    "p": [
+      "Com o Mostralo, cada combinação de cor e tamanho tem o próprio código de barras, da fábrica ou gerado pelo sistema, e você imprime as etiquetas direto da tela do produto. No caixa, uma leitura coloca a peça certa na venda e baixa o estoque da combinação certa, o mesmo estoque que a loja virtual mostra ao cliente. A gente deixa tudo pronto para você, com garantia de 7 dias."
+    ],
+    "bullets": [
+      "Código de barras por combinação, com geração de códigos internos sem repetir",
+      "Etiquetas de 40 × 25 mm com nome, cor, tamanho, código e preço",
+      "PDV com leitor: a combinação entra direto no carrinho, com aviso de estoque zerado",
+      "Entrada de mercadoria e loja virtual usando a mesma grade"
+    ]
+  },
+  "faq": [
+    [
+      "Preciso comprar código na GS1 para etiquetar roupas?",
+      "Não para vender só na sua loja física e na sua loja virtual: o código interno, que começa com 2, resolve. O código registrado na GS1 é necessário quando você vende para outras lojas ou em canais que exigem código oficial do produto."
+    ],
+    [
+      "Posso usar o mesmo código para todos os tamanhos?",
+      "Não. Com um código só, o caixa não sabe qual tamanho baixar e o estoque fica errado. Cada combinação de cor e tamanho precisa do próprio código, e o Mostralo não aceita o mesmo código em duas combinações ou produtos da loja."
+    ],
+    [
+      "Qual o tamanho de etiqueta mais usado em loja de roupas?",
+      "A de 40 × 25 mm é comum e cabe em tag de papel e em caixa de calçado. O Mostralo imprime as etiquetas da grade nesse tamanho."
+    ],
+    [
+      "Preciso de impressora térmica?",
+      "Não para começar. Uma impressora comum com folha de etiquetas adesivas funciona. A térmica compensa quando o volume de peças cresce, e a de transferência térmica dura mais em peça que fica muito tempo na arara."
+    ],
+    [
+      "Se o preço da etiqueta for diferente do caixa, quanto eu cobro?",
+      "O menor dos dois. É o que manda o art. 5º da Lei 10.962/2004. Por isso, troque as etiquetas sempre que mudar o preço."
+    ]
+  ],
+  "sources": [
+    [
+      "Lei 10.962/2004: afixação de preços (Senado Federal)",
+      "https://legis.senado.leg.br/norma/552838/publicacao/15716870"
+    ],
+    [
+      "Decreto 5.903/2006: oferta e afixação de preços (Planalto)",
+      "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/decreto/D5903.htm"
+    ],
+    [
+      "GS1: faixas de prefixos (Restricted Circulation Numbers)",
+      "https://www.gs1.org/prefixes"
+    ],
+    [
+      "GS1: dez passos para implementar o código de barras",
+      "https://gs1.org/docs/barcodes/Ten%20steps%20to%20barcode%20implementation-pt-br.pdf"
+    ]
+  ],
+  "related": [
+    "grade-de-estoque-cor-e-tamanho",
+    "leitor-de-codigo-de-barras",
+    "entrada-de-mercadoria-e-custo-medio",
+    "pdv-para-pequeno-negocio",
+    "abertura-e-fechamento-de-caixa",
+    "black-friday-e-o-codigo-do-consumidor"
+  ]
+}
